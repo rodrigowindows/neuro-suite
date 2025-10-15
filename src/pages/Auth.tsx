@@ -49,7 +49,7 @@ export default function Auth() {
             </div>
           </div>
           <CardTitle className="text-3xl font-bold bg-gradient-hero bg-clip-text text-transparent">
-            NeuroSuite Beta
+            NeuroSuite
           </CardTitle>
           <CardDescription>
             Detecção de estresse e coaching de alta performance

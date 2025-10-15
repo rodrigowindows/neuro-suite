@@ -25,20 +25,49 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  // Mensagem inicial do coach baseada no nível de estresse
+  // Carregar última conversa ou criar mensagem inicial
   useEffect(() => {
-    if (stressLevel && messages.length === 0) {
-      let initialMessage = '';
-      
-      if (stressLevel === 'low') {
-        initialMessage = 'Ótimo foco! 😊 Qual expectativa de performance você quer elevar? Sugestão PNL: Ancore uma memória de sucesso para manter alta produtividade.';
-      } else if (stressLevel === 'moderate') {
-        initialMessage = 'Para reduzir turnover, o que drena sua energia? 😐 Reframe como oportunidade (PNL) para equilibrar bem-estar e performance.';
-      } else {
-        initialMessage = 'Alerta burnout (NR-1). 😟 Qual pausa sensorial (respiração 4-7-8) te recarrega? Vamos criar um plano de reequilíbrio imediato.';
-      }
+    const loadOrCreateConversation = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data } = await supabase
+            .from('coach_conversations')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('stress_level', stressLevel)
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .single();
 
-      setMessages([{ role: 'assistant', content: initialMessage }]);
+          if (data && data.messages && Array.isArray(data.messages)) {
+            setMessages(data.messages as unknown as Message[]);
+            setConversationId(data.id);
+            return; // Encontrou conversa, não precisa criar mensagem inicial
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao carregar conversa:', error);
+      }
+      
+      // Se não encontrou conversa e não há mensagens, criar mensagem inicial
+      if (messages.length === 0) {
+        let initialMessage = '';
+        
+        if (stressLevel === 'low') {
+          initialMessage = 'Ótimo foco! 😊 Qual expectativa de performance você quer elevar? Sugestão PNL: Ancore uma memória de sucesso para manter alta produtividade.';
+        } else if (stressLevel === 'moderate') {
+          initialMessage = 'Para reduzir turnover, o que drena sua energia? 😐 Reframe como oportunidade (PNL) para equilibrar bem-estar e performance.';
+        } else {
+          initialMessage = 'Alerta burnout (NR-1). 😟 Qual pausa sensorial (respiração 4-7-8) te recarrega? Vamos criar um plano de reequilíbrio imediato.';
+        }
+
+        setMessages([{ role: 'assistant', content: initialMessage }]);
+      }
+    };
+
+    if (stressLevel) {
+      loadOrCreateConversation();
     }
   }, [stressLevel]);
 

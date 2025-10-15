@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -21,6 +21,47 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
     emoji: string;
   } | null>(null);
   const { toast } = useToast();
+
+  // Carregar último scan ao montar
+  useEffect(() => {
+    const loadLastScan = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data } = await supabase
+            .from('stress_scans')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+          if (data) {
+            let emoji = '😊';
+            let message = 'Foco otimizado, produtividade alta';
+            if (data.stress_level === 'moderate') {
+              emoji = '😐';
+              message = 'Atenção normal, sugira pausas para evitar burnout';
+            } else if (data.stress_level === 'high') {
+              emoji = '😟';
+              message = 'Alerta estresse, priorize reequilíbrio (NR-1)';
+            }
+
+            setResult({
+              blinkRate: data.blink_rate,
+              stressLevel: data.stress_level,
+              message,
+              emoji,
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao carregar último scan:', error);
+      }
+    };
+
+    loadLastScan();
+  }, []);
 
   const startScan = () => {
     setIsScanning(true);

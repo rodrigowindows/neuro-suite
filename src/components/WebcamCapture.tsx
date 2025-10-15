@@ -46,6 +46,15 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
     initMediaPipe();
   }, []);
 
+  // Função para parar câmera
+  const stopWebcam = () => {
+    if (videoRef.current?.srcObject) {
+      const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+      tracks.forEach((track) => track.stop());
+      videoRef.current.srcObject = null;
+    }
+  };
+
   // Iniciar webcam
   useEffect(() => {
     const startWebcam = async () => {
@@ -66,10 +75,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
     startWebcam();
 
     return () => {
-      if (videoRef.current?.srcObject) {
-        const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
-        tracks.forEach((track) => track.stop());
-      }
+      stopWebcam();
     };
   }, []);
 
@@ -136,6 +142,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
       if (elapsedTime >= 60) {
         const blinkRate = blinkCount / (elapsedTime / 60);
         onBlinkDetected(blinkRate);
+        stopWebcam(); // Parar câmera ao finalizar
         onScanComplete();
         return;
       }

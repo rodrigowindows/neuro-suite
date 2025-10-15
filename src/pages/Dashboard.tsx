@@ -107,7 +107,7 @@ export default function Dashboard() {
             com compliance NR-1 (gestão de riscos psicossociais). Compartilhe feedback para evoluir a ferramenta.
           </p>
           <p className="text-xs text-muted-foreground pt-2 border-t">
-            NeuroSuite v1.0 (Beta) | Desenvolvido para demos corporativas em tech | Dados anônimos protegidos por LGPD
+            NeuroSuite v1.0 (Beta) | Desenvolvido por Lincolnectd Neurobusiness para demos corporativas | Dados anônimos protegidos por LGPD
           </p>
         </footer>
       </main>
