@@ -102,24 +102,16 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
 
   // Processar frame
   const processFrame = () => {
-    if (!videoRef.current || !canvasRef.current || !faceLandmarker || !isScanning) {
+    if (!videoRef.current || !faceLandmarker || !isScanning) {
       return;
     }
 
     const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
 
-    if (!ctx || video.readyState !== 4) {
+    if (video.readyState !== 4) {
       animationFrameRef.current = requestAnimationFrame(processFrame);
       return;
     }
-
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    // Desenhar vídeo
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     // Detectar face
     const results = faceLandmarker.detectForVideo(video, Date.now());
@@ -135,16 +127,6 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
 
       lastEARRef.current = currentEAR;
 
-      // Desenhar landmarks dos olhos
-      ctx.fillStyle = '#4CAF8C';
-      const eyeIndices = [33, 133, 362, 263];
-      eyeIndices.forEach((idx) => {
-        const point = landmarks[idx];
-        ctx.beginPath();
-        ctx.arc(point.x * canvas.width, point.y * canvas.height, 4, 0, 2 * Math.PI);
-        ctx.fill();
-      });
-
       // Verificar tempo de scan
       if (scanStartTimeRef.current === 0) {
         scanStartTimeRef.current = Date.now();
@@ -157,14 +139,6 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
         onScanComplete();
         return;
       }
-    } else {
-      // Nenhuma face detectada
-      ctx.fillStyle = 'rgba(255, 87, 87, 0.3)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#FF5757';
-      ctx.font = '24px Inter';
-      ctx.textAlign = 'center';
-      ctx.fillText('Posicione seu rosto na câmera', canvas.width / 2, canvas.height / 2);
     }
 
     animationFrameRef.current = requestAnimationFrame(processFrame);
@@ -197,17 +171,17 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
           {error}
         </div>
       )}
-      <div className="relative rounded-lg overflow-hidden shadow-medium">
+      <div className="relative rounded-lg overflow-hidden shadow-medium bg-muted">
         <video
           ref={videoRef}
           autoPlay
           playsInline
           muted
-          className="hidden"
+          className="w-full h-auto"
         />
         <canvas
           ref={canvasRef}
-          className="w-full h-auto bg-muted"
+          className="hidden"
         />
       </div>
       {isScanning && (

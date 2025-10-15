@@ -50,7 +50,7 @@ export default function Dashboard() {
             </div>
             <div>
               <h1 className="text-xl font-bold bg-gradient-hero bg-clip-text text-transparent">
-                NeuroSuite Beta
+                NeuroSuite
               </h1>
               <p className="text-xs text-muted-foreground">Wellness & Performance</p>
             </div>
@@ -65,7 +65,7 @@ export default function Dashboard() {
       <main className="container mx-auto px-4 py-8 max-w-5xl">
         <div className="mb-8 space-y-3">
           <h2 className="text-3xl md:text-4xl font-bold">
-            🧠 NeuroSuite Beta - Reduza Turnover e Aumente Produtividade
+            🧠 NeuroSuite - Reduza Turnover e Aumente Produtividade
           </h2>
           <p className="text-muted-foreground text-sm md:text-base max-w-3xl">
             Scan via webcam detecta padrões de piscadas (NeuroScore) para estimar estresse baseado em neurociência. 
@@ -107,7 +107,7 @@ export default function Dashboard() {
             com compliance NR-1 (gestão de riscos psicossociais). Compartilhe feedback para evoluir a ferramenta.
           </p>
           <p className="text-xs text-muted-foreground pt-2 border-t">
-            NeuroSuite Beta v1.0 | Desenvolvido para demos corporativas em tech | Dados anônimos protegidos por LGPD
+            NeuroSuite v1.0 (Beta) | Desenvolvido para demos corporativas em tech | Dados anônimos protegidos por LGPD
           </p>
         </footer>
       </main>
