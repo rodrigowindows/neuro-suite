@@ -107,45 +107,6 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
     return (leftEAR + rightEAR) / 2.0;
   };
 
-  // Desenhar overlay nos olhos
-  const drawEyeOverlay = (landmarks: any) => {
-    if (!canvasRef.current || !videoRef.current) return;
-
-    const canvas = canvasRef.current;
-    const video = videoRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Índices dos olhos
-    const leftEye = [33, 160, 158, 133, 153, 144];
-    const rightEye = [362, 385, 387, 263, 373, 380];
-
-    // Desenhar contorno dos olhos
-    ctx.strokeStyle = '#10b981';
-    ctx.lineWidth = 2;
-
-    [leftEye, rightEye].forEach((eye) => {
-      ctx.beginPath();
-      eye.forEach((index, i) => {
-        const point = landmarks[index];
-        const x = point.x * canvas.width;
-        const y = point.y * canvas.height;
-        if (i === 0) {
-          ctx.moveTo(x, y);
-        } else {
-          ctx.lineTo(x, y);
-        }
-      });
-      ctx.closePath();
-      ctx.stroke();
-    });
-  };
-
   // Processar frame
   const processFrame = () => {
     if (!videoRef.current || !faceLandmarker || !isScanning) {
@@ -164,10 +125,6 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
 
     if (results.faceLandmarks && results.faceLandmarks.length > 0) {
       const landmarks = results.faceLandmarks[0];
-      
-      // Desenhar overlay
-      drawEyeOverlay(landmarks);
-      
       const currentEAR = calculateEAR(landmarks);
 
       // Detectar piscada (limiar 0.15)
@@ -214,11 +171,6 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
-      // Limpar canvas ao parar
-      if (canvasRef.current) {
-        const ctx = canvasRef.current.getContext('2d');
-        ctx?.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-      }
     }
 
     return () => {
@@ -245,7 +197,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
         />
         <canvas
           ref={canvasRef}
-          className="absolute top-0 left-0 w-full h-full pointer-events-none"
+          className="hidden"
         />
       </div>
       {isScanning && (
