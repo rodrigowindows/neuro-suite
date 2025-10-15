@@ -66,7 +66,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
   const startScan = () => {
     setIsScanning(true);
     setProgress(0);
-    setResult(null);
+    // NÃO limpar resultado - mantém última leitura visível
 
     // Simular progresso
     const interval = setInterval(() => {
@@ -158,10 +158,10 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
             </div>
           )}
 
-          {!isScanning && !result && (
+          {!isScanning && (
             <Button onClick={startScan} className="w-full" size="lg">
               <Scan className="mr-2 h-5 w-5" />
-              Iniciar Scan (60s)
+              {result ? 'Realizar novo scan' : 'Iniciar Scan (60s)'}
             </Button>
           )}
 
@@ -200,10 +200,6 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
                   {result.stressLevel === 'high' && 'Pause agora: 2min de respiração profunda + reframe mental (PNL).'}
                 </p>
               </div>
-
-              <Button onClick={startScan} variant="outline" className="w-full">
-                Realizar novo scan
-              </Button>
             </div>
           )}
         </CardContent>

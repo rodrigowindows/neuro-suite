@@ -12,6 +12,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [faceLandmarker, setFaceLandmarker] = useState<FaceLandmarker | null>(null);
   const [blinkCount, setBlinkCount] = useState(0);
+  const [currentBlinkRate, setCurrentBlinkRate] = useState(0);
   const [error, setError] = useState<string>('');
   const animationFrameRef = useRef<number>();
   const scanStartTimeRef = useRef<number>(0);
@@ -106,6 +107,45 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
     return (leftEAR + rightEAR) / 2.0;
   };
 
+  // Desenhar overlay nos olhos
+  const drawEyeOverlay = (landmarks: any) => {
+    if (!canvasRef.current || !videoRef.current) return;
+
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Índices dos olhos
+    const leftEye = [33, 160, 158, 133, 153, 144];
+    const rightEye = [362, 385, 387, 263, 373, 380];
+
+    // Desenhar contorno dos olhos
+    ctx.strokeStyle = '#10b981';
+    ctx.lineWidth = 2;
+
+    [leftEye, rightEye].forEach((eye) => {
+      ctx.beginPath();
+      eye.forEach((index, i) => {
+        const point = landmarks[index];
+        const x = point.x * canvas.width;
+        const y = point.y * canvas.height;
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      });
+      ctx.closePath();
+      ctx.stroke();
+    });
+  };
+
   // Processar frame
   const processFrame = () => {
     if (!videoRef.current || !faceLandmarker || !isScanning) {
@@ -124,6 +164,10 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
 
     if (results.faceLandmarks && results.faceLandmarks.length > 0) {
       const landmarks = results.faceLandmarks[0];
+      
+      // Desenhar overlay
+      drawEyeOverlay(landmarks);
+      
       const currentEAR = calculateEAR(landmarks);
 
       // Detectar piscada (limiar 0.15)
@@ -139,6 +183,13 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
       }
 
       const elapsedTime = (Date.now() - scanStartTimeRef.current) / 1000;
+      
+      // Atualizar taxa de piscadas em tempo real
+      if (elapsedTime > 0) {
+        const currentRate = (blinkCount / elapsedTime) * 60;
+        setCurrentBlinkRate(Math.round(currentRate * 10) / 10);
+      }
+
       if (elapsedTime >= 60) {
         const blinkRate = blinkCount / (elapsedTime / 60);
         onBlinkDetected(blinkRate);
@@ -155,12 +206,18 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
   useEffect(() => {
     if (isScanning && faceLandmarker) {
       setBlinkCount(0);
+      setCurrentBlinkRate(0);
       scanStartTimeRef.current = 0;
       lastEARRef.current = 1;
       processFrame();
     } else {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
+      }
+      // Limpar canvas ao parar
+      if (canvasRef.current) {
+        const ctx = canvasRef.current.getContext('2d');
+        ctx?.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
       }
     }
 
@@ -188,14 +245,21 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
         />
         <canvas
           ref={canvasRef}
-          className="hidden"
+          className="absolute top-0 left-0 w-full h-full pointer-events-none"
         />
       </div>
       {isScanning && (
         <div className="text-center space-y-2">
-          <p className="text-sm text-muted-foreground">
-            Piscadas detectadas: <span className="font-bold text-primary">{blinkCount}</span>
-          </p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-3 bg-primary/10 rounded-lg">
+              <p className="text-xs text-muted-foreground mb-1">Piscadas</p>
+              <p className="text-2xl font-bold text-primary">{blinkCount}</p>
+            </div>
+            <div className="p-3 bg-secondary/10 rounded-lg">
+              <p className="text-xs text-muted-foreground mb-1">Taxa atual</p>
+              <p className="text-2xl font-bold text-secondary">{currentBlinkRate}/min</p>
+            </div>
+          </div>
           <p className="text-xs text-muted-foreground">
             Olhe para a câmera e pisque naturalmente por 60 segundos
           </p>
