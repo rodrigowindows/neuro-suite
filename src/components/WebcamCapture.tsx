@@ -121,41 +121,52 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
       return;
     }
 
-    // Detectar face
-    const results = faceLandmarker.detectForVideo(video, Date.now());
+    try {
+      // Detectar face
+      const results = faceLandmarker.detectForVideo(video, Date.now());
+      console.log('Face detection results:', results.faceLandmarks?.length || 0, 'faces');
 
-    if (results.faceLandmarks && results.faceLandmarks.length > 0) {
-      const landmarks = results.faceLandmarks[0];
-      const currentEAR = calculateEAR(landmarks);
+      if (results.faceLandmarks && results.faceLandmarks.length > 0) {
+        const landmarks = results.faceLandmarks[0];
+        const currentEAR = calculateEAR(landmarks);
+        console.log('Current EAR:', currentEAR, 'Last EAR:', lastEARRef.current);
 
-      // Detectar piscada (limiar 0.15)
-      if (lastEARRef.current > 0.15 && currentEAR <= 0.15) {
-        blinkCountRef.current += 1;
-        setBlinkCount(blinkCountRef.current);
+        // Detectar piscada (limiar 0.2 - ajustado para melhor detecção)
+        if (lastEARRef.current > 0.2 && currentEAR <= 0.2) {
+          blinkCountRef.current += 1;
+          setBlinkCount(blinkCountRef.current);
+          console.log('Blink detected! Total:', blinkCountRef.current);
+        }
+
+        lastEARRef.current = currentEAR;
+
+        // Verificar tempo de scan
+        if (scanStartTimeRef.current === 0) {
+          scanStartTimeRef.current = Date.now();
+          console.log('Scan started at:', scanStartTimeRef.current);
+        }
+
+        const elapsedTime = (Date.now() - scanStartTimeRef.current) / 1000;
+        
+        // Atualizar taxa de piscadas em tempo real
+        if (elapsedTime > 0) {
+          const currentRate = (blinkCountRef.current / elapsedTime) * 60;
+          setCurrentBlinkRate(Math.round(currentRate * 10) / 10);
+        }
+
+        if (elapsedTime >= 60) {
+          const blinkRate = blinkCountRef.current / (elapsedTime / 60);
+          console.log('Scan complete! Total blinks:', blinkCountRef.current, 'Rate:', blinkRate);
+          onBlinkDetected(blinkRate);
+          stopWebcam();
+          onScanComplete();
+          return;
+        }
+      } else {
+        console.log('No face detected in frame');
       }
-
-      lastEARRef.current = currentEAR;
-
-      // Verificar tempo de scan
-      if (scanStartTimeRef.current === 0) {
-        scanStartTimeRef.current = Date.now();
-      }
-
-      const elapsedTime = (Date.now() - scanStartTimeRef.current) / 1000;
-      
-      // Atualizar taxa de piscadas em tempo real
-      if (elapsedTime > 0) {
-        const currentRate = (blinkCountRef.current / elapsedTime) * 60;
-        setCurrentBlinkRate(Math.round(currentRate * 10) / 10);
-      }
-
-      if (elapsedTime >= 60) {
-        const blinkRate = blinkCountRef.current / (elapsedTime / 60);
-        onBlinkDetected(blinkRate);
-        stopWebcam(); // Parar câmera ao finalizar
-        onScanComplete();
-        return;
-      }
+    } catch (error) {
+      console.error('Error processing frame:', error);
     }
 
     animationFrameRef.current = requestAnimationFrame(processFrame);
