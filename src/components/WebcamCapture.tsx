@@ -175,12 +175,19 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
   // Controlar scan
   useEffect(() => {
     if (isScanning && faceLandmarker) {
+      console.log('Starting scan with faceLandmarker:', !!faceLandmarker);
       blinkCountRef.current = 0;
       setBlinkCount(0);
       setCurrentBlinkRate(0);
       scanStartTimeRef.current = 0;
       lastEARRef.current = 1;
-      processFrame();
+      
+      // Garantir que processFrame seja chamado
+      const startProcessing = () => {
+        console.log('processFrame iniciado');
+        processFrame();
+      };
+      startProcessing();
     } else {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
