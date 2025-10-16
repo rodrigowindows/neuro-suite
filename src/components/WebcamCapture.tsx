@@ -131,11 +131,12 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
         const currentEAR = calculateEAR(landmarks);
         console.log('Current EAR:', currentEAR, 'Last EAR:', lastEARRef.current);
 
-        // Detectar piscada (limiar 0.2 - ajustado para melhor detecção)
-        if (lastEARRef.current > 0.2 && currentEAR <= 0.2) {
+        // Detectar piscada - com MediaPipe valores altos (~1.5) = olhos abertos, baixos (~1.0) = piscada
+        const EAR_THRESHOLD = 1.3; // Limiar ajustado para MediaPipe
+        if (lastEARRef.current > EAR_THRESHOLD && currentEAR <= EAR_THRESHOLD) {
           blinkCountRef.current += 1;
           setBlinkCount(blinkCountRef.current);
-          console.log('Blink detected! Total:', blinkCountRef.current);
+          console.log('Blink detected! Total:', blinkCountRef.current, 'EAR dropped from', lastEARRef.current, 'to', currentEAR);
         }
 
         lastEARRef.current = currentEAR;
