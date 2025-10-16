@@ -17,6 +17,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
   const animationFrameRef = useRef<number>();
   const scanStartTimeRef = useRef<number>(0);
   const lastEARRef = useRef<number>(1);
+  const blinkCountRef = useRef<number>(0);
 
   // Inicializar MediaPipe
   useEffect(() => {
@@ -129,7 +130,8 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
 
       // Detectar piscada (limiar 0.15)
       if (lastEARRef.current > 0.15 && currentEAR <= 0.15) {
-        setBlinkCount((prev) => prev + 1);
+        blinkCountRef.current += 1;
+        setBlinkCount(blinkCountRef.current);
       }
 
       lastEARRef.current = currentEAR;
@@ -143,12 +145,12 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
       
       // Atualizar taxa de piscadas em tempo real
       if (elapsedTime > 0) {
-        const currentRate = (blinkCount / elapsedTime) * 60;
+        const currentRate = (blinkCountRef.current / elapsedTime) * 60;
         setCurrentBlinkRate(Math.round(currentRate * 10) / 10);
       }
 
       if (elapsedTime >= 60) {
-        const blinkRate = blinkCount / (elapsedTime / 60);
+        const blinkRate = blinkCountRef.current / (elapsedTime / 60);
         onBlinkDetected(blinkRate);
         stopWebcam(); // Parar câmera ao finalizar
         onScanComplete();
@@ -162,6 +164,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
   // Controlar scan
   useEffect(() => {
     if (isScanning && faceLandmarker) {
+      blinkCountRef.current = 0;
       setBlinkCount(0);
       setCurrentBlinkRate(0);
       scanStartTimeRef.current = 0;
