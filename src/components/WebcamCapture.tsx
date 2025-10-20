@@ -1,8 +1,9 @@
 import { useRef, useEffect, useState } from 'react';
 import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
+import HRVMonitor from './HRVMonitor';
 
 interface WebcamCaptureProps {
-  onBlinkDetected: (blinkRate: number) => void;
+  onBlinkDetected: (blinkRate: number, hrvValue?: number) => void;
   isScanning: boolean;
   onScanComplete: () => void;
 }
@@ -14,6 +15,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
   const [blinkCount, setBlinkCount] = useState(0);
   const [currentBlinkRate, setCurrentBlinkRate] = useState(0);
   const [error, setError] = useState<string>('');
+  const [hrvValue, setHRVValue] = useState<number | undefined>(undefined);
   const animationFrameRef = useRef<number>();
   const scanStartTimeRef = useRef<number>(0);
   const lastEARRef = useRef<number>(1);
@@ -157,8 +159,8 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
 
         if (elapsedTime >= 60) {
           const blinkRate = blinkCountRef.current / (elapsedTime / 60);
-          console.log('Scan complete! Total blinks:', blinkCountRef.current, 'Rate:', blinkRate);
-          onBlinkDetected(blinkRate);
+          console.log('Scan complete! Total blinks:', blinkCountRef.current, 'Rate:', blinkRate, 'HRV:', hrvValue);
+          onBlinkDetected(blinkRate, hrvValue);
           stopWebcam();
           onScanComplete();
           return;
@@ -202,6 +204,11 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
     };
   }, [isScanning, faceLandmarker]);
 
+  const handleHRVDetected = (hrv: number, heartRate: number) => {
+    console.log('HRV detectado:', hrv, 'ms, HR:', heartRate, 'bpm');
+    setHRVValue(hrv);
+  };
+
   return (
     <div className="space-y-4">
       {error && (
@@ -222,6 +229,14 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
           className="hidden"
         />
       </div>
+      
+      {/* HRV Monitor via rPPG */}
+      <HRVMonitor
+        videoRef={videoRef}
+        canvasRef={canvasRef}
+        isScanning={isScanning}
+        onHRVDetected={handleHRVDetected}
+      />
       {isScanning && (
         <div className="text-center space-y-2">
           <div className="grid grid-cols-2 gap-4">

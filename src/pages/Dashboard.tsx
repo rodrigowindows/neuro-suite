@@ -3,15 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Brain, LogOut, Activity, MessageCircle } from 'lucide-react';
+import { Brain, LogOut, Activity, MessageCircle, BarChart, Trophy } from 'lucide-react';
 import NeuroScore from '@/components/NeuroScore';
 import NeuroCoach from '@/components/NeuroCoach';
+import DashboardRH from '@/components/DashboardRH';
+import Gamification from '@/components/Gamification';
+import MiniMeditation from '@/components/MiniMeditation';
 
 export default function Dashboard() {
   const { user, signOut, loading } = useAuth();
   const navigate = useNavigate();
   const [stressLevel, setStressLevel] = useState<string>('');
+  const [hrvValue, setHRVValue] = useState<number | undefined>(undefined);
   const [activeTab, setActiveTab] = useState('neuroscore');
+  const [showMeditation, setShowMeditation] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -19,9 +24,16 @@ export default function Dashboard() {
     }
   }, [user, loading, navigate]);
 
-  const handleStressLevelComplete = (level: string) => {
+  const handleStressLevelComplete = (level: string, hrv?: number) => {
     setStressLevel(level);
-    setActiveTab('neurocoach');
+    setHRVValue(hrv);
+    
+    // Ativar mini-meditação se HRV < 30
+    if (hrv && hrv < 30) {
+      setShowMeditation(true);
+    }
+    
+    setActiveTab('gamification');
   };
 
   const handleLogout = async () => {
@@ -74,19 +86,40 @@ export default function Dashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 p-1">
+          <TabsList className="grid w-full grid-cols-4 p-1">
             <TabsTrigger value="neuroscore" className="gap-2">
               <Activity className="h-4 w-4" />
               NeuroScore
+            </TabsTrigger>
+            <TabsTrigger value="gamification" className="gap-2" disabled={!stressLevel}>
+              <Trophy className="h-4 w-4" />
+              Conquistas
             </TabsTrigger>
             <TabsTrigger value="neurocoach" className="gap-2" disabled={!stressLevel}>
               <MessageCircle className="h-4 w-4" />
               NeuroCoach
             </TabsTrigger>
+            <TabsTrigger value="dashboard-rh" className="gap-2">
+              <BarChart className="h-4 w-4" />
+              Dashboard RH
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="neuroscore" className="space-y-6">
             <NeuroScore onScoreComplete={handleStressLevelComplete} />
+          </TabsContent>
+
+          <TabsContent value="gamification" className="space-y-6">
+            {stressLevel ? (
+              <>
+                <Gamification stressLevel={stressLevel} hrvValue={hrvValue} />
+                {showMeditation && <MiniMeditation trigger={showMeditation} />}
+              </>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                Complete o NeuroScore primeiro
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="neurocoach" className="space-y-6">
@@ -97,6 +130,10 @@ export default function Dashboard() {
                 Complete o NeuroScore primeiro para desbloquear o Coach IA
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="dashboard-rh" className="space-y-6">
+            <DashboardRH />
           </TabsContent>
         </Tabs>
 

@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import WebcamCapture from './WebcamCapture';
 
 interface NeuroScoreProps {
-  onScoreComplete: (stressLevel: string) => void;
+  onScoreComplete: (stressLevel: string, hrvValue?: number) => void;
 }
 
 export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
@@ -93,7 +93,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
     }, 1000);
   };
 
-  const handleBlinkDetected = async (blinkRate: number) => {
+  const handleBlinkDetected = async (blinkRate: number, hrvValue?: number) => {
     let stressLevel = 'low';
     let message = 'Foco otimizado, produtividade alta';
     let emoji = '😊';
@@ -115,6 +115,13 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
       emoji,
     });
 
+    // Validação cruzada: HRV<30ms + piscadas>25/min = alerta alto
+    if (hrvValue && hrvValue < 30 && blinkRate > 25) {
+      stressLevel = 'high';
+      message = 'Alerta estresse: HRV baixo + piscadas altas (validação cruzada)';
+      emoji = '🚨';
+    }
+
     // Salvar no banco
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -123,17 +130,18 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
           user_id: user.id,
           blink_rate: blinkRate,
           stress_level: stressLevel,
+          hrv_value: hrvValue || null,
         });
       }
     } catch (error) {
       console.error('Erro ao salvar scan:', error);
     }
 
-    onScoreComplete(stressLevel);
+    onScoreComplete(stressLevel, hrvValue);
     
     toast({
       title: 'Scan completo! 🎯',
-      description: `Nível de estresse: ${stressLevel === 'low' ? 'Baixo' : stressLevel === 'moderate' ? 'Moderado' : 'Alto'}`,
+      description: `Nível de estresse: ${stressLevel === 'low' ? 'Baixo' : stressLevel === 'moderate' ? 'Moderado' : 'Alto'}${hrvValue ? ` • HRV: ${hrvValue}ms` : ''}`,
     });
   };
 

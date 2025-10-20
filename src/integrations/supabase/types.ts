@@ -193,6 +193,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_progress: {
+        Row: {
+          badges: Json
+          created_at: string
+          current_streak: number
+          id: string
+          last_scan_date: string | null
+          longest_streak: number
+          total_scans: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          badges?: Json
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_scan_date?: string | null
+          longest_streak?: number
+          total_scans?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          badges?: Json
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_scan_date?: string | null
+          longest_streak?: number
+          total_scans?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
