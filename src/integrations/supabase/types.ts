@@ -44,6 +44,74 @@ export type Database = {
         }
         Relationships: []
       }
+      email_logs: {
+        Row: {
+          email_type: string
+          id: string
+          recipient_email: string
+          sent_at: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          email_type: string
+          id?: string
+          recipient_email: string
+          sent_at?: string | null
+          status: string
+          user_id?: string | null
+        }
+        Update: {
+          email_type?: string
+          id?: string
+          recipient_email?: string
+          sent_at?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      feedback_responses: {
+        Row: {
+          conversation_id: string | null
+          created_at: string | null
+          form_response_id: string | null
+          id: string
+          productivity_impact: string | null
+          rating: number
+          stress_reduction_percent: number | null
+          user_id: string | null
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string | null
+          form_response_id?: string | null
+          id?: string
+          productivity_impact?: string | null
+          rating: number
+          stress_reduction_percent?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string | null
+          form_response_id?: string | null
+          id?: string
+          productivity_impact?: string | null
+          rating?: number
+          stress_reduction_percent?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_responses_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "coach_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -91,6 +159,36 @@ export type Database = {
           hrv_value?: number | null
           id?: string
           stress_level?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_ear_baselines: {
+        Row: {
+          baseline_closed: number
+          baseline_open: number
+          created_at: string | null
+          id: string
+          threshold: number
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          baseline_closed: number
+          baseline_open: number
+          created_at?: string | null
+          id?: string
+          threshold: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          baseline_closed?: number
+          baseline_open?: number
+          created_at?: string | null
+          id?: string
+          threshold?: number
+          updated_at?: string | null
           user_id?: string | null
         }
         Relationships: []
