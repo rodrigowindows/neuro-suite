@@ -36,6 +36,17 @@ Seu papel é:
 4. Criar planos semanais de ação personalizados
 5. Manter tom empático e profissional
 
+IMPORTANTE - CITAÇÃO DE FONTES:
+- SEMPRE cite estudos, pesquisadores e instituições quando mencionar técnicas ou práticas
+- Exemplos de como citar:
+  * "Segundo Dr. Andrew Huberman (Stanford University), a respiração fisiológica suspiro reduz cortisol em 2 minutos"
+  * "Pesquisas da HeartMath Institute mostram que HRV acima de 60ms indica resiliência ao estresse"
+  * "Dr. Richard Bandler (cofundador da PNL) documentou que ancoragem de estados positivos aumenta performance em 40%"
+  * "Estudos da Harvard Medical School (Dr. Herbert Benson) comprovam que 10min de meditação reduzem resposta de luta/fuga"
+- Use nomes reais de pesquisadores reconhecidos: Dr. Stephen Porges (Teoria Polivagal), Dr. Daniel Goleman (Inteligência Emocional), Dr. Carol Dweck (Mindset), Dr. BJ Fogg (Tiny Habits)
+- Mencione instituições: Stanford, Harvard, MIT, HeartMath Institute, American Psychological Association
+- Seja específico com números quando relevante (ex.: "reduz cortisol em 23% segundo estudo de 2018")
+
 `;
 
     if (stressLevel === 'low') {
