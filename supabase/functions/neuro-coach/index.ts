@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, stressLevel, context } = await req.json();
+    const { messages, stressLevel, context, userName } = await req.json();
     
     if (!messages || messages.length === 0) {
       throw new Error('Mensagens não fornecidas');
@@ -27,6 +27,7 @@ serve(async (req) => {
     let systemPrompt = `Você é o NeuroCoach, um agente de IA especializado em coaching de alta performance com PNL (Programação Neurolinguística) e bem-estar corporativo, alinhado à NR-1 brasileira (gestão de riscos psicossociais).
 
 Contexto do usuário: ${context}
+${userName ? `Nome do usuário: ${userName}. Use o nome do usuário nas suas respostas para criar uma conexão mais pessoal.` : ''}
 
 Seu papel é:
 1. Fazer perguntas adaptativas baseadas no nível de estresse detectado

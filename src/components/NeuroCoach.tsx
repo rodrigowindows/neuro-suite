@@ -22,8 +22,33 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
   const [hrvValue, setHrvValue] = useState('40');
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Carregar nome do usuário
+  useEffect(() => {
+    const loadUserName = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('preferred_name, full_name')
+            .eq('id', user.id)
+            .single();
+
+          if (profile) {
+            setUserName(profile.preferred_name || profile.full_name || '');
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao carregar nome:', error);
+      }
+    };
+
+    loadUserName();
+  }, []);
 
   // Carregar última conversa ou criar mensagem inicial
   useEffect(() => {
@@ -101,6 +126,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
           messages: [...messages, userMessage],
           stressLevel,
           context,
+          userName,
         },
       });
 

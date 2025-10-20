@@ -18,6 +18,7 @@ export default function Auth() {
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [signupName, setSignupName] = useState('');
+  const [signupPreferredName, setSignupPreferredName] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +33,7 @@ export default function Auth() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    const { error } = await signUp(signupEmail, signupPassword, signupName);
+    const { error } = await signUp(signupEmail, signupPassword, signupName, signupPreferredName);
     if (!error) {
       navigate('/');
     }
@@ -109,6 +110,21 @@ export default function Auth() {
                     value={signupName}
                     onChange={(e) => setSignupName(e.target.value)}
                   />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="signup-preferred-name" className="text-sm font-medium">
+                    Como prefere ser chamado(a)?
+                  </label>
+                  <Input
+                    id="signup-preferred-name"
+                    type="text"
+                    placeholder="Ex: João, Maria, Dr. Silva..."
+                    value={signupPreferredName}
+                    onChange={(e) => setSignupPreferredName(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    O NeuroCoach usará este nome para conversar com você
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="signup-email" className="text-sm font-medium">

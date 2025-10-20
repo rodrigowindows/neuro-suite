@@ -20,14 +20,27 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
     message: string;
     emoji: string;
   } | null>(null);
+  const [userName, setUserName] = useState<string>('');
   const { toast } = useToast();
 
-  // Carregar último scan ao montar
+  // Carregar nome do usuário e último scan ao montar
   useEffect(() => {
-    const loadLastScan = async () => {
+    const loadUserDataAndScan = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
+          // Buscar perfil do usuário
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('preferred_name, full_name')
+            .eq('id', user.id)
+            .single();
+
+          if (profile) {
+            setUserName(profile.preferred_name || profile.full_name || '');
+          }
+
+          // Buscar último scan
           const { data } = await supabase
             .from('stress_scans')
             .select('*')
@@ -56,11 +69,11 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
           }
         }
       } catch (error) {
-        console.error('Erro ao carregar último scan:', error);
+        console.error('Erro ao carregar dados:', error);
       }
     };
 
-    loadLastScan();
+    loadUserDataAndScan();
   }, []);
 
   const startScan = () => {
@@ -170,6 +183,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
               <div className="text-center space-y-2">
                 <div className="text-6xl">{result.emoji}</div>
                 <h3 className="text-2xl font-bold">
+                  {userName && <span>{userName}, </span>}
                   {result.stressLevel === 'low' && 'Nível Baixo'}
                   {result.stressLevel === 'moderate' && 'Nível Moderado'}
                   {result.stressLevel === 'high' && 'Nível Alto'}
