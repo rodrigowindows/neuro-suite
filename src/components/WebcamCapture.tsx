@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
+import { AlertCircle, ArrowDown } from 'lucide-react';
 import HRVMonitor from './HRVMonitor';
 
 interface WebcamCaptureProps {
@@ -16,12 +17,17 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
   const [currentBlinkRate, setCurrentBlinkRate] = useState(0);
   const [error, setError] = useState<string>('');
   const [hrvValue, setHRVValue] = useState<number | undefined>(undefined);
+  const [faceDetected, setFaceDetected] = useState(true);
+  const [lowLightWarning, setLowLightWarning] = useState(false);
+  const [isBackgroundMode, setIsBackgroundMode] = useState(false);
   const animationFrameRef = useRef<number>();
   const scanStartTimeRef = useRef<number>(0);
   const lastEARRef = useRef<number>(1);
   const blinkCountRef = useRef<number>(0);
+  const noFaceFramesRef = useRef<number>(0);
+  const backgroundDataRef = useRef<{ blinks: number[], timestamps: number[] }>({ blinks: [], timestamps: [] });
 
-  // Inicializar MediaPipe
+  // Inicializar MediaPipe com configuração robusta
   useEffect(() => {
     const initMediaPipe = async () => {
       try {
@@ -38,6 +44,8 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
           runningMode: 'VIDEO',
           outputFaceBlendshapes: false,
           outputFacialTransformationMatrixes: false,
+          minFaceDetectionConfidence: 0.3, // Mais tolerante para ângulos
+          minFacePresenceConfidence: 0.3,
         });
         
         setFaceLandmarker(landmarker);
@@ -50,6 +58,16 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
     initMediaPipe();
   }, []);
 
+  // Detectar visibilidade da página (background mode)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsBackgroundMode(document.hidden);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
   // Função para parar câmera
   const stopWebcam = () => {
     if (videoRef.current?.srcObject) {
@@ -59,12 +77,17 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
     }
   };
 
-  // Iniciar webcam
+  // Iniciar webcam com configurações otimizadas
   useEffect(() => {
     const startWebcam = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 640, height: 480 },
+          video: { 
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            facingMode: 'user',
+            frameRate: { ideal: 30 }
+          },
         });
         
         if (videoRef.current) {
@@ -110,7 +133,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
     return (leftEAR + rightEAR) / 2.0;
   };
 
-  // Processar frame
+  // Processar frame com detecção robusta
   const processFrame = () => {
     if (!videoRef.current || !faceLandmarker || !isScanning) {
       return;
@@ -124,21 +147,29 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
     }
 
     try {
-      // Detectar face
+      // Detectar face com configuração robusta
       const results = faceLandmarker.detectForVideo(video, Date.now());
-      console.log('Face detection results:', results.faceLandmarks?.length || 0, 'faces');
 
       if (results.faceLandmarks && results.faceLandmarks.length > 0) {
         const landmarks = results.faceLandmarks[0];
         const currentEAR = calculateEAR(landmarks);
-        console.log('Current EAR:', currentEAR, 'Last EAR:', lastEARRef.current);
 
-        // Detectar piscada - com MediaPipe valores altos (~1.5) = olhos abertos, baixos (~1.0) = piscada
-        const EAR_THRESHOLD = 1.3; // Limiar ajustado para MediaPipe
+        // Reset contador de frames sem face
+        noFaceFramesRef.current = 0;
+        setFaceDetected(true);
+        setLowLightWarning(false);
+
+        // Detectar piscada com threshold mais tolerante para ângulos
+        const EAR_THRESHOLD = 1.25; // Mais tolerante
         if (lastEARRef.current > EAR_THRESHOLD && currentEAR <= EAR_THRESHOLD) {
           blinkCountRef.current += 1;
           setBlinkCount(blinkCountRef.current);
-          console.log('Blink detected! Total:', blinkCountRef.current, 'EAR dropped from', lastEARRef.current, 'to', currentEAR);
+          
+          // Salvar timestamp em background mode
+          if (isBackgroundMode) {
+            backgroundDataRef.current.blinks.push(blinkCountRef.current);
+            backgroundDataRef.current.timestamps.push(Date.now());
+          }
         }
 
         lastEARRef.current = currentEAR;
@@ -146,7 +177,6 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
         // Verificar tempo de scan
         if (scanStartTimeRef.current === 0) {
           scanStartTimeRef.current = Date.now();
-          console.log('Scan started at:', scanStartTimeRef.current);
         }
 
         const elapsedTime = (Date.now() - scanStartTimeRef.current) / 1000;
@@ -159,14 +189,22 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
 
         if (elapsedTime >= 60) {
           const blinkRate = blinkCountRef.current / (elapsedTime / 60);
-          console.log('Scan complete! Total blinks:', blinkCountRef.current, 'Rate:', blinkRate, 'HRV:', hrvValue);
           onBlinkDetected(blinkRate, hrvValue);
           stopWebcam();
           onScanComplete();
           return;
         }
       } else {
-        console.log('No face detected in frame');
+        // Incrementar contador de frames sem face
+        noFaceFramesRef.current += 1;
+
+        // Alertas progressivos
+        if (noFaceFramesRef.current > 30) { // ~1 segundo sem face
+          setFaceDetected(false);
+        }
+        if (noFaceFramesRef.current > 90) { // ~3 segundos sem face
+          setLowLightWarning(true);
+        }
       }
     } catch (error) {
       console.error('Error processing frame:', error);
@@ -212,10 +250,12 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
   return (
     <div className="space-y-4">
       {error && (
-        <div className="p-4 bg-destructive/10 text-destructive rounded-lg text-sm">
+        <div className="p-4 bg-destructive/10 text-destructive rounded-lg text-sm flex items-center gap-2">
+          <AlertCircle className="h-4 w-4" />
           {error}
         </div>
       )}
+      
       <div className="relative rounded-lg overflow-hidden shadow-medium bg-muted">
         <video
           ref={videoRef}
@@ -228,6 +268,38 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
           ref={canvasRef}
           className="hidden"
         />
+        
+        {/* Feedback visual overlay */}
+        {isScanning && (
+          <>
+            {/* Background mode indicator */}
+            {isBackgroundMode && (
+              <div className="absolute top-2 right-2 px-3 py-1 bg-blue-500/90 text-white text-xs rounded-full flex items-center gap-1 animate-pulse">
+                <div className="w-2 h-2 bg-white rounded-full" />
+                Rodando em background
+              </div>
+            )}
+            
+            {/* Face not detected warning */}
+            {!faceDetected && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                <div className="text-center space-y-2 p-4">
+                  <ArrowDown className="h-8 w-8 text-yellow-400 mx-auto animate-bounce" />
+                  <p className="text-white text-sm font-medium">Ajuste sua posição</p>
+                  <p className="text-white/70 text-xs">Posicione seu rosto na câmera</p>
+                </div>
+              </div>
+            )}
+            
+            {/* Low light warning */}
+            {lowLightWarning && (
+              <div className="absolute bottom-2 left-2 right-2 px-3 py-2 bg-orange-500/90 text-white text-xs rounded-lg flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                <span>Iluminação baixa? Aproxime-se da luz!</span>
+              </div>
+            )}
+          </>
+        )}
       </div>
       
       {/* HRV Monitor via rPPG */}
@@ -237,8 +309,9 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
         isScanning={isScanning}
         onHRVDetected={handleHRVDetected}
       />
+      
       {isScanning && (
-        <div className="text-center space-y-2">
+        <div className="text-center space-y-3">
           <div className="grid grid-cols-2 gap-4">
             <div className="p-3 bg-primary/10 rounded-lg">
               <p className="text-xs text-muted-foreground mb-1">Piscadas</p>
@@ -249,9 +322,12 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
               <p className="text-2xl font-bold text-secondary">{currentBlinkRate}/min</p>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Olhe para a câmera e pisque naturalmente por 60 segundos
-          </p>
+          
+          <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+            <div className={`w-2 h-2 rounded-full ${faceDetected ? 'bg-green-500' : 'bg-red-500'}`} />
+            {faceDetected ? 'Face detectada • ' : 'Posicione seu rosto • '}
+            {isBackgroundMode ? 'Pode minimizar janela' : 'Trabalhe normalmente'}
+          </div>
         </div>
       )}
     </div>

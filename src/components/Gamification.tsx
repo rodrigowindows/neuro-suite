@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { Trophy, Flame, Award, Star, Zap, Target } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Badge as BadgeUI } from '@/components/ui/badge';
 
-interface Badge {
+interface AchievementBadge {
   id: string;
   name: string;
   description: string;
@@ -20,7 +20,7 @@ interface GamificationProps {
 export default function Gamification({ stressLevel, hrvValue }: GamificationProps) {
   const [currentStreak, setCurrentStreak] = useState(0);
   const [longestStreak, setLongestStreak] = useState(0);
-  const [badges, setBadges] = useState<Badge[]>([]);
+  const [badges, setBadges] = useState<AchievementBadge[]>([]);
   const [totalScans, setTotalScans] = useState(0);
   const [showNewBadge, setShowNewBadge] = useState(false);
 
@@ -53,7 +53,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
       if (data) {
         setCurrentStreak(data.current_streak);
         setLongestStreak(data.longest_streak);
-        setBadges(data.badges || []);
+        setBadges((data.badges as unknown as AchievementBadge[]) || []);
         setTotalScans(data.total_scans);
       }
     } catch (error) {
@@ -93,12 +93,12 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
       const newLongestStreak = Math.max(newStreak, currentProgress?.longest_streak || 0);
 
       // Verificar novos badges
-      const currentBadges = currentProgress?.badges || [];
-      const newBadges = [...currentBadges];
+      const currentBadges = (currentProgress?.badges as unknown as AchievementBadge[]) || [];
+      const newBadges: AchievementBadge[] = [...currentBadges];
       let earnedNewBadge = false;
 
       // Badge: Zen Master (7 dias consecutivos)
-      if (newStreak >= 7 && !currentBadges.find((b: Badge) => b.id === 'zen_master')) {
+      if (newStreak >= 7 && !currentBadges.find((b) => b.id === 'zen_master')) {
         newBadges.push({
           id: 'zen_master',
           name: '🧘 Zen Master',
@@ -110,7 +110,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
       }
 
       // Badge: HRV Hero (HRV > 50ms)
-      if (hrvValue && hrvValue > 50 && !currentBadges.find((b: Badge) => b.id === 'hrv_hero')) {
+      if (hrvValue && hrvValue > 50 && !currentBadges.find((b) => b.id === 'hrv_hero')) {
         newBadges.push({
           id: 'hrv_hero',
           name: '💗 HRV Hero',
@@ -122,7 +122,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
       }
 
       // Badge: Primeira Missão (primeiro scan)
-      if (newTotalScans === 1 && !currentBadges.find((b: Badge) => b.id === 'first_scan')) {
+      if (newTotalScans === 1 && !currentBadges.find((b) => b.id === 'first_scan')) {
         newBadges.push({
           id: 'first_scan',
           name: '🎯 Primeira Missão',
@@ -134,7 +134,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
       }
 
       // Badge: Guerreiro da Performance (10 scans)
-      if (newTotalScans >= 10 && !currentBadges.find((b: Badge) => b.id === 'warrior')) {
+      if (newTotalScans >= 10 && !currentBadges.find((b) => b.id === 'warrior')) {
         newBadges.push({
           id: 'warrior',
           name: '⚡ Guerreiro da Performance',
@@ -155,7 +155,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
           .limit(3);
 
         if (recentScans.data?.every(s => s.stress_level === 'low') && 
-            !currentBadges.find((b: Badge) => b.id === 'low_stress_keeper')) {
+            !currentBadges.find((b) => b.id === 'low_stress_keeper')) {
           newBadges.push({
             id: 'low_stress_keeper',
             name: '😊 Guardião do Zen',
@@ -171,11 +171,12 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
       const { error } = await supabase
         .from('user_progress')
         .upsert({
+          id: currentProgress?.id,
           user_id: user.id,
           current_streak: newStreak,
           longest_streak: newLongestStreak,
           last_scan_date: today,
-          badges: newBadges,
+          badges: newBadges as any,
           total_scans: newTotalScans,
         });
 
@@ -254,8 +255,8 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
               Conquistas ({badges.length})
             </h4>
             <div className="grid grid-cols-2 gap-2">
-              {badges.map((badge: Badge) => (
-                <Badge
+              {badges.map((badge) => (
+                <BadgeUI
                   key={badge.id}
                   variant="secondary"
                   className="p-3 justify-start gap-2 text-xs"
@@ -265,7 +266,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
                     <p className="font-semibold text-xs leading-tight">{badge.name}</p>
                     <p className="text-xs text-muted-foreground">{badge.description}</p>
                   </div>
-                </Badge>
+                </BadgeUI>
               ))}
             </div>
           </div>
