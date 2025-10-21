@@ -147,6 +147,10 @@ Predição,"${prediction}"`;
           <CardDescription>
             Dados agregados anônimos com RLS ativo • Limite 100 scans (free tier)
           </CardDescription>
+          <Button onClick={exportCSV} variant="outline" size="sm" className="mt-3">
+            <Download className="mr-2 h-4 w-4" />
+            Exportar CSV
+          </Button>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Estatísticas */}
@@ -219,25 +223,16 @@ Predição,"${prediction}"`;
                     Após exportar seu plano no NeuroCoach, avalie o impacto no seu estresse/produtividade
                   </p>
                   <Button
-                    size="sm"
-                    variant="outline"
-                    className="w-full"
+                    size="default"
+                    className="w-full font-semibold shadow-lg hover:scale-105 transition-transform"
                     onClick={() => window.open('https://docs.google.com/forms/d/e/1FAIpQLSe81DxmsG0amW42BCTsr2w2nplmT8uLsedNpNVCE-pC7HCj_g/viewform?usp=dialog', '_blank')}
                   >
-                    Responder Survey (Google Forms Free)
+                    📋 Responder Survey (Google Forms Free)
                   </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
-
-          {/* Ações */}
-          <div className="flex gap-3">
-            <Button onClick={exportCSV} className="flex-1" variant="outline">
-              <Download className="mr-2 h-4 w-4" />
-              Exportar CSV
-            </Button>
-          </div>
 
           {/* Métricas */}
           <div className="p-3 bg-muted/30 rounded-lg text-xs text-muted-foreground">
