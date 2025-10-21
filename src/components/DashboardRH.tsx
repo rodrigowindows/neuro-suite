@@ -222,7 +222,7 @@ Predição,"${prediction}"`;
                     size="sm"
                     variant="outline"
                     className="w-full"
-                    onClick={() => window.open('https://forms.gle/YOUR_GOOGLE_FORM_ID', '_blank')}
+                    onClick={() => window.open('https://docs.google.com/forms/d/e/1FAIpQLSe81DxmsG0amW42BCTsr2w2nplmT8uLsedNpNVCE-pC7HCj_g/viewform?usp=dialog', '_blank')}
                   >
                     Responder Survey (Google Forms Free)
                   </Button>
