@@ -22,7 +22,7 @@ export type Database = {
           messages: Json
           stress_level: string
           updated_at: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           action_plan?: string | null
@@ -31,7 +31,7 @@ export type Database = {
           messages?: Json
           stress_level: string
           updated_at?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           action_plan?: string | null
@@ -40,7 +40,7 @@ export type Database = {
           messages?: Json
           stress_level?: string
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -80,7 +80,7 @@ export type Database = {
           productivity_impact: string | null
           rating: number
           stress_reduction_percent: number | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           conversation_id?: string | null
@@ -90,7 +90,7 @@ export type Database = {
           productivity_impact?: string | null
           rating: number
           stress_reduction_percent?: number | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           conversation_id?: string | null
@@ -100,7 +100,7 @@ export type Database = {
           productivity_impact?: string | null
           rating?: number
           stress_reduction_percent?: number | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -143,7 +143,7 @@ export type Database = {
           hrv_value: number | null
           id: string
           stress_level: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           blink_rate: number
@@ -151,7 +151,7 @@ export type Database = {
           hrv_value?: number | null
           id?: string
           stress_level: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           blink_rate?: number
@@ -159,7 +159,7 @@ export type Database = {
           hrv_value?: number | null
           id?: string
           stress_level?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -171,7 +171,7 @@ export type Database = {
           id: string
           threshold: number
           updated_at: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           baseline_closed: number
@@ -180,7 +180,7 @@ export type Database = {
           id?: string
           threshold: number
           updated_at?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           baseline_closed?: number
@@ -189,7 +189,7 @@ export type Database = {
           id?: string
           threshold?: number
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -203,7 +203,7 @@ export type Database = {
           longest_streak: number
           total_scans: number
           updated_at: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           badges?: Json
@@ -214,7 +214,7 @@ export type Database = {
           longest_streak?: number
           total_scans?: number
           updated_at?: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           badges?: Json
@@ -225,7 +225,7 @@ export type Database = {
           longest_streak?: number
           total_scans?: number
           updated_at?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }

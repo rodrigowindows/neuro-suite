@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Brain } from 'lucide-react';
+import { signupSchema, loginSchema } from '@/lib/validations';
+import { toast } from 'sonner';
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -23,20 +25,50 @@ export default function Auth() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    const { error } = await signIn(loginEmail, loginPassword);
-    if (!error) {
-      navigate('/');
+    
+    try {
+      const validated = loginSchema.parse({ email: loginEmail, password: loginPassword });
+      const { error } = await signIn(validated.email, validated.password);
+      if (!error) {
+        navigate('/');
+      }
+    } catch (error: any) {
+      if (error.errors) {
+        toast.error(error.errors[0].message);
+      }
     }
+    
     setIsLoading(false);
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    const { error } = await signUp(signupEmail, signupPassword, signupName, signupPreferredName);
-    if (!error) {
-      navigate('/');
+    
+    try {
+      const validated = signupSchema.parse({
+        email: signupEmail,
+        password: signupPassword,
+        fullName: signupName,
+        preferredName: signupPreferredName,
+      });
+      
+      const { error } = await signUp(
+        validated.email,
+        validated.password,
+        validated.fullName,
+        validated.preferredName
+      );
+      
+      if (!error) {
+        navigate('/');
+      }
+    } catch (error: any) {
+      if (error.errors) {
+        toast.error(error.errors[0].message);
+      }
     }
+    
     setIsLoading(false);
   };
 
