@@ -77,7 +77,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
     }
   };
 
-  // Iniciar webcam com configurações otimizadas
+  // Controlar câmera baseado no estado de scanning
   useEffect(() => {
     const startWebcam = async () => {
       try {
@@ -99,12 +99,16 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
       }
     };
 
-    startWebcam();
+    if (isScanning) {
+      startWebcam();
+    } else {
+      stopWebcam();
+    }
 
     return () => {
       stopWebcam();
     };
-  }, []);
+  }, [isScanning]);
 
   // Calcular EAR (Eye Aspect Ratio)
   const calculateEAR = (landmarks: any) => {
@@ -269,9 +273,26 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
           className="hidden"
         />
         
-        {/* Feedback visual overlay */}
+        {/* Feedback visual de câmera desligada */}
+        {!isScanning && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/90">
+            <div className="text-center text-white px-4 space-y-2">
+              <div className="text-5xl mb-3">📷</div>
+              <p className="text-xl font-bold">Câmera Desligada</p>
+              <p className="text-sm text-white/70">Clique em "Iniciar Scan" para ativar</p>
+            </div>
+          </div>
+        )}
+        
+        {/* Feedback visual overlay durante scan */}
         {isScanning && (
           <>
+            {/* Indicador de câmera ligada */}
+            <div className="absolute top-2 left-2 px-3 py-1 bg-green-500 text-white text-xs rounded-full flex items-center gap-2 font-bold shadow-lg">
+              <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+              Câmera Ligada
+            </div>
+            
             {/* Background mode indicator */}
             {isBackgroundMode && (
               <div className="absolute top-2 right-2 px-3 py-1 bg-blue-500/90 text-white text-xs rounded-full flex items-center gap-1 animate-pulse">

@@ -77,7 +77,7 @@ export default function Auth() {
       <Card className="w-full max-w-md shadow-medium">
         <CardHeader className="text-center space-y-2">
           <div className="flex justify-center mb-4">
-            <img src={neuroSuiteLogo} alt="NeuroSuite Logo" className="h-24 w-auto" />
+            <img src={neuroSuiteLogo} alt="NeuroSuite Logo" className="h-48 w-auto" />
           </div>
           <CardDescription>
             Detecção de estresse e coaching de alta performance
