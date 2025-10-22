@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Brain } from 'lucide-react';
 import { signupSchema, loginSchema } from '@/lib/validations';
 import { toast } from 'sonner';
+import neuroSuiteLogo from '@/assets/neurosuite-logo.jpg';
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -77,13 +77,8 @@ export default function Auth() {
       <Card className="w-full max-w-md shadow-medium">
         <CardHeader className="text-center space-y-2">
           <div className="flex justify-center mb-4">
-            <div className="p-3 bg-gradient-hero rounded-full">
-              <Brain className="h-8 w-8 text-white" />
-            </div>
+            <img src={neuroSuiteLogo} alt="NeuroSuite Logo" className="h-24 w-auto" />
           </div>
-          <CardTitle className="text-3xl font-bold bg-gradient-hero bg-clip-text text-transparent">
-            NeuroSuite
-          </CardTitle>
           <CardDescription>
             Detecção de estresse e coaching de alta performance
           </CardDescription>
