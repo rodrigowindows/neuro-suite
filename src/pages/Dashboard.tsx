@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Brain, LogOut, Activity, MessageCircle, BarChart, Trophy } from 'lucide-react';
+import { LogOut, Activity, MessageCircle, BarChart, Trophy } from 'lucide-react';
 import NeuroScore from '@/components/NeuroScore';
 import NeuroCoach from '@/components/NeuroCoach';
 import DashboardRH from '@/components/DashboardRH';
 import Gamification from '@/components/Gamification';
 import MiniMeditation from '@/components/MiniMeditation';
+import neuroSuiteLogo from '@/assets/neurosuite-logo.jpg';
 
 export default function Dashboard() {
   const { user, signOut, loading } = useAuth();
@@ -57,15 +58,11 @@ export default function Dashboard() {
       <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50 shadow-soft">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-hero rounded-lg">
-              <Brain className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold bg-gradient-hero bg-clip-text text-transparent">
-                NeuroSuite
-              </h1>
-              <p className="text-xs text-muted-foreground">Wellness & Performance</p>
-            </div>
+            <img 
+              src={neuroSuiteLogo} 
+              alt="NeuroSuite Logo" 
+              className="h-12 w-auto object-contain"
+            />
           </div>
           <Button variant="ghost" size="sm" onClick={handleLogout}>
             <LogOut className="h-4 w-4 mr-2" />

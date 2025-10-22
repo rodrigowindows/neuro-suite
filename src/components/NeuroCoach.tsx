@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MessageCircle, Send, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -23,6 +24,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>('');
+  const [communicationTone, setCommunicationTone] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -127,6 +129,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
           stressLevel,
           context,
           userName,
+          communicationTone,
         },
       });
 
@@ -211,25 +214,67 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="hrv" className="text-sm font-medium">
-              HRV da Pulseira (RMSSD em ms) - Opcional
-            </label>
-            <Input
-              id="hrv"
-              type="number"
-              placeholder="40"
-              value={hrvValue}
-              onChange={(e) => setHrvValue(e.target.value)}
-              className="max-w-xs"
-            />
-            <p className="text-xs text-muted-foreground">
-              Valores &lt;30 validam estresse alto. Default: 40ms
-            </p>
-          </div>
+          {!communicationTone && (
+            <div className="p-4 bg-accent/10 rounded-lg border-2 border-accent/30 space-y-3">
+              <h3 className="font-semibold text-accent">🎯 Escolha teu tom de comunicação:</h3>
+              <p className="text-sm text-muted-foreground">
+                Selecione como prefere que o NeuroCoach se comunique com você
+              </p>
+              <Select value={communicationTone} onValueChange={setCommunicationTone}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecione um tom..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="technical">
+                    🔬 Técnico/Acadêmico - Formal, científico com referências
+                  </SelectItem>
+                  <SelectItem value="casual">
+                    😎 Descolado Dia-a-Dia - Papo amigo, casual e motivador
+                  </SelectItem>
+                  <SelectItem value="spiritual">
+                    🧘 Toque Mestre Espiritual Pragmático - Inspiracional e guia interior
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
-          <div className="h-[400px] overflow-y-auto space-y-4 p-4 bg-muted/30 rounded-lg border">
-            {messages.map((msg, idx) => (
+          {communicationTone && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label htmlFor="hrv" className="text-sm font-medium">
+                  HRV da Pulseira (RMSSD em ms) - Opcional
+                </label>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setCommunicationTone('');
+                    setMessages([]);
+                    setConversationId(null);
+                  }}
+                  className="text-xs"
+                >
+                  Mudar Tom
+                </Button>
+              </div>
+              <Input
+                id="hrv"
+                type="number"
+                placeholder="40"
+                value={hrvValue}
+                onChange={(e) => setHrvValue(e.target.value)}
+                className="max-w-xs"
+              />
+              <p className="text-xs text-muted-foreground">
+                Valores &lt;30 validam estresse alto. Default: 40ms
+              </p>
+            </div>
+          )}
+
+          {communicationTone && (
+            <div className="h-[400px] overflow-y-auto space-y-4 p-4 bg-muted/30 rounded-lg border">
+              {messages.map((msg, idx) => (
               <div
                 key={idx}
                 className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -254,10 +299,12 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
                 </div>
               </div>
             )}
-            <div ref={messagesEndRef} />
-          </div>
+              <div ref={messagesEndRef} />
+            </div>
+          )}
 
-          <div className="flex gap-2">
+          {communicationTone && (
+            <div className="flex gap-2">
             <Textarea
               placeholder="Descreva como se sente ou o que quer melhorar..."
               value={input}
@@ -270,12 +317,13 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
               }}
               className="min-h-[60px]"
             />
-            <Button onClick={sendMessage} disabled={isLoading || !input.trim()} size="icon">
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
+              <Button onClick={sendMessage} disabled={isLoading || !input.trim()} size="icon">
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
 
-          {messages.length > 2 && (
+          {communicationTone && messages.length > 2 && (
             <Button onClick={exportPlan} variant="outline" className="w-full">
               <Download className="mr-2 h-4 w-4" />
               Exportar Plano Semanal

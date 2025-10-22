@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Brain, Activity, MessageCircle, Trophy, Users, Zap, Target, Shield } from "lucide-react";
+import { Activity, MessageCircle, Trophy, Users, Zap, Target, Shield } from "lucide-react";
+import neuroSuiteLogo from '@/assets/neurosuite-logo.jpg';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -12,15 +13,11 @@ const Index = () => {
       <header className="border-b bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-hero rounded-lg">
-              <Brain className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold bg-gradient-hero bg-clip-text text-transparent">
-                NeuroSuite
-              </h1>
-              <p className="text-xs text-muted-foreground">Wellness & Performance</p>
-            </div>
+            <img 
+              src={neuroSuiteLogo} 
+              alt="NeuroSuite Logo" 
+              className="h-12 w-auto object-contain"
+            />
           </div>
         </div>
       </header>
