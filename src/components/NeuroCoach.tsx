@@ -122,8 +122,18 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
         }
       }
 
+      // Obter token de autenticação
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('Você precisa estar autenticado para usar o NeuroCoach');
+      }
+
       // Chamar edge function do coach
       const { data, error } = await supabase.functions.invoke('neuro-coach', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: {
           messages: [...messages, userMessage],
           stressLevel,
