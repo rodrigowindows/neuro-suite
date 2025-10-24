@@ -61,12 +61,21 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
   // Detectar visibilidade da página (background mode)
   useEffect(() => {
     const handleVisibilityChange = () => {
-      setIsBackgroundMode(document.hidden);
+      const isHidden = document.hidden;
+      setIsBackgroundMode(isHidden);
+      
+      // Continuar processamento mesmo em background se estiver scaneando
+      if (!isHidden && isScanning && faceLandmarker) {
+        // Retomar processamento quando voltar à página
+        if (!animationFrameRef.current) {
+          processFrame();
+        }
+      }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
+  }, [isScanning, faceLandmarker]);
 
   // Função para parar câmera
   const stopWebcam = () => {
@@ -150,6 +159,9 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
       return;
     }
 
+    // Continuar processamento mesmo em background para trabalho normal
+    // O navegador pode reduzir fps, mas não para completamente
+
     try {
       // Detectar face com configuração robusta
       const results = faceLandmarker.detectForVideo(video, Date.now());
@@ -185,10 +197,10 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
 
         const elapsedTime = (Date.now() - scanStartTimeRef.current) / 1000;
         
-        // Atualizar taxa de piscadas em tempo real
+        // Atualizar taxa de piscadas em tempo real (3 casas decimais)
         if (elapsedTime > 0) {
           const currentRate = (blinkCountRef.current / elapsedTime) * 60;
-          setCurrentBlinkRate(Math.round(currentRate * 10) / 10);
+          setCurrentBlinkRate(Math.round(currentRate * 1000) / 1000);
         }
 
         if (elapsedTime >= 60) {
