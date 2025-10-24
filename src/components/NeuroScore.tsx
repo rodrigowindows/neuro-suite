@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Scan, Activity } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -180,10 +181,19 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
           )}
 
           {!isScanning && (
-            <Button onClick={startScan} className="w-full h-12 sm:h-auto text-sm sm:text-base" size="lg">
-              <Scan className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-              {result ? 'Realizar novo scan' : 'Iniciar Scan (60s)'}
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button onClick={startScan} className="w-full h-12 sm:h-auto text-sm sm:text-base" size="lg">
+                    <Scan className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                    {result ? 'Realizar novo scan' : 'Iniciar Scan (60s)'}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Funciona corretamente pelo computador. Integrações com Slack, Zoom, Meet, Teams em breve.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
 
           {result && (

@@ -28,6 +28,9 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
   const lastBlinkTimeRef = useRef<number>(0);
   const backgroundDataRef = useRef<{ blinks: number[], timestamps: number[] }>({ blinks: [], timestamps: [] });
 
+  // Detectar plataforma
+  const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent);
+
   // Inicializar MediaPipe com configuração robusta
   useEffect(() => {
     const initMediaPipe = async () => {
@@ -45,7 +48,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
           runningMode: 'VIDEO',
           outputFaceBlendshapes: false,
           outputFacialTransformationMatrixes: false,
-          minFaceDetectionConfidence: 0.6, // Otimizado para celular
+          minFaceDetectionConfidence: isMobile ? 0.7 : 0.6,
           minFacePresenceConfidence: 0.5,
         });
         
@@ -179,17 +182,18 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
         const landmarks = results.faceLandmarks[0];
         const currentEAR = calculateEAR(landmarks);
         
-        // Log de debug com EAR
-        console.log('Landmarks:', results.faceLandmarks.length, 'Video State:', video.readyState, 'EAR:', currentEAR.toFixed(3));
+        // Log de debug detalhado com plataforma
+        console.log('Platform:', navigator.userAgent, 'Landmarks:', results.faceLandmarks.length, 'EAR:', currentEAR?.toFixed(3) || 'N/A');
 
         // Reset contador de frames sem face
         noFaceFramesRef.current = 0;
         setFaceDetected(true);
         setLowLightWarning(false);
 
-        // Detectar piscada com threshold ajustado e debounce (otimizado para mobile)
-        const EAR_THRESHOLD = 0.18;
-        const EAR_OPEN = 0.23;
+        // Detectar piscada com threshold diferenciado por plataforma
+        const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent);
+        const EAR_THRESHOLD = isMobile ? 0.12 : 0.15;
+        const EAR_OPEN = isMobile ? 0.18 : 0.20;
         const DEBOUNCE_MS = 100;
         
         const now = Date.now();
@@ -259,12 +263,12 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
       lastEARRef.current = 0.3;
       lastBlinkTimeRef.current = 0;
       
-      // Usar setInterval (100ms) otimizado para mobile
+      // Usar setInterval (50ms) otimizado
       intervalRef.current = window.setInterval(() => {
         processFrame();
-      }, 100);
+      }, 50);
       
-      console.log('processFrame iniciado com setInterval (100ms)');
+      console.log('processFrame iniciado com setInterval (50ms)');
     } else {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
