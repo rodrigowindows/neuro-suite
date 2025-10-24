@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNavigate } from "react-router-dom";
 import { Activity, MessageCircle, Trophy, Users, Zap, Target, Shield } from "lucide-react";
 import neuroSuiteLogo from '@/assets/neurosuite-logo.jpg';
@@ -24,12 +25,12 @@ const Index = () => {
 
       <main className="container mx-auto px-4 py-8 sm:py-12 md:py-16 max-w-6xl">
         {/* Hero Banner */}
-        <section className="text-center mb-12 sm:mb-16 md:mb-20 space-y-4 sm:space-y-6">
+        <section className="text-center mb-12 sm:mb-16 md:mb-20 space-y-4 sm:space-y-6 relative">
           <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight px-2">
-            Vire o Jogo do Estresse em <span className="bg-gradient-hero bg-clip-text text-transparent">60 segundos! 🚀</span>
+            Desbloqueie teu cérebro em <span className="bg-gradient-hero bg-clip-text text-transparent">60s! 🚀</span>
           </h2>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto px-4">
-            Webcam lê piscadas + HRV, IA coach te dá plano PNL pra alta performance. 
+            Alta Performance Sem Sobrecarga com treino mental. 
             <span className="font-semibold text-foreground"> Reduz turnover 30%, NR-1 compliant.</span>
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center pt-4 sm:pt-6 px-4">
@@ -49,6 +50,9 @@ const Index = () => {
               Saiba Mais
             </Button>
           </div>
+          <p className="text-xs sm:text-sm text-warning font-semibold mt-6 px-4">
+            ⚠️ ATENÇÃO - NÃO SUBSTITUI TERAPIA.
+          </p>
         </section>
 
         {/* Benefícios Section */}
@@ -137,7 +141,20 @@ const Index = () => {
               <CardContent className="pt-6">
                 <p className="text-muted-foreground italic mb-4">
                   "Mudou minha semana! O scan detectou meu estresse antes mesmo de eu perceber. 
-                  O coach IA me deu ferramentas práticas que uso todo dia."
+                  80% users sentem mais clareza (testes{' '}
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="underline decoration-dotted cursor-help font-medium text-foreground">
+                          neuroplasticidade
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>Neuroplasticidade: a capacidade do cérebro de se adaptar e aprender com a prática.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  )."
                 </p>
                 <p className="font-semibold">— João Silva</p>
                 <p className="text-sm text-muted-foreground">Analista de RH, Tech Corp</p>
@@ -249,6 +266,9 @@ const Index = () => {
               </p>
               <p className="text-muted-foreground">
                 📱 WhatsApp: (11) 99999-9999
+              </p>
+              <p className="text-muted-foreground mt-4 text-sm">
+                🚀 Integrações Slack/Zoom que em breve.
               </p>
             </div>
           </div>
