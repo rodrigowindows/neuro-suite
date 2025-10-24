@@ -22,12 +22,10 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
   const [isBackgroundMode, setIsBackgroundMode] = useState(false);
   const animationFrameRef = useRef<number>();
   const scanStartTimeRef = useRef<number>(0);
-  const lastEARRef = useRef<number>(0.3);
+  const lastEARRef = useRef<number>(1);
   const blinkCountRef = useRef<number>(0);
   const noFaceFramesRef = useRef<number>(0);
   const backgroundDataRef = useRef<{ blinks: number[], timestamps: number[] }>({ blinks: [], timestamps: [] });
-  const blinkDebounceRef = useRef<number>(0);
-  const earHistoryRef = useRef<number[]>([]);
 
   // Inicializar MediaPipe com configuração robusta
   useEffect(() => {
@@ -151,11 +149,6 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
   // Processar frame com detecção robusta
   const processFrame = () => {
     if (!videoRef.current || !faceLandmarker || !isScanning) {
-      console.log('processFrame early return:', { 
-        hasVideo: !!videoRef.current, 
-        hasFaceLandmarker: !!faceLandmarker, 
-        isScanning 
-      });
       return;
     }
 
@@ -175,48 +168,27 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
 
       if (results.faceLandmarks && results.faceLandmarks.length > 0) {
         const landmarks = results.faceLandmarks[0];
-        console.log('Face landmarks detectados:', landmarks.length, 'pontos');
-        
         const currentEAR = calculateEAR(landmarks);
-        console.log('EAR atual:', currentEAR.toFixed(3), '| último EAR:', lastEARRef.current.toFixed(3));
 
         // Reset contador de frames sem face
         noFaceFramesRef.current = 0;
         setFaceDetected(true);
         setLowLightWarning(false);
 
-        // Manter histórico de EAR para suavização
-        earHistoryRef.current.push(currentEAR);
-        if (earHistoryRef.current.length > 3) {
-          earHistoryRef.current.shift();
-        }
-
-        // Calcular média para reduzir ruído
-        const avgEAR = earHistoryRef.current.reduce((a, b) => a + b, 0) / earHistoryRef.current.length;
-
-        // Detectar piscada com threshold calibrado e debounce
-        const EAR_THRESHOLD = 0.24; // Ajustado conforme solicitado
-        const EAR_OPEN = 0.27; // Ajustado conforme solicitado
-        
-        const currentTime = Date.now();
-        const timeSinceLastBlink = currentTime - blinkDebounceRef.current;
-        
-        // Detectar fechamento seguido de abertura (piscada completa)
-        if (lastEARRef.current >= EAR_OPEN && avgEAR < EAR_THRESHOLD && 
-            timeSinceLastBlink > 100) { // 100ms debounce
+        // Detectar piscada com threshold mais tolerante para ângulos
+        const EAR_THRESHOLD = 1.25; // Mais tolerante
+        if (lastEARRef.current > EAR_THRESHOLD && currentEAR <= EAR_THRESHOLD) {
           blinkCountRef.current += 1;
           setBlinkCount(blinkCountRef.current);
-          blinkDebounceRef.current = currentTime;
-          console.log('🎯 PISCADA DETECTADA!', blinkCountRef.current, '| avgEAR:', avgEAR.toFixed(3));
           
           // Salvar timestamp em background mode
           if (isBackgroundMode) {
             backgroundDataRef.current.blinks.push(blinkCountRef.current);
-            backgroundDataRef.current.timestamps.push(currentTime);
+            backgroundDataRef.current.timestamps.push(Date.now());
           }
         }
 
-        lastEARRef.current = avgEAR;
+        lastEARRef.current = currentEAR;
 
         // Verificar tempo de scan
         if (scanStartTimeRef.current === 0) {
@@ -225,10 +197,10 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
 
         const elapsedTime = (Date.now() - scanStartTimeRef.current) / 1000;
         
-        // Atualizar taxa de piscadas em tempo real (2 casas decimais)
+        // Atualizar taxa de piscadas em tempo real (3 casas decimais)
         if (elapsedTime > 0) {
           const currentRate = (blinkCountRef.current / elapsedTime) * 60;
-          setCurrentBlinkRate(Math.round(currentRate * 100) / 100);
+          setCurrentBlinkRate(Math.round(currentRate * 1000) / 1000);
         }
 
         if (elapsedTime >= 60) {
@@ -265,9 +237,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
       setBlinkCount(0);
       setCurrentBlinkRate(0);
       scanStartTimeRef.current = 0;
-      lastEARRef.current = 0.3;
-      blinkDebounceRef.current = 0;
-      earHistoryRef.current = [];
+      lastEARRef.current = 1;
       
       // Garantir que processFrame seja chamado
       const startProcessing = () => {
@@ -382,7 +352,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
             </div>
             <div className="p-3 bg-secondary/10 rounded-lg">
               <p className="text-xs text-muted-foreground mb-1">Taxa atual</p>
-              <p className="text-xl sm:text-2xl font-bold text-secondary">{currentBlinkRate.toFixed(2)}/min</p>
+              <p className="text-2xl font-bold text-secondary">{currentBlinkRate}/min</p>
             </div>
           </div>
           
