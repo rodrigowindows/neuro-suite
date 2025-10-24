@@ -113,24 +113,43 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
     };
   }, [isScanning]);
 
-  // Calcular EAR (Eye Aspect Ratio)
+  // Calcular EAR (Eye Aspect Ratio) - Fórmula correta
   const calculateEAR = (landmarks: any) => {
-    // Índices dos landmarks dos olhos
-    const leftEye = [33, 160, 158, 133, 153, 144];
-    const rightEye = [362, 385, 387, 263, 373, 380];
+    // Índices corretos dos landmarks dos olhos do MediaPipe
+    // Left eye: outer corner, top1, top2, inner corner, bottom1, bottom2
+    const leftEye = [33, 160, 158, 133, 144, 153];
+    // Right eye: inner corner, top1, top2, outer corner, bottom1, bottom2  
+    const rightEye = [362, 385, 387, 263, 380, 373];
 
     const getEAR = (eye: number[]) => {
-      const p1 = landmarks[eye[1]];
-      const p2 = landmarks[eye[2]];
-      const p3 = landmarks[eye[3]];
-      const p4 = landmarks[eye[4]];
-      const p5 = landmarks[eye[5]];
-      const p6 = landmarks[eye[0]];
+      // Pontos do olho
+      const outerCorner = landmarks[eye[0]];
+      const top1 = landmarks[eye[1]];
+      const top2 = landmarks[eye[2]];
+      const innerCorner = landmarks[eye[3]];
+      const bottom1 = landmarks[eye[4]];
+      const bottom2 = landmarks[eye[5]];
 
-      const vertical1 = Math.sqrt(Math.pow(p2.x - p6.x, 2) + Math.pow(p2.y - p6.y, 2));
-      const vertical2 = Math.sqrt(Math.pow(p3.x - p5.x, 2) + Math.pow(p3.y - p5.y, 2));
-      const horizontal = Math.sqrt(Math.pow(p1.x - p4.x, 2) + Math.pow(p1.y - p4.y, 2));
+      // Calcular distâncias verticais (altura do olho em 2 pontos)
+      const vertical1 = Math.sqrt(
+        Math.pow(top1.x - bottom1.x, 2) + 
+        Math.pow(top1.y - bottom1.y, 2) + 
+        Math.pow(top1.z - bottom1.z, 2)
+      );
+      const vertical2 = Math.sqrt(
+        Math.pow(top2.x - bottom2.x, 2) + 
+        Math.pow(top2.y - bottom2.y, 2) + 
+        Math.pow(top2.z - bottom2.z, 2)
+      );
+      
+      // Calcular distância horizontal (largura do olho)
+      const horizontal = Math.sqrt(
+        Math.pow(outerCorner.x - innerCorner.x, 2) + 
+        Math.pow(outerCorner.y - innerCorner.y, 2) + 
+        Math.pow(outerCorner.z - innerCorner.z, 2)
+      );
 
+      // EAR = (vertical1 + vertical2) / (2.0 * horizontal)
       return (vertical1 + vertical2) / (2.0 * horizontal);
     };
 
