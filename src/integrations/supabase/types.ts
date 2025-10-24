@@ -51,7 +51,7 @@ export type Database = {
           recipient_email: string
           sent_at: string | null
           status: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           email_type: string
@@ -59,7 +59,7 @@ export type Database = {
           recipient_email: string
           sent_at?: string | null
           status: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           email_type?: string
@@ -67,7 +67,7 @@ export type Database = {
           recipient_email?: string
           sent_at?: string | null
           status?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
