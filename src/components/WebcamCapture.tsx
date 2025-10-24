@@ -157,14 +157,13 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
       const results = faceLandmarker.detectForVideo(video, Date.now());
       
       // Log de debug com EAR
-      const avgEAR = results.faceLandmarks && results.faceLandmarks.length > 0 
+      const currentEAR = results.faceLandmarks && results.faceLandmarks.length > 0 
         ? calculateEAR(results.faceLandmarks[0]) 
         : null;
-      console.log('Landmarks:', results.faceLandmarks?.length || 0, 'EAR:', avgEAR || 'N/A');
+      console.log('Landmarks:', results.faceLandmarks?.length || 0, 'Video State:', video.readyState, 'EAR:', currentEAR || 'N/A');
 
       if (results.faceLandmarks && results.faceLandmarks.length > 0) {
         const landmarks = results.faceLandmarks[0];
-        const currentEAR = calculateEAR(landmarks);
 
         // Reset contador de frames sem face
         noFaceFramesRef.current = 0;
@@ -172,9 +171,9 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
         setLowLightWarning(false);
 
         // Detectar piscada com threshold ajustado e debounce
-        const EAR_THRESHOLD = 0.18;
-        const EAR_OPEN = 0.23;
-        const DEBOUNCE_MS = 80;
+        const EAR_THRESHOLD = 0.15;
+        const EAR_OPEN = 0.20;
+        const DEBOUNCE_MS = 60;
         
         const now = Date.now();
         const timeSinceLastBlink = now - lastBlinkTimeRef.current;
