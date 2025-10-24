@@ -20,11 +20,12 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
   const [faceDetected, setFaceDetected] = useState(true);
   const [lowLightWarning, setLowLightWarning] = useState(false);
   const [isBackgroundMode, setIsBackgroundMode] = useState(false);
-  const animationFrameRef = useRef<number>();
+  const intervalRef = useRef<number>();
   const scanStartTimeRef = useRef<number>(0);
   const lastEARRef = useRef<number>(1);
   const blinkCountRef = useRef<number>(0);
   const noFaceFramesRef = useRef<number>(0);
+  const lastBlinkTimeRef = useRef<number>(0);
   const backgroundDataRef = useRef<{ blinks: number[], timestamps: number[] }>({ blinks: [], timestamps: [] });
 
   // Inicializar MediaPipe com configuração robusta
@@ -44,8 +45,8 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
           runningMode: 'VIDEO',
           outputFaceBlendshapes: false,
           outputFacialTransformationMatrixes: false,
-          minFaceDetectionConfidence: 0.3, // Mais tolerante para ângulos
-          minFacePresenceConfidence: 0.3,
+          minFaceDetectionConfidence: 0.5, // Otimizado para celular
+          minFacePresenceConfidence: 0.5,
         });
         
         setFaceLandmarker(landmarker);
@@ -58,24 +59,17 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
     initMediaPipe();
   }, []);
 
-  // Detectar visibilidade da página (background mode)
+  // Detectar visibilidade da página (background mode) - continua processamento
   useEffect(() => {
     const handleVisibilityChange = () => {
       const isHidden = document.hidden;
       setIsBackgroundMode(isHidden);
-      
-      // Continuar processamento mesmo em background se estiver scaneando
-      if (!isHidden && isScanning && faceLandmarker) {
-        // Retomar processamento quando voltar à página
-        if (!animationFrameRef.current) {
-          processFrame();
-        }
-      }
+      // Não pausa o processamento - continua em background
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [isScanning, faceLandmarker]);
+  }, []);
 
   // Função para parar câmera
   const stopWebcam = () => {
@@ -92,10 +86,10 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { 
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
+            width: { ideal: 640 },
+            height: { ideal: 480 },
             facingMode: 'user',
-            frameRate: { ideal: 30 }
+            frameRate: { ideal: 15 }
           },
         });
         
@@ -146,7 +140,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
     return (leftEAR + rightEAR) / 2.0;
   };
 
-  // Processar frame com detecção robusta
+  // Processar frame com setInterval para funcionar em background
   const processFrame = () => {
     if (!videoRef.current || !faceLandmarker || !isScanning) {
       return;
@@ -155,16 +149,15 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
     const video = videoRef.current;
 
     if (video.readyState !== 4) {
-      animationFrameRef.current = requestAnimationFrame(processFrame);
       return;
     }
 
-    // Continuar processamento mesmo em background para trabalho normal
-    // O navegador pode reduzir fps, mas não para completamente
-
     try {
-      // Detectar face com configuração robusta
+      // Detectar face com configuração otimizada
       const results = faceLandmarker.detectForVideo(video, Date.now());
+      
+      // Log de debug
+      console.log('Landmarks:', results.faceLandmarks?.length, 'Visibility:', document.hidden);
 
       if (results.faceLandmarks && results.faceLandmarks.length > 0) {
         const landmarks = results.faceLandmarks[0];
@@ -175,16 +168,25 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
         setFaceDetected(true);
         setLowLightWarning(false);
 
-        // Detectar piscada com threshold mais tolerante para ângulos
-        const EAR_THRESHOLD = 1.25; // Mais tolerante
-        if (lastEARRef.current > EAR_THRESHOLD && currentEAR <= EAR_THRESHOLD) {
+        // Detectar piscada com threshold ajustado e debounce
+        const EAR_THRESHOLD = 0.25;
+        const EAR_OPEN = 0.28;
+        const DEBOUNCE_MS = 100;
+        
+        const now = Date.now();
+        const timeSinceLastBlink = now - lastBlinkTimeRef.current;
+        
+        if (lastEARRef.current > EAR_OPEN && currentEAR <= EAR_THRESHOLD && timeSinceLastBlink > DEBOUNCE_MS) {
           blinkCountRef.current += 1;
           setBlinkCount(blinkCountRef.current);
+          lastBlinkTimeRef.current = now;
+          
+          console.log('Piscada detectada! Total:', blinkCountRef.current);
           
           // Salvar timestamp em background mode
           if (isBackgroundMode) {
             backgroundDataRef.current.blinks.push(blinkCountRef.current);
-            backgroundDataRef.current.timestamps.push(Date.now());
+            backgroundDataRef.current.timestamps.push(now);
           }
         }
 
@@ -215,21 +217,19 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
         noFaceFramesRef.current += 1;
 
         // Alertas progressivos
-        if (noFaceFramesRef.current > 30) { // ~1 segundo sem face
+        if (noFaceFramesRef.current > 10) { // ~1 segundo sem face (10 frames a 100ms)
           setFaceDetected(false);
         }
-        if (noFaceFramesRef.current > 90) { // ~3 segundos sem face
+        if (noFaceFramesRef.current > 30) { // ~3 segundos sem face
           setLowLightWarning(true);
         }
       }
     } catch (error) {
       console.error('Error processing frame:', error);
     }
-
-    animationFrameRef.current = requestAnimationFrame(processFrame);
   };
 
-  // Controlar scan
+  // Controlar scan com setInterval para background
   useEffect(() => {
     if (isScanning && faceLandmarker) {
       console.log('Starting scan with faceLandmarker:', !!faceLandmarker);
@@ -238,22 +238,25 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
       setCurrentBlinkRate(0);
       scanStartTimeRef.current = 0;
       lastEARRef.current = 1;
+      lastBlinkTimeRef.current = 0;
       
-      // Garantir que processFrame seja chamado
-      const startProcessing = () => {
-        console.log('processFrame iniciado');
+      // Usar setInterval (100ms) para continuar em background
+      intervalRef.current = window.setInterval(() => {
         processFrame();
-      };
-      startProcessing();
+      }, 100);
+      
+      console.log('processFrame iniciado com setInterval (100ms)');
     } else {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = undefined;
       }
     }
 
     return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = undefined;
       }
     };
   }, [isScanning, faceLandmarker]);
