@@ -273,20 +273,20 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
           )}
 
           {communicationTone && (
-            <div className="h-[400px] overflow-y-auto space-y-4 p-4 bg-muted/30 rounded-lg border">
+            <div className="h-[60vh] max-h-[400px] overflow-y-auto space-y-3 sm:space-y-4 p-3 sm:p-4 bg-muted/30 rounded-lg border">
               {messages.map((msg, idx) => (
               <div
                 key={idx}
                 className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[80%] p-3 rounded-lg ${
+                  className={`max-w-[85%] sm:max-w-[80%] p-2.5 sm:p-3 rounded-lg ${
                     msg.role === 'user'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-card border shadow-soft'
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                  <p className="text-xs sm:text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                 </div>
               </div>
             ))}
@@ -315,10 +315,10 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
                   sendMessage();
                 }
               }}
-              className="min-h-[60px]"
+              className="min-h-[50px] sm:min-h-[60px] text-xs sm:text-sm"
             />
-              <Button onClick={sendMessage} disabled={isLoading || !input.trim()} size="icon">
-                <Send className="h-4 w-4" />
+              <Button onClick={sendMessage} disabled={isLoading || !input.trim()} size="icon" className="h-10 w-10 sm:h-12 sm:w-12">
+                <Send className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </div>
           )}

@@ -214,7 +214,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Streaks */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
           <div className="p-4 bg-gradient-to-br from-orange-500/10 to-red-500/10 rounded-lg border border-orange-500/20">
             <div className="flex items-center gap-2 mb-2">
               <Flame className="h-5 w-5 text-orange-500" />
@@ -254,17 +254,17 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
               <Award className="h-4 w-4 text-yellow-500" />
               Conquistas ({badges.length})
             </h4>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {badges.map((badge) => (
                 <BadgeUI
                   key={badge.id}
                   variant="secondary"
-                  className="p-3 justify-start gap-2 text-xs"
+                  className="p-2 sm:p-3 justify-start gap-1.5 sm:gap-2 text-xs"
                 >
-                  <span className="text-lg">{badge.icon}</span>
+                  <span className="text-base sm:text-lg">{badge.icon}</span>
                   <div className="text-left">
-                    <p className="font-semibold text-xs leading-tight">{badge.name}</p>
-                    <p className="text-xs text-muted-foreground">{badge.description}</p>
+                    <p className="font-semibold text-[10px] sm:text-xs leading-tight">{badge.name}</p>
+                    <p className="text-[9px] sm:text-xs text-muted-foreground">{badge.description}</p>
                   </div>
                 </BadgeUI>
               ))}

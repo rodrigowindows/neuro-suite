@@ -10,6 +10,8 @@ import DashboardRH from '@/components/DashboardRH';
 import Gamification from '@/components/Gamification';
 import MiniMeditation from '@/components/MiniMeditation';
 import neuroSuiteLogo from '@/assets/neurosuite-logo.jpg';
+import FeedbackButton from '@/components/FeedbackButton';
+import BackButton from '@/components/BackButton';
 
 export default function Dashboard() {
   const { user, signOut, loading } = useAuth();
@@ -55,50 +57,57 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+      <BackButton />
+      <FeedbackButton />
+      
       <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50 shadow-soft">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="container mx-auto px-4 py-3 md:py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3">
             <img 
               src={neuroSuiteLogo} 
               alt="NeuroSuite Logo" 
-              className="h-12 w-auto object-contain"
+              className="h-10 sm:h-12 w-auto object-contain"
             />
           </div>
           <Button variant="ghost" size="sm" onClick={handleLogout}>
-            <LogOut className="h-4 w-4 mr-2" />
-            Sair
+            <LogOut className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Sair</span>
           </Button>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-5xl">
-        <div className="mb-8 space-y-3">
-          <h2 className="text-3xl md:text-4xl font-bold">
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8 max-w-5xl">
+        <div className="mb-4 sm:mb-6 md:mb-8 space-y-2 sm:space-y-3">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight">
             🧠 NeuroSuite - Reduza Turnover e Aumente Produtividade
           </h2>
-          <p className="text-muted-foreground text-sm md:text-base max-w-3xl">
+          <p className="text-muted-foreground text-xs sm:text-sm md:text-base max-w-3xl">
             Scan via webcam detecta padrões de piscadas (NeuroScore) para estimar estresse baseado em neurociência. 
             Valide com HRV de pulseira. NeuroCoach IA personaliza plano com PNL para bem-estar, alta performance e compliance NR-1.
           </p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 p-1">
-            <TabsTrigger value="neuroscore" className="gap-2">
-              <Activity className="h-4 w-4" />
-              NeuroScore
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+          <TabsList className="grid w-full grid-cols-4 p-0.5 sm:p-1 h-auto">
+            <TabsTrigger value="neuroscore" className="gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5">
+              <Activity className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">NeuroScore</span>
+              <span className="sm:hidden">Score</span>
             </TabsTrigger>
-            <TabsTrigger value="gamification" className="gap-2" disabled={!stressLevel}>
-              <Trophy className="h-4 w-4" />
-              Conquistas
+            <TabsTrigger value="gamification" className="gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5" disabled={!stressLevel}>
+              <Trophy className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Conquistas</span>
+              <span className="sm:hidden">🏆</span>
             </TabsTrigger>
-            <TabsTrigger value="neurocoach" className="gap-2" disabled={!stressLevel}>
-              <MessageCircle className="h-4 w-4" />
-              NeuroCoach
+            <TabsTrigger value="neurocoach" className="gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5" disabled={!stressLevel}>
+              <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">NeuroCoach</span>
+              <span className="sm:hidden">Coach</span>
             </TabsTrigger>
-            <TabsTrigger value="dashboard-rh" className="gap-2">
-              <BarChart className="h-4 w-4" />
-              Dashboard RH
+            <TabsTrigger value="dashboard-rh" className="gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5">
+              <BarChart className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden md:inline">Dashboard RH</span>
+              <span className="md:hidden">RH</span>
             </TabsTrigger>
           </TabsList>
 

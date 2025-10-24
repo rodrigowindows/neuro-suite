@@ -154,7 +154,7 @@ Predição,"${prediction}"`;
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Estatísticas */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
             <div className="p-4 bg-green-500/10 rounded-lg border border-green-500/20">
               <p className="text-xs text-muted-foreground mb-1">Baixo Estresse</p>
               <p className="text-3xl font-bold text-green-500">{stats.lowPercent}%</p>
@@ -214,20 +214,20 @@ Predição,"${prediction}"`;
 
           {/* Feedback Survey */}
           <Card className="bg-gradient-to-r from-green-500/10 to-teal-500/10 border-green-500/30">
-            <CardContent className="p-4 space-y-3">
-              <div className="flex items-start gap-3">
-                <Users className="h-5 w-5 text-green-500 mt-0.5" />
+            <CardContent className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+              <div className="flex items-start gap-2 sm:gap-3">
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 mt-0.5" />
                 <div className="flex-1">
-                  <p className="font-semibold text-sm mb-1">📋 Feedback Loop:</p>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    Após exportar seu plano no NeuroCoach, avalie o impacto no seu estresse/produtividade
+                  <p className="font-semibold text-xs sm:text-sm mb-1">📋 Experiência do Usuário:</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mb-2">
+                    Compartilhe sua experiência aqui para melhorarmos nossa plataforma
                   </p>
                   <Button
-                    size="default"
-                    className="w-full font-semibold shadow-lg hover:scale-105 transition-transform"
+                    size="sm"
+                    className="w-full sm:w-auto font-semibold shadow-lg hover:scale-105 transition-transform text-xs sm:text-sm"
                     onClick={() => window.open('https://docs.google.com/forms/d/e/1FAIpQLSe81DxmsG0amW42BCTsr2w2nplmT8uLsedNpNVCE-pC7HCj_g/viewform?usp=dialog', '_blank')}
                   >
-                    📋 Responder Survey (Google Forms Free)
+                    Seu Feedback Aqui
                   </Button>
                 </div>
               </div>

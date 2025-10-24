@@ -180,8 +180,8 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
           )}
 
           {!isScanning && (
-            <Button onClick={startScan} className="w-full" size="lg">
-              <Scan className="mr-2 h-5 w-5" />
+            <Button onClick={startScan} className="w-full h-12 sm:h-auto text-sm sm:text-base" size="lg">
+              <Scan className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
               {result ? 'Realizar novo scan' : 'Iniciar Scan (60s)'}
             </Button>
           )}

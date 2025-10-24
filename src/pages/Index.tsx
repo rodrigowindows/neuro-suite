@@ -11,32 +11,32 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
       {/* Hero Section */}
       <header className="border-b bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-3 md:py-4">
           <div className="flex items-center gap-3">
             <img 
               src={neuroSuiteLogo} 
               alt="NeuroSuite Logo" 
-              className="h-12 w-auto object-contain"
+              className="h-10 sm:h-12 md:h-14 w-auto object-contain"
             />
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-16 max-w-6xl">
+      <main className="container mx-auto px-4 py-8 sm:py-12 md:py-16 max-w-6xl">
         {/* Hero Banner */}
-        <section className="text-center mb-20 space-y-6">
-          <h2 className="text-4xl md:text-6xl font-bold leading-tight">
+        <section className="text-center mb-12 sm:mb-16 md:mb-20 space-y-4 sm:space-y-6">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight px-2">
             Vire o Jogo do Estresse em <span className="bg-gradient-hero bg-clip-text text-transparent">60 segundos! 🚀</span>
           </h2>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto px-4">
             Webcam lê piscadas + HRV, IA coach te dá plano PNL pra alta performance. 
             <span className="font-semibold text-foreground"> Reduz turnover 30%, NR-1 compliant.</span>
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center pt-4 sm:pt-6 px-4">
             <Button 
               size="lg" 
               onClick={() => navigate('/auth')}
-              className="text-lg px-8 py-6 shadow-elegant hover:shadow-glow transition-all"
+              className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 shadow-elegant hover:shadow-glow transition-all w-full sm:w-auto"
             >
               Teste Grátis Agora 😊
             </Button>
@@ -44,7 +44,7 @@ const Index = () => {
               size="lg" 
               variant="outline"
               onClick={() => document.getElementById('beneficios')?.scrollIntoView({ behavior: 'smooth' })}
-              className="text-lg px-8 py-6"
+              className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 w-full sm:w-auto"
             >
               Saiba Mais
             </Button>
@@ -52,11 +52,11 @@ const Index = () => {
         </section>
 
         {/* Benefícios Section */}
-        <section id="beneficios" className="mb-20">
-          <h3 className="text-3xl md:text-4xl font-bold text-center mb-12">
+        <section id="beneficios" className="mb-12 sm:mb-16 md:mb-20 px-4">
+          <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8 sm:mb-12">
             Como o NeuroSuite Transforma Seu Bem-Estar 💪
           </h3>
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
             <Card className="border-primary/20 hover:shadow-elegant transition-all">
               <CardHeader>
                 <div className="flex items-start gap-4">
@@ -128,11 +128,11 @@ const Index = () => {
         </section>
 
         {/* Depoimentos Section */}
-        <section className="mb-20">
-          <h3 className="text-3xl md:text-4xl font-bold text-center mb-12">
+        <section className="mb-12 sm:mb-16 md:mb-20 px-4">
+          <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8 sm:mb-12">
             O Que Nossos Usuários Dizem 💬
           </h3>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
             <Card className="bg-gradient-to-br from-primary/5 to-secondary/5">
               <CardContent className="pt-6">
                 <p className="text-muted-foreground italic mb-4">
@@ -169,11 +169,11 @@ const Index = () => {
         </section>
 
         {/* CTA Section */}
-        <section className="text-center mb-20 p-12 bg-gradient-hero rounded-2xl shadow-elegant">
-          <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">
+        <section className="text-center mb-12 sm:mb-16 md:mb-20 p-6 sm:p-8 md:p-12 bg-gradient-hero rounded-xl sm:rounded-2xl shadow-elegant mx-4">
+          <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
             Bora Virar o Jogo? 🚀
           </h3>
-          <p className="text-white/90 text-lg mb-8 max-w-2xl mx-auto">
+          <p className="text-white/90 text-sm sm:text-base md:text-lg mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
             Teste grátis agora e descubra como neurociência + IA podem transformar 
             seu bem-estar e performance em minutos.
           </p>
@@ -181,14 +181,14 @@ const Index = () => {
             size="lg" 
             variant="secondary"
             onClick={() => navigate('/auth')}
-            className="text-lg px-8 py-6 shadow-soft"
+            className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 shadow-soft w-full sm:w-auto"
           >
             Começar Agora - É Grátis! 😊
           </Button>
         </section>
 
         {/* Features Highlight */}
-        <section className="grid md:grid-cols-3 gap-8 mb-20">
+        <section className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 mb-12 sm:mb-16 md:mb-20 px-4">
           <div className="text-center space-y-3">
             <div className="mx-auto w-16 h-16 bg-gradient-hero rounded-full flex items-center justify-center">
               <Zap className="h-8 w-8 text-white" />

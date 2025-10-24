@@ -260,13 +260,13 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
         </div>
       )}
       
-      <div className="relative rounded-lg overflow-hidden shadow-medium bg-muted">
+      <div className="relative rounded-lg overflow-hidden shadow-medium bg-muted max-w-md mx-auto">
         <video
           ref={videoRef}
           autoPlay
           playsInline
           muted
-          className="w-full h-auto"
+          className="w-full h-auto max-h-[400px] object-cover sm:max-h-[500px]"
         />
         <canvas
           ref={canvasRef}
