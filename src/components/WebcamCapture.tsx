@@ -175,12 +175,11 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
         setFaceDetected(true);
         setLowLightWarning(false);
 
-        // Detectar piscada com threshold ajustado para evitar falsos positivos
-        const EAR_THRESHOLD = 0.20; // Threshold mais restritivo
-        const EAR_DELTA = 0.05; // Variação mínima necessária
+        // Detectar piscada com threshold equilibrado
+        const EAR_THRESHOLD = 0.25; // Threshold padrão para detecção de piscadas
         
-        // Detectar apenas se houve fechamento significativo seguido de abertura
-        if (lastEARRef.current > (EAR_THRESHOLD + EAR_DELTA) && currentEAR <= EAR_THRESHOLD) {
+        // Detectar piscada: olho abre para fecha
+        if (lastEARRef.current > EAR_THRESHOLD && currentEAR <= EAR_THRESHOLD) {
           blinkCountRef.current += 1;
           setBlinkCount(blinkCountRef.current);
           
