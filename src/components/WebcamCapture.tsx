@@ -45,7 +45,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
           runningMode: 'VIDEO',
           outputFaceBlendshapes: false,
           outputFacialTransformationMatrixes: false,
-          minFaceDetectionConfidence: 0.5, // Otimizado para celular
+          minFaceDetectionConfidence: 0.6, // Otimizado para celular
           minFacePresenceConfidence: 0.5,
         });
         
@@ -160,7 +160,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
       const avgEAR = results.faceLandmarks && results.faceLandmarks.length > 0 
         ? calculateEAR(results.faceLandmarks[0]) 
         : null;
-      console.log('Landmarks:', results.faceLandmarks?.length, 'EAR:', avgEAR);
+      console.log('Landmarks:', results.faceLandmarks?.length || 0, 'EAR:', avgEAR || 'N/A');
 
       if (results.faceLandmarks && results.faceLandmarks.length > 0) {
         const landmarks = results.faceLandmarks[0];
@@ -172,7 +172,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
         setLowLightWarning(false);
 
         // Detectar piscada com threshold ajustado e debounce
-        const EAR_THRESHOLD = 0.20;
+        const EAR_THRESHOLD = 0.18;
         const EAR_OPEN = 0.23;
         const DEBOUNCE_MS = 80;
         
@@ -240,13 +240,13 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
       setBlinkCount(0);
       setCurrentBlinkRate(0);
       scanStartTimeRef.current = 0;
-      lastEARRef.current = 1;
+      lastEARRef.current = 0.3;
       lastBlinkTimeRef.current = 0;
       
-      // Usar setInterval (100ms) para continuar em background
+      // Usar setInterval (50ms) para capturar frames mais rápido
       intervalRef.current = window.setInterval(() => {
         processFrame();
-      }, 100);
+      }, 50);
       
       console.log('processFrame iniciado com setInterval (100ms)');
     } else {
