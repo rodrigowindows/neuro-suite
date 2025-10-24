@@ -22,10 +22,12 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
   const [isBackgroundMode, setIsBackgroundMode] = useState(false);
   const animationFrameRef = useRef<number>();
   const scanStartTimeRef = useRef<number>(0);
-  const lastEARRef = useRef<number>(1);
+  const lastEARRef = useRef<number>(0.3);
   const blinkCountRef = useRef<number>(0);
   const noFaceFramesRef = useRef<number>(0);
   const backgroundDataRef = useRef<{ blinks: number[], timestamps: number[] }>({ blinks: [], timestamps: [] });
+  const blinkDebounceRef = useRef<number>(0);
+  const earHistoryRef = useRef<number[]>([]);
 
   // Inicializar MediaPipe com configuração robusta
   useEffect(() => {
@@ -175,20 +177,37 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
         setFaceDetected(true);
         setLowLightWarning(false);
 
-        // Detectar piscada com threshold mais tolerante para ângulos
-        const EAR_THRESHOLD = 1.25; // Mais tolerante
-        if (lastEARRef.current > EAR_THRESHOLD && currentEAR <= EAR_THRESHOLD) {
+        // Manter histórico de EAR para suavização
+        earHistoryRef.current.push(currentEAR);
+        if (earHistoryRef.current.length > 3) {
+          earHistoryRef.current.shift();
+        }
+
+        // Calcular média para reduzir ruído
+        const avgEAR = earHistoryRef.current.reduce((a, b) => a + b, 0) / earHistoryRef.current.length;
+
+        // Detectar piscada com threshold calibrado e debounce
+        const EAR_THRESHOLD = 0.22; // Threshold adequado para EAR real
+        const EAR_OPEN = 0.25; // Olho claramente aberto
+        const DEBOUNCE_FRAMES = 5; // ~150ms de debounce
+        
+        const currentTime = Date.now();
+        
+        // Detectar fechamento seguido de abertura (piscada completa)
+        if (lastEARRef.current >= EAR_OPEN && avgEAR < EAR_THRESHOLD && 
+            currentTime - blinkDebounceRef.current > 150) {
           blinkCountRef.current += 1;
           setBlinkCount(blinkCountRef.current);
+          blinkDebounceRef.current = currentTime;
           
           // Salvar timestamp em background mode
           if (isBackgroundMode) {
             backgroundDataRef.current.blinks.push(blinkCountRef.current);
-            backgroundDataRef.current.timestamps.push(Date.now());
+            backgroundDataRef.current.timestamps.push(currentTime);
           }
         }
 
-        lastEARRef.current = currentEAR;
+        lastEARRef.current = avgEAR;
 
         // Verificar tempo de scan
         if (scanStartTimeRef.current === 0) {
@@ -197,10 +216,10 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
 
         const elapsedTime = (Date.now() - scanStartTimeRef.current) / 1000;
         
-        // Atualizar taxa de piscadas em tempo real (3 casas decimais)
+        // Atualizar taxa de piscadas em tempo real (2 casas decimais)
         if (elapsedTime > 0) {
           const currentRate = (blinkCountRef.current / elapsedTime) * 60;
-          setCurrentBlinkRate(Math.round(currentRate * 1000) / 1000);
+          setCurrentBlinkRate(Math.round(currentRate * 100) / 100);
         }
 
         if (elapsedTime >= 60) {
@@ -237,7 +256,9 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
       setBlinkCount(0);
       setCurrentBlinkRate(0);
       scanStartTimeRef.current = 0;
-      lastEARRef.current = 1;
+      lastEARRef.current = 0.3;
+      blinkDebounceRef.current = 0;
+      earHistoryRef.current = [];
       
       // Garantir que processFrame seja chamado
       const startProcessing = () => {
@@ -352,7 +373,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
             </div>
             <div className="p-3 bg-secondary/10 rounded-lg">
               <p className="text-xs text-muted-foreground mb-1">Taxa atual</p>
-              <p className="text-2xl font-bold text-secondary">{currentBlinkRate}/min</p>
+              <p className="text-xl sm:text-2xl font-bold text-secondary">{currentBlinkRate.toFixed(2)}/min</p>
             </div>
           </div>
           
