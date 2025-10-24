@@ -175,10 +175,8 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
         setFaceDetected(true);
         setLowLightWarning(false);
 
-        // Detectar piscada com threshold equilibrado
-        const EAR_THRESHOLD = 0.25; // Threshold padrão para detecção de piscadas
-        
-        // Detectar piscada: olho abre para fecha
+        // Detectar piscada com threshold mais tolerante para ângulos
+        const EAR_THRESHOLD = 1.25; // Mais tolerante
         if (lastEARRef.current > EAR_THRESHOLD && currentEAR <= EAR_THRESHOLD) {
           blinkCountRef.current += 1;
           setBlinkCount(blinkCountRef.current);
@@ -199,10 +197,10 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
 
         const elapsedTime = (Date.now() - scanStartTimeRef.current) / 1000;
         
-        // Atualizar taxa de piscadas em tempo real (2 casas decimais)
+        // Atualizar taxa de piscadas em tempo real (3 casas decimais)
         if (elapsedTime > 0) {
           const currentRate = (blinkCountRef.current / elapsedTime) * 60;
-          setCurrentBlinkRate(Math.round(currentRate * 100) / 100);
+          setCurrentBlinkRate(Math.round(currentRate * 1000) / 1000);
         }
 
         if (elapsedTime >= 60) {
@@ -354,7 +352,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
             </div>
             <div className="p-3 bg-secondary/10 rounded-lg">
               <p className="text-xs text-muted-foreground mb-1">Taxa atual</p>
-              <p className="text-xl sm:text-2xl font-bold text-secondary">{currentBlinkRate.toFixed(2)}/min</p>
+              <p className="text-2xl font-bold text-secondary">{currentBlinkRate}/min</p>
             </div>
           </div>
           
