@@ -156,14 +156,12 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
       // Detectar face com configuração otimizada
       const results = faceLandmarker.detectForVideo(video, Date.now());
       
-      // Log de debug com EAR
-      const currentEAR = results.faceLandmarks && results.faceLandmarks.length > 0 
-        ? calculateEAR(results.faceLandmarks[0]) 
-        : null;
-      console.log('Landmarks:', results.faceLandmarks?.length || 0, 'Video State:', video.readyState, 'EAR:', currentEAR || 'N/A');
-
       if (results.faceLandmarks && results.faceLandmarks.length > 0) {
         const landmarks = results.faceLandmarks[0];
+        const currentEAR = calculateEAR(landmarks);
+        
+        // Log de debug com EAR
+        console.log('Landmarks:', results.faceLandmarks.length, 'Video State:', video.readyState, 'EAR:', currentEAR.toFixed(3));
 
         // Reset contador de frames sem face
         noFaceFramesRef.current = 0;
