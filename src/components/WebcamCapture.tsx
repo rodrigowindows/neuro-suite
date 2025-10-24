@@ -187,10 +187,10 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
         setFaceDetected(true);
         setLowLightWarning(false);
 
-        // Detectar piscada com threshold ajustado e debounce
-        const EAR_THRESHOLD = 0.15;
-        const EAR_OPEN = 0.20;
-        const DEBOUNCE_MS = 60;
+        // Detectar piscada com threshold ajustado e debounce (otimizado para mobile)
+        const EAR_THRESHOLD = 0.18;
+        const EAR_OPEN = 0.23;
+        const DEBOUNCE_MS = 100;
         
         const now = Date.now();
         const timeSinceLastBlink = now - lastBlinkTimeRef.current;
@@ -259,10 +259,10 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
       lastEARRef.current = 0.3;
       lastBlinkTimeRef.current = 0;
       
-      // Usar setInterval (50ms) para capturar frames mais rápido
+      // Usar setInterval (100ms) otimizado para mobile
       intervalRef.current = window.setInterval(() => {
         processFrame();
-      }, 50);
+      }, 100);
       
       console.log('processFrame iniciado com setInterval (100ms)');
     } else {
