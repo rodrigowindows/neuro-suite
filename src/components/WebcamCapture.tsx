@@ -151,6 +151,11 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
   // Processar frame com detecção robusta
   const processFrame = () => {
     if (!videoRef.current || !faceLandmarker || !isScanning) {
+      console.log('processFrame early return:', { 
+        hasVideo: !!videoRef.current, 
+        hasFaceLandmarker: !!faceLandmarker, 
+        isScanning 
+      });
       return;
     }
 
@@ -170,7 +175,10 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
 
       if (results.faceLandmarks && results.faceLandmarks.length > 0) {
         const landmarks = results.faceLandmarks[0];
+        console.log('Face landmarks detectados:', landmarks.length, 'pontos');
+        
         const currentEAR = calculateEAR(landmarks);
+        console.log('EAR atual:', currentEAR.toFixed(3), '| último EAR:', lastEARRef.current.toFixed(3));
 
         // Reset contador de frames sem face
         noFaceFramesRef.current = 0;
@@ -187,18 +195,19 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
         const avgEAR = earHistoryRef.current.reduce((a, b) => a + b, 0) / earHistoryRef.current.length;
 
         // Detectar piscada com threshold calibrado e debounce
-        const EAR_THRESHOLD = 0.22; // Threshold adequado para EAR real
-        const EAR_OPEN = 0.25; // Olho claramente aberto
-        const DEBOUNCE_FRAMES = 5; // ~150ms de debounce
+        const EAR_THRESHOLD = 0.24; // Ajustado conforme solicitado
+        const EAR_OPEN = 0.27; // Ajustado conforme solicitado
         
         const currentTime = Date.now();
+        const timeSinceLastBlink = currentTime - blinkDebounceRef.current;
         
         // Detectar fechamento seguido de abertura (piscada completa)
         if (lastEARRef.current >= EAR_OPEN && avgEAR < EAR_THRESHOLD && 
-            currentTime - blinkDebounceRef.current > 150) {
+            timeSinceLastBlink > 100) { // 100ms debounce
           blinkCountRef.current += 1;
           setBlinkCount(blinkCountRef.current);
           blinkDebounceRef.current = currentTime;
+          console.log('🎯 PISCADA DETECTADA!', blinkCountRef.current, '| avgEAR:', avgEAR.toFixed(3));
           
           // Salvar timestamp em background mode
           if (isBackgroundMode) {
