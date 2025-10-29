@@ -1,4 +1,1 @@
 project_id = "bphdbcrboygmminicfqv"
-
-[functions.neuro-coach]
-verify_jwt = false
