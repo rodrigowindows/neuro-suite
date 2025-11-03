@@ -13,29 +13,6 @@ serve(async (req) => {
   }
 
   try {
-    // Authenticate user via JWT
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Autenticação necessária' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Token inválido ou expirado' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     const { messages, stressLevel, context, userName, communicationTone } = await req.json();
     
     // Validate input
@@ -101,7 +78,7 @@ ESTRUTURA:
       systemPrompt += `\n\nEstresse ALTO. Foco: reset urgente + responsabilização.`;
     }
 
-    console.log('Chamando Lovable AI - user_id:', user.id, 'contexto:', { stressLevel, messageCount: messages.length });
+    console.log('Chamando Lovable AI - contexto:', { stressLevel, messageCount: messages.length });
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
