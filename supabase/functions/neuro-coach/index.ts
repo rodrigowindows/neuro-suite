@@ -22,7 +22,29 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, stressLevel, context, userName, communicationTone } = await req.json();
+    console.log('Request received');
+    
+    // Check if GEMINI_API_KEY is set
+    const geminiKey = Deno.env.get("GEMINI_API_KEY");
+    if (!geminiKey) {
+      console.error('GEMINI_API_KEY not configured');
+      return new Response(
+        JSON.stringify({ 
+          response: 'Configuração pendente: GEMINI_API_KEY não encontrada. Configure a chave nas secrets do backend.',
+          error: 'GEMINI_API_KEY missing'
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const body = await req.text();
+    console.log('Request body:', body);
+    
+    if (!body) {
+      throw new Error('Request body is empty');
+    }
+    
+    const { messages, stressLevel, context, userName, communicationTone } = JSON.parse(body);
 
     // ---- 1. Monta tom de comunicação ----
     let toneInstruction = '';
@@ -73,6 +95,7 @@ Responda em **máx. 2 parágrafos**, firme mas empático, e inclua:
     });
   } catch (error: any) {
     console.error("NeuroCoach error:", error);
+    console.error("Error stack:", error.stack);
 
     // ---- Fallback amigável (sempre 200) ----
     const fallback = `
