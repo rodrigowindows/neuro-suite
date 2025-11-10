@@ -1,141 +1,75 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+// functions/neuro-coach/index.ts
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { GoogleGenerativeAI } from "https://esm.sh/@google/generative-ai";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+const supabase = createClient(
+  Deno.env.get("SUPABASE_URL")!,
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+);
+
+const genAI = new GoogleGenerativeAI(Deno.env.get("GEMINI_API_KEY")!);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
   try {
-    const { messages, stressLevel, context, userName, communicationTone } = await req.json();
-    
-    // Validate input
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return new Response(
-        JSON.stringify({ error: 'Mensagens inválidas' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const { user_id, scan_data, message } = await req.json();
 
-    // Validate message length
-    for (const msg of messages) {
-      if (!msg.content || typeof msg.content !== 'string') {
-        return new Response(
-          JSON.stringify({ error: 'Conteúdo da mensagem inválido' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      if (msg.content.length > 2000) {
-        return new Response(
-          JSON.stringify({ error: 'Mensagem muito longa (máximo 2000 caracteres)' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-    }
+    // ---- 1. Busca dados do usuário (opcional) ----
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", user_id)
+      .single();
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY não configurada');
-    }
+    // ---- 2. Monta prompt crítico (sem viés de concordância) ----
+    const prompt = `
+Você é o **NeuroCoach** – um coach cerebral com atitude.  
+Nunca concorde automaticamente. Sempre valide com ciência (HRV, RMSSD, neuroplasticidade, estudos MIT/NASA).  
+Use provocações socráticas, desafie crenças limitantes e dê tarefas práticas.
 
-    // System prompt REDUZIDO para evitar erros de limite de tokens
-    let systemPrompt = `Você é o NeuroCoach, especialista em PNL, neurociência e bem-estar.
+Dados do scan:
+- HRV (RMSSD): ${scan_data.rmssd ?? "N/A"} ms
+- Blink rate: ${scan_data.blink_rate ?? "N/A"} /min
+- Mensagem do usuário: "${message}"
 
-Contexto: ${context}
-${userName ? `Nome: ${userName}` : ''}
+Responda em **máx. 2 parágrafos**, firme mas empático, e inclua:
+1. Um desafio ou pergunta que force reflexão.
+2. Uma micro‑tarefa (≤ 2 min).
+3. Citação rápida de evidência científica.
+`;
 
-PRINCÍPIOS:
-- Desafie o usuário com dados (HRV, ciência)
-- Cite fontes: HeartMath, Stanford, Harvard, MIT
-- Dê tarefas práticas imediatas (respiração 4-7-8, ancoragem PNL)
-- Máximo 100 palavras por resposta
-- Tom ${communicationTone === 'technical' ? 'técnico/acadêmico 📊' : communicationTone === 'spiritual' ? 'inspiracional/reflexivo 🧘' : 'descolado/amigo 👊'}
+    // ---- 3. Chama Gemini (timeout 12s) ----
+    const result = await model.generateContent(prompt, {
+      timeout: 12_000,
+    });
+    const reply = result?.response?.text() ?? "Tente novamente em 30s.";
 
-FERRAMENTAS:
-- Respiração 4-7-8 (Dr. Weil, Harvard): reduz cortisol 30% em 2min
-- Ancoragem PNL (Bandler): gatilho físico + estado positivo
-- HRV: >50ms = recuperação, <30ms = alerta burnout
-
-ESTRUTURA:
-1. Saudação com nome
-2. Análise HRV + desafio socrático
-3. Ferramenta prática + citação
-4. Confronto: "O que VOCÊ pode mudar?"
-5. Pergunta disruptiva`;
-
-    // Adapta ao nível de estresse
-    if (stressLevel === 'low') {
-      systemPrompt += `\n\nEstresse BAIXO. Foco: performance. Sugira ancoragem de pico.`;
-    } else if (stressLevel === 'moderate') {
-      systemPrompt += `\n\nEstresse MODERADO. Foco: técnicas rápidas (respiração 4-7-8).`;
-    } else {
-      systemPrompt += `\n\nEstresse ALTO. Foco: reset urgente + responsabilização.`;
-    }
-
-    console.log('Chamando Lovable AI - contexto:', { stressLevel, messageCount: messages.length });
-
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...messages.map((msg: any) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
-        ],
-        temperature: 0.8,
-        max_tokens: 400,
-      }),
+    // ---- 4. Salva interação (progresso) ----
+    await supabase.from("coach_interactions").insert({
+      user_id,
+      user_message: message,
+      coach_reply: reply,
+      created_at: new Date().toISOString(),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Erro da Lovable AI:', response.status, errorText);
-      
-      if (response.status === 429) {
-        throw new Error('Limite de requisições excedido. Tente novamente em alguns segundos.');
-      }
-      if (response.status === 402) {
-        throw new Error('Créditos insuficientes. Configure pagamento no workspace.');
-      }
-      
-      throw new Error(`Erro na IA: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const aiResponse = data.choices?.[0]?.message?.content;
-
-    if (!aiResponse) {
-      throw new Error('Resposta da IA inválida');
-    }
-
-    console.log('Resposta gerada com sucesso');
-
-    return new Response(
-      JSON.stringify({ response: aiResponse }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-
+    // ---- 5. Resposta 200 OK ----
+    return new Response(JSON.stringify({ reply }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error: any) {
-    console.error('Erro no neuro-coach:', error);
+    console.error("NeuroCoach error:", error);
+
+    // ---- Fallback amigável (sempre 200) ----
+    const fallback = `
+Estresse moderado? Respire **4‑7‑8** agora: inspire 4s, segure 7s, expire 8s.  
+Volte em 2 min e me diga o que mudou.  
+*(HRV sobe ≈12 ms em média – estudo Stanford, 2023)*`;
+
     return new Response(
-      JSON.stringify({ error: error.message || 'Erro desconhecido' }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      JSON.stringify({ reply: fallback, error: error.message }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
     );
   }
 });
