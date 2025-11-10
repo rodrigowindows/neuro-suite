@@ -3,6 +3,11 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { GoogleGenerativeAI } from "https://esm.sh/@google/generative-ai";
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -12,26 +17,42 @@ const genAI = new GoogleGenerativeAI(Deno.env.get("GEMINI_API_KEY")!);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
   try {
-    const { user_id, scan_data, message } = await req.json();
+    const { messages, stressLevel, context, userName, communicationTone } = await req.json();
 
-    // ---- 1. Busca dados do usuário (opcional) ----
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("full_name")
-      .eq("id", user_id)
-      .single();
+    // ---- 1. Monta tom de comunicação ----
+    let toneInstruction = '';
+    if (communicationTone === 'technical') {
+      toneInstruction = 'Use linguagem técnica/acadêmica, formal e científica com referências a estudos.';
+    } else if (communicationTone === 'casual') {
+      toneInstruction = 'Use linguagem casual, descolada, como um amigo motivador.';
+    } else if (communicationTone === 'spiritual') {
+      toneInstruction = 'Use linguagem inspiracional, como um guia espiritual pragmático.';
+    }
 
-    // ---- 2. Monta prompt crítico (sem viés de concordância) ----
+    // ---- 2. Monta histórico de conversa ----
+    const conversationHistory = messages
+      .map((msg: any) => `${msg.role === 'user' ? 'Usuário' : 'NeuroCoach'}: ${msg.content}`)
+      .join('\n');
+
+    // ---- 3. Monta prompt crítico (sem viés de concordância) ----
     const prompt = `
-Você é o **NeuroCoach** – um coach cerebral com atitude.  
-Nunca concorde automaticamente. Sempre valide com ciência (HRV, RMSSD, neuroplasticidade, estudos MIT/NASA).  
+Você é o **NeuroCoach** – um coach cerebral com atitude baseado em PNL (Programação Neurolinguística).
+Nunca concorde automaticamente. Sempre valide com ciência (HRV, RMSSD, neuroplasticidade, estudos MIT/NASA).
 Use provocações socráticas, desafie crenças limitantes e dê tarefas práticas.
 
-Dados do scan:
-- HRV (RMSSD): ${scan_data.rmssd ?? "N/A"} ms
-- Blink rate: ${scan_data.blink_rate ?? "N/A"} /min
-- Mensagem do usuário: "${message}"
+${toneInstruction}
+
+Contexto da sessão:
+${context}
+${userName ? `Nome do usuário: ${userName}` : ''}
+
+Histórico da conversa:
+${conversationHistory}
 
 Responda em **máx. 2 parágrafos**, firme mas empático, e inclua:
 1. Um desafio ou pergunta que force reflexão.
@@ -45,18 +66,10 @@ Responda em **máx. 2 parágrafos**, firme mas empático, e inclua:
     });
     const reply = result?.response?.text() ?? "Tente novamente em 30s.";
 
-    // ---- 4. Salva interação (progresso) ----
-    await supabase.from("coach_interactions").insert({
-      user_id,
-      user_message: message,
-      coach_reply: reply,
-      created_at: new Date().toISOString(),
-    });
-
-    // ---- 5. Resposta 200 OK ----
-    return new Response(JSON.stringify({ reply }), {
+    // ---- 4. Resposta 200 OK ----
+    return new Response(JSON.stringify({ response: reply }), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: any) {
     console.error("NeuroCoach error:", error);
@@ -68,8 +81,8 @@ Volte em 2 min e me diga o que mudou.
 *(HRV sobe ≈12 ms em média – estudo Stanford, 2023)*`;
 
     return new Response(
-      JSON.stringify({ reply: fallback, error: error.message }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      JSON.stringify({ response: fallback, error: error.message }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
