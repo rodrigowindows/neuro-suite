@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogOut, Activity, MessageCircle, BarChart, Trophy } from 'lucide-react';
+import { LogOut, Activity, MessageCircle, BarChart, Trophy, Plug } from 'lucide-react';
 import NeuroScore from '@/components/NeuroScore';
 import NeuroCoach from '@/components/NeuroCoach';
 import DashboardRH from '@/components/DashboardRH';
 import Gamification from '@/components/Gamification';
 import MiniMeditation from '@/components/MiniMeditation';
+import IntegrationsDashboard from '@/components/IntegrationsDashboard';
 import neuroSuiteLogo from '@/assets/neurosuite-logo.jpg';
 import FeedbackButton from '@/components/FeedbackButton';
 import BackButton from '@/components/BackButton';
@@ -88,7 +89,7 @@ export default function Dashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full grid-cols-4 p-0.5 sm:p-1 h-auto">
+          <TabsList className="grid w-full grid-cols-5 p-0.5 sm:p-1 h-auto">
             <TabsTrigger value="neuroscore" className="gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5">
               <Activity className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">NeuroScore</span>
@@ -103,6 +104,11 @@ export default function Dashboard() {
               <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">NeuroCoach</span>
               <span className="sm:hidden">Coach</span>
+            </TabsTrigger>
+            <TabsTrigger value="integrations" className="gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5">
+              <Plug className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden md:inline">Integrações</span>
+              <span className="md:hidden">API</span>
             </TabsTrigger>
             <TabsTrigger value="dashboard-rh" className="gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5">
               <BarChart className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -136,6 +142,10 @@ export default function Dashboard() {
                 Complete o NeuroScore primeiro para desbloquear o Coach IA
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="integrations" className="space-y-6">
+            <IntegrationsDashboard />
           </TabsContent>
 
           <TabsContent value="dashboard-rh" className="space-y-6">
