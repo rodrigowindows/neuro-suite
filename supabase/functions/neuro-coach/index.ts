@@ -1,20 +1,9 @@
-// functions/neuro-coach/index.ts
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { GoogleGenerativeAI } from "https://esm.sh/@google/generative-ai";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-const supabase = createClient(
-  Deno.env.get("SUPABASE_URL")!,
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-);
-
-const genAI = new GoogleGenerativeAI(Deno.env.get("GEMINI_API_KEY")!);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -22,23 +11,22 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Request received');
+    console.log('NeuroCoach request received');
     
-    // Check if GEMINI_API_KEY is set
-    const geminiKey = Deno.env.get("GEMINI_API_KEY");
-    if (!geminiKey) {
-      console.error('GEMINI_API_KEY not configured');
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      console.error('LOVABLE_API_KEY not configured');
       return new Response(
         JSON.stringify({ 
-          response: 'Configuração pendente: GEMINI_API_KEY não encontrada. Configure a chave nas secrets do backend.',
-          error: 'GEMINI_API_KEY missing'
+          response: 'Erro de configuração do servidor. Tente novamente.',
+          error: 'LOVABLE_API_KEY missing'
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const body = await req.text();
-    console.log('Request body:', body);
+    console.log('Request body received');
     
     if (!body) {
       throw new Error('Request body is empty');
@@ -62,33 +50,70 @@ serve(async (req) => {
       .join('\n');
 
     // ---- 3. Monta prompt crítico (sem viés de concordância) ----
-    const prompt = `
-Você é o **NeuroCoach** – um coach cerebral com atitude baseado em PNL (Programação Neurolinguística).
+    const systemPrompt = `Você é o **NeuroCoach** – um coach cerebral com atitude baseado em PNL (Programação Neurolinguística).
 Nunca concorde automaticamente. Sempre valide com ciência (HRV, RMSSD, neuroplasticidade, estudos MIT/NASA).
 Use provocações socráticas, desafie crenças limitantes e dê tarefas práticas.
 
 ${toneInstruction}
 
-Contexto da sessão:
+Responda em **máx. 2 parágrafos**, firme mas empático, e inclua:
+1. Um desafio ou pergunta que force reflexão.
+2. Uma micro‑tarefa (≤ 2 min).
+3. Citação rápida de evidência científica.`;
+
+    const userPrompt = `Contexto da sessão:
 ${context}
 ${userName ? `Nome do usuário: ${userName}` : ''}
 
 Histórico da conversa:
-${conversationHistory}
+${conversationHistory}`;
 
-Responda em **máx. 2 parágrafos**, firme mas empático, e inclua:
-1. Um desafio ou pergunta que force reflexão.
-2. Uma micro‑tarefa (≤ 2 min).
-3. Citação rápida de evidência científica.
-`;
-
-    // ---- 3. Chama Gemini (timeout 12s) ----
-    const result = await model.generateContent(prompt, {
-      timeout: 12_000,
+    // ---- 4. Chama Lovable AI Gateway ----
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+      }),
     });
-    const reply = result?.response?.text() ?? "Tente novamente em 30s.";
 
-    // ---- 4. Resposta 200 OK ----
+    if (!response.ok) {
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ 
+            response: 'Muitas requisições. Aguarde um momento e tente novamente.',
+            error: 'Rate limit exceeded'
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ 
+            response: 'Serviço temporariamente indisponível. Tente novamente em breve.',
+            error: 'Payment required'
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      const errorText = await response.text();
+      console.error("AI gateway error:", response.status, errorText);
+      throw new Error(`AI gateway error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const reply = data.choices?.[0]?.message?.content ?? "Tente novamente em 30s.";
+
+    console.log('NeuroCoach response generated successfully');
+
+    // ---- 5. Resposta 200 OK ----
     return new Response(JSON.stringify({ response: reply }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -98,10 +123,9 @@ Responda em **máx. 2 parágrafos**, firme mas empático, e inclua:
     console.error("Error stack:", error.stack);
 
     // ---- Fallback amigável (sempre 200) ----
-    const fallback = `
-Estresse moderado? Respire **4‑7‑8** agora: inspire 4s, segure 7s, expire 8s.  
-Volte em 2 min e me diga o que mudou.  
-*(HRV sobe ≈12 ms em média – estudo Stanford, 2023)*`;
+    const fallback = `Parece que houve um problema técnico. Enquanto isso, experimente a técnica **4‑7‑8**: inspire 4s, segure 7s, expire 8s. Isso ativa o sistema nervoso parassimpático e reduz cortisol em minutos. *(Estudo Stanford, 2023)*
+
+**Micro-tarefa**: Faça 3 ciclos agora e observe como seu corpo responde. Qual é a sensação predominante?`;
 
     return new Response(
       JSON.stringify({ response: fallback, error: error.message }),
