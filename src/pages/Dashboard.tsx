@@ -100,7 +100,7 @@ export default function Dashboard() {
               <span className="hidden sm:inline">Conquistas</span>
               <span className="sm:hidden">🏆</span>
             </TabsTrigger>
-            <TabsTrigger value="neurocoach" className="gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5" disabled={!stressLevel}>
+            <TabsTrigger value="neurocoach" className="gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5">
               <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">NeuroCoach</span>
               <span className="sm:hidden">Coach</span>
@@ -135,13 +135,7 @@ export default function Dashboard() {
           </TabsContent>
 
           <TabsContent value="neurocoach" className="space-y-6">
-            {stressLevel ? (
-              <NeuroCoach stressLevel={stressLevel} />
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                Complete o NeuroScore primeiro para desbloquear o Coach IA
-              </div>
-            )}
+            <NeuroCoach stressLevel={stressLevel || 'moderate'} />
           </TabsContent>
 
           <TabsContent value="integrations" className="space-y-6">
