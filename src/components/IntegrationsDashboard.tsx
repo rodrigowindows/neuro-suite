@@ -506,6 +506,59 @@ Dê um feedback construtivo baseado em PNL: o que foi bem, o que melhorar, e uma
               </Card>
             ))}
           </div>
+
+          {/* Próximas Reuniões - Google Meet */}
+          {integrations.meet.connected && integrations.meet.upcomingMeetings && integrations.meet.upcomingMeetings.length > 0 && (
+            <Card className="mt-4">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-primary" />
+                  Próximas Reuniões
+                </CardTitle>
+                <CardDescription>Clique para entrar direto no Google Meet</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {integrations.meet.upcomingMeetings.map((meeting) => {
+                    const startDate = new Date(meeting.start);
+                    const endDate = new Date(meeting.end);
+                    const isToday = startDate.toDateString() === new Date().toDateString();
+                    
+                    return (
+                      <div 
+                        key={meeting.id} 
+                        className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
+                      >
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">{meeting.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {isToday ? 'Hoje' : startDate.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric' })} • {startDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} - {endDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                          {meeting.attendees > 0 && (
+                            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                              <Users className="h-3 w-3" /> {meeting.attendees} participantes
+                            </p>
+                          )}
+                        </div>
+                        {meeting.meetLink && (
+                          <Button 
+                            size="sm" 
+                            variant="default"
+                            onClick={() => window.open(meeting.meetLink, '_blank')}
+                            className="gap-2"
+                          >
+                            <Video className="h-4 w-4" />
+                            Entrar
+                            <ExternalLink className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="checkin" className="space-y-4 mt-4">
