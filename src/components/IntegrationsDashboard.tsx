@@ -45,6 +45,13 @@ export default function IntegrationsDashboard() {
 
   // Mock integration data - em produção virá das APIs reais
   const [integrations, setIntegrations] = useState<Record<string, IntegrationStatus>>({
+    meet: {
+      connected: false,
+      status: 'offline',
+      meetingTime: 0,
+      messagesCount: 0,
+      lastSync: '-',
+    },
     zoom: {
       connected: false,
       status: 'offline',
@@ -176,10 +183,21 @@ Dê um feedback construtivo baseado em PNL: o que foi bem, o que melhorar, e uma
 
   const getPlatformIcon = (platform: string) => {
     switch (platform) {
-      case 'zoom': return <Video className="h-5 w-5" />;
+      case 'meet': return <Video className="h-5 w-5 text-green-600" />;
+      case 'zoom': return <Video className="h-5 w-5 text-blue-500" />;
       case 'slack': return <MessageSquare className="h-5 w-5" />;
       case 'teams': return <Users className="h-5 w-5" />;
       default: return null;
+    }
+  };
+
+  const getPlatformDisplayName = (platform: string) => {
+    switch (platform) {
+      case 'meet': return 'Google Meet';
+      case 'zoom': return 'Zoom';
+      case 'slack': return 'Slack';
+      case 'teams': return 'Teams';
+      default: return platform;
     }
   };
 
@@ -215,7 +233,7 @@ Dê um feedback construtivo baseado em PNL: o que foi bem, o que melhorar, e uma
               <Zap className="h-5 w-5 text-accent" />
               <span className="text-sm text-muted-foreground">Integrações</span>
             </div>
-            <p className="text-2xl font-bold mt-1">{connectedCount}/3</p>
+            <p className="text-2xl font-bold mt-1">{connectedCount}/4</p>
             <p className="text-xs text-muted-foreground">conectadas</p>
           </CardContent>
         </Card>
@@ -240,14 +258,14 @@ Dê um feedback construtivo baseado em PNL: o que foi bem, o que melhorar, e uma
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4 mt-4">
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {Object.entries(integrations).map(([platform, data]) => (
               <Card key={platform} className="relative overflow-hidden">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg flex items-center gap-2 capitalize">
+                    <CardTitle className="text-lg flex items-center gap-2">
                       {getPlatformIcon(platform)}
-                      {platform}
+                      {getPlatformDisplayName(platform)}
                     </CardTitle>
                     {data.connected && getStatusIcon(data.status)}
                   </div>
@@ -295,7 +313,7 @@ Dê um feedback construtivo baseado em PNL: o que foi bem, o que melhorar, e uma
                         {isLoading ? (
                           <Loader2 className="h-4 w-4 animate-spin mr-2" />
                         ) : null}
-                        Conectar {platform}
+                        Conectar {getPlatformDisplayName(platform)}
                       </Button>
                     </div>
                   )}
