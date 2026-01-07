@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,17 +8,29 @@ import { Textarea } from '@/components/ui/textarea';
 import { 
   Video, MessageSquare, Users, Clock, AlertTriangle, 
   TrendingUp, Brain, Target, Zap, RefreshCw, Send,
-  CheckCircle2, XCircle, Loader2
+  CheckCircle2, XCircle, Loader2, Calendar, ExternalLink
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+interface UpcomingMeeting {
+  id: string;
+  title: string;
+  start: string;
+  end: string;
+  meetLink?: string;
+  attendees: number;
+}
+
 interface IntegrationStatus {
   connected: boolean;
   status: 'online' | 'away' | 'busy' | 'offline';
-  meetingTime: number; // minutes today
+  meetingTime: number;
   messagesCount: number;
   lastSync: string;
+  accessToken?: string;
+  upcomingMeetings?: UpcomingMeeting[];
+  isReal?: boolean;
 }
 
 interface MeetingCheckIn {
@@ -31,7 +43,7 @@ interface MeetingCheckIn {
 
 export default function IntegrationsDashboard() {
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const [loadingPlatform, setLoadingPlatform] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [checkInType, setCheckInType] = useState<'pre' | 'post'>('pre');
   const [checkInData, setCheckInData] = useState<MeetingCheckIn>({
@@ -43,7 +55,6 @@ export default function IntegrationsDashboard() {
   const [aiResponse, setAiResponse] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Mock integration data - em produção virá das APIs reais
   const [integrations, setIntegrations] = useState<Record<string, IntegrationStatus>>({
     meet: {
       connected: false,
@@ -51,6 +62,7 @@ export default function IntegrationsDashboard() {
       meetingTime: 0,
       messagesCount: 0,
       lastSync: '-',
+      isReal: false,
     },
     zoom: {
       connected: false,
@@ -58,6 +70,7 @@ export default function IntegrationsDashboard() {
       meetingTime: 0,
       messagesCount: 0,
       lastSync: '-',
+      isReal: false,
     },
     slack: {
       connected: false,
@@ -65,6 +78,7 @@ export default function IntegrationsDashboard() {
       meetingTime: 0,
       messagesCount: 0,
       lastSync: '-',
+      isReal: false,
     },
     teams: {
       connected: false,
@@ -72,6 +86,7 @@ export default function IntegrationsDashboard() {
       meetingTime: 0,
       messagesCount: 0,
       lastSync: '-',
+      isReal: false,
     },
   });
 
@@ -90,17 +105,174 @@ export default function IntegrationsDashboard() {
 
   const overload = getOverloadLevel();
 
-  // Simular conexão com integração
-  const connectIntegration = async (platform: string) => {
-    setIsLoading(true);
+  // Fetch real calendar data from Google
+  const fetchGoogleCalendarData = useCallback(async (accessToken: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('google-calendar', {
+        body: {},
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      // Use query params approach instead
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-calendar?action=events`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Error fetching calendar data:', error);
+      throw error;
+    }
+  }, []);
+
+  // Handle OAuth message from popup
+  useEffect(() => {
+    const handleMessage = async (event: MessageEvent) => {
+      if (event.data?.success && event.data?.access_token) {
+        setLoadingPlatform('meet');
+        
+        try {
+          const calendarData = await fetchGoogleCalendarData(event.data.access_token);
+          
+          setIntegrations(prev => ({
+            ...prev,
+            meet: {
+              connected: true,
+              status: 'online',
+              meetingTime: calendarData.totalMinutes || 0,
+              messagesCount: calendarData.totalMeetings || 0,
+              lastSync: new Date().toLocaleTimeString('pt-BR'),
+              accessToken: event.data.access_token,
+              upcomingMeetings: calendarData.upcomingMeetings || [],
+              isReal: true,
+            },
+          }));
+
+          toast({
+            title: 'Google Meet conectado!',
+            description: `${calendarData.totalMeetings} reuniões encontradas nos últimos 30 dias.`,
+          });
+        } catch (error: any) {
+          toast({
+            title: 'Erro ao buscar dados',
+            description: error.message || 'Não foi possível sincronizar o calendário.',
+            variant: 'destructive',
+          });
+        } finally {
+          setLoadingPlatform(null);
+        }
+      } else if (event.data?.error) {
+        toast({
+          title: 'Erro na autenticação',
+          description: event.data.error,
+          variant: 'destructive',
+        });
+        setLoadingPlatform(null);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [fetchGoogleCalendarData, toast]);
+
+  // Connect to Google Meet via OAuth
+  const connectGoogleMeet = async () => {
+    setLoadingPlatform('meet');
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-calendar?action=auth`
+      );
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      // Open OAuth popup
+      const width = 500;
+      const height = 600;
+      const left = window.screenX + (window.outerWidth - width) / 2;
+      const top = window.screenY + (window.outerHeight - height) / 2;
+      
+      window.open(
+        data.authUrl,
+        'Google OAuth',
+        `width=${width},height=${height},left=${left},top=${top}`
+      );
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao iniciar OAuth',
+        description: error.message || 'Configure as credenciais do Google primeiro.',
+        variant: 'destructive',
+      });
+      setLoadingPlatform(null);
+    }
+  };
+
+  // Sync existing connection
+  const syncGoogleMeet = async () => {
+    const accessToken = integrations.meet.accessToken;
+    if (!accessToken) return;
+
+    setLoadingPlatform('meet');
+    try {
+      const calendarData = await fetchGoogleCalendarData(accessToken);
+      
+      setIntegrations(prev => ({
+        ...prev,
+        meet: {
+          ...prev.meet,
+          meetingTime: calendarData.totalMinutes || 0,
+          messagesCount: calendarData.totalMeetings || 0,
+          lastSync: new Date().toLocaleTimeString('pt-BR'),
+          upcomingMeetings: calendarData.upcomingMeetings || [],
+        },
+      }));
+
+      toast({
+        title: 'Sincronizado!',
+        description: 'Dados do calendário atualizados.',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao sincronizar',
+        description: 'Token expirado. Reconecte o Google Meet.',
+        variant: 'destructive',
+      });
+      // Reset connection if token expired
+      setIntegrations(prev => ({
+        ...prev,
+        meet: { ...prev.meet, connected: false, accessToken: undefined, isReal: false },
+      }));
+    } finally {
+      setLoadingPlatform(null);
+    }
+  };
+
+  // Mock connection for other platforms (demo)
+  const connectMockIntegration = async (platform: string) => {
+    setLoadingPlatform(platform);
     
-    // Em produção: OAuth flow para cada plataforma
     toast({
-      title: `Conectando ${platform}...`,
-      description: 'Redirecionando para autorização OAuth',
+      title: `Conectando ${getPlatformDisplayName(platform)}...`,
+      description: 'Modo demo - dados simulados',
     });
 
-    // Simular conexão bem-sucedida para demo
     setTimeout(() => {
       setIntegrations(prev => ({
         ...prev,
@@ -110,14 +282,24 @@ export default function IntegrationsDashboard() {
           meetingTime: Math.floor(Math.random() * 180) + 30,
           messagesCount: Math.floor(Math.random() * 50) + 10,
           lastSync: new Date().toLocaleTimeString('pt-BR'),
+          isReal: false,
         },
       }));
-      setIsLoading(false);
+      setLoadingPlatform(null);
       toast({
-        title: `${platform} conectado!`,
-        description: 'Dados sincronizados com sucesso.',
+        title: `${getPlatformDisplayName(platform)} conectado!`,
+        description: 'Dados demo sincronizados.',
       });
     }, 1500);
+  };
+
+  // Router for platform connections
+  const connectIntegration = (platform: string) => {
+    if (platform === 'meet') {
+      connectGoogleMeet();
+    } else {
+      connectMockIntegration(platform);
+    }
   };
 
   // Check-in IA pré/pós reunião
@@ -293,24 +475,28 @@ Dê um feedback construtivo baseado em PNL: o que foi bem, o que melhorar, e uma
                         variant="outline" 
                         size="sm" 
                         className="w-full mt-2"
-                        onClick={() => connectIntegration(platform)}
-                        disabled={isLoading}
+                        onClick={() => platform === 'meet' && integrations.meet.accessToken ? syncGoogleMeet() : connectIntegration(platform)}
+                        disabled={loadingPlatform === platform}
                       >
-                        <RefreshCw className="h-3 w-3 mr-1" />
+                        {loadingPlatform === platform ? (
+                          <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                        ) : (
+                          <RefreshCw className="h-3 w-3 mr-1" />
+                        )}
                         Sincronizar
                       </Button>
                     </div>
                   ) : (
                     <div className="text-center py-4">
                       <p className="text-sm text-muted-foreground mb-3">
-                        Conecte para monitorar produtividade
+                        {platform === 'meet' ? 'Conecte com OAuth real' : 'Conecte para monitorar (demo)'}
                       </p>
                       <Button 
                         onClick={() => connectIntegration(platform)}
-                        disabled={isLoading}
+                        disabled={loadingPlatform === platform}
                         className="w-full"
                       >
-                        {isLoading ? (
+                        {loadingPlatform === platform ? (
                           <Loader2 className="h-4 w-4 animate-spin mr-2" />
                         ) : null}
                         Conectar {getPlatformDisplayName(platform)}
