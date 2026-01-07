@@ -108,14 +108,6 @@ export default function IntegrationsDashboard() {
   // Fetch real calendar data from Google
   const fetchGoogleCalendarData = useCallback(async (accessToken: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke('google-calendar', {
-        body: {},
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      // Use query params approach instead
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-calendar?action=events`,
         {
@@ -457,7 +449,14 @@ Dê um feedback construtivo baseado em PNL: o que foi bem, o que melhorar, e uma
                     <div className="space-y-3">
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Status</span>
-                        <Badge variant="outline" className="capitalize">{data.status}</Badge>
+                        <div className="flex items-center gap-2">
+                          {data.isReal ? (
+                            <Badge variant="default" className="text-xs bg-green-600">Real</Badge>
+                          ) : (
+                            <Badge variant="secondary" className="text-xs">Demo</Badge>
+                          )}
+                          <Badge variant="outline" className="capitalize">{data.status}</Badge>
+                        </div>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Tempo em call</span>
