@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useNavigate } from "react-router-dom";
 import { Activity, MessageCircle, Trophy, Users, Zap, Target, Shield } from "lucide-react";
 import neuroSuiteLogo from '@/assets/neurosuite-logo.jpg';
+import { FEEDBACK_FORM_URL } from '@/lib/constants';
 
 const Index = () => {
   const navigate = useNavigate();
