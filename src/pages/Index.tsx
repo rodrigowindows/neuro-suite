@@ -234,7 +234,7 @@ const Index = () => {
               </p>
               <Button 
                 variant="outline"
-                onClick={() => window.open('https://docs.google.com/forms/d/e/1FAIpQLSe81DxmsG0amW42BCTsr2w2nplmT8uLsedNpNVCE-pC7HCj_g/viewform?usp=dialog', '_blank')}
+                onClick={() => window.open(FEEDBACK_FORM_URL, '_blank')}
               >
                 Enviar Feedback
               </Button>
