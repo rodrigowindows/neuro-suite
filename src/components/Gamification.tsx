@@ -71,7 +71,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
         .from('user_progress')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       const today = new Date().toISOString().split('T')[0];
       const lastScanDate = currentProgress?.last_scan_date;

@@ -3,7 +3,7 @@ import { z } from 'zod';
 // Authentication validation schemas
 export const signupSchema = z.object({
   email: z.string().email('Email inválido').max(255, 'Email muito longo'),
-  password: z.string().min(8, 'Senha deve ter no mínimo 8 caracteres').max(100, 'Senha muito longa'),
+  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres').max(100, 'Senha muito longa'),
   fullName: z.string().trim().max(100, 'Nome muito longo').optional(),
   preferredName: z.string().trim().max(50, 'Apelido muito longo').optional(),
 });

@@ -92,8 +92,8 @@ export default function ResetPassword() {
           <CardContent>
             {success ? (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-6 space-y-4">
-                <div className="mx-auto w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center">
-                  <CheckCircle className="h-8 w-8 text-green-500" />
+                <div className="mx-auto w-16 h-16 bg-success/10 rounded-full flex items-center justify-center">
+                  <CheckCircle className="h-8 w-8 text-success" />
                 </div>
                 <p className="font-display font-bold text-lg">Senha atualizada! ✅</p>
                 <p className="text-sm text-muted-foreground">Redirecionando...</p>
