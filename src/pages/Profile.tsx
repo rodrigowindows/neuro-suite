@@ -12,6 +12,7 @@ import BackButton from '@/components/BackButton';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { User, Mail, Save, Shield, LogOut } from 'lucide-react';
+import WellnessScoreCard from '@/components/WellnessScoreCard';
 import { z } from 'zod';
 
 const profileSchema = z.object({
@@ -134,6 +135,9 @@ export default function Profile() {
           transition={{ duration: 0.3 }}
           className="space-y-6"
         >
+          {/* Wellness Score */}
+          <WellnessScoreCard compact />
+
           {/* Profile Info */}
           <Card>
             <CardHeader className="pb-3">

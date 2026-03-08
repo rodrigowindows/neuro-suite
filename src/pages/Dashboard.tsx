@@ -13,6 +13,7 @@ import WelcomeBanner from '@/components/WelcomeBanner';
 
 // Lazy-loaded feature components
 const NeuroScore = lazy(() => import('@/components/features/NeuroScore'));
+const WellnessScoreCard = lazy(() => import('@/components/WellnessScoreCard'));
 const NeuroCoach = lazy(() => import('@/components/features/NeuroCoach'));
 const DashboardRH = lazy(() => import('@/components/DashboardRH'));
 const Gamification = lazy(() => import('@/components/Gamification'));
@@ -104,6 +105,7 @@ export default function Dashboard() {
             {isFirstVisit && (
               <WelcomeBanner displayName={profile?.displayName || ''} />
             )}
+            <WellnessScoreCard />
             <NeuroScore onScoreComplete={handleStressLevelComplete} />
           </>
         );
