@@ -36,17 +36,16 @@ export default function DashboardRH() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Buscar scans dos últimos 7 dias (limite 100 para free tier)
+      // Remove user_id filter - managers see all team data via RLS
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
       const { data: scans, error } = await supabase
         .from('stress_scans')
         .select('stress_level, hrv_value')
-        .eq('user_id', user.id)
         .gte('created_at', sevenDaysAgo.toISOString())
         .order('created_at', { ascending: false })
-        .limit(100);
+        .limit(500);
 
       if (error) throw error;
 
@@ -61,22 +60,24 @@ export default function DashboardRH() {
           ? hrvValues.reduce((a, b) => a + b, 0) / hrvValues.length
           : 0;
 
-        setStats({
+        const newStats = {
           lowPercent: Math.round((low / total) * 100),
           moderatePercent: Math.round((moderate / total) * 100),
           highPercent: Math.round((high / total) * 100),
           totalScans: total,
           avgHRV: Math.round(avgHRV),
-        });
+        };
 
-        // Predição simples baseada em padrões
+        setStats(newStats);
+
+        // Predição baseada nos dados calculados (não no state antigo)
         let predictionText = '';
-        if (stats.highPercent > 30) {
-          predictionText = `⚠️ Risco alto detectado (${stats.highPercent}% estresse alto). Intervenções urgentes recomendadas.`;
-        } else if (stats.moderatePercent > 50) {
-          predictionText = `⚡ Atenção: ${stats.moderatePercent}% em estresse moderado. Sugira pausas preventivas.`;
+        if (newStats.highPercent > 30) {
+          predictionText = `⚠️ Risco alto detectado (${newStats.highPercent}% estresse alto). Intervenções urgentes recomendadas.`;
+        } else if (newStats.moderatePercent > 50) {
+          predictionText = `⚡ Atenção: ${newStats.moderatePercent}% em estresse moderado. Sugira pausas preventivas.`;
         } else {
-          predictionText = `✅ Time tá brilhando! ${stats.lowPercent}% em baixo estresse. Continue com práticas de bem-estar.`;
+          predictionText = `✅ Time tá brilhando! ${newStats.lowPercent}% em baixo estresse. Continue com práticas de bem-estar.`;
         }
         setPrediction(predictionText);
       }

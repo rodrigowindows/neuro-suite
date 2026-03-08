@@ -14,10 +14,10 @@ interface Message {
 }
 
 interface NeuroCoachProps {
-  stressLevel: string;
+  stressLevel?: string;
 }
 
-export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
+export default function NeuroCoach({ stressLevel = 'unknown' }: NeuroCoachProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [hrvValue, setHrvValue] = useState('40');

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useFeatureScores } from '@/hooks/useFeatureScores';
+import { useUserRole } from '@/hooks/useUserRole';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -45,6 +46,7 @@ export default function Dashboard() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { scores, refreshScores } = useFeatureScores();
+  const { isManager, loading: rolesLoading } = useUserRole();
   const [stressLevel, setStressLevel] = useState('');
   const [hrvValue, setHRVValue] = useState<number | undefined>(undefined);
   const [activeTab, setActiveTab] = useState('neuroscore');
@@ -64,7 +66,7 @@ export default function Dashboard() {
     refreshScores();
   };
 
-  if (loading) {
+  if (loading || rolesLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
@@ -92,19 +94,19 @@ export default function Dashboard() {
           </div>
         );
       case 'neurocoach':
-        return <NeuroCoach stressLevel={stressLevel || 'moderate'} />;
+        return <NeuroCoach stressLevel={stressLevel || undefined} />;
       case 'ai-insights':
-        return <AIInsightsDashboard />;
+        return isManager ? <AIInsightsDashboard /> : null;
       case 'alerts':
-        return <HRAlerts />;
+        return isManager ? <HRAlerts /> : null;
       case 'roi':
-        return <ROIDashboard />;
+        return isManager ? <ROIDashboard /> : null;
       case 'nr1':
-        return <NR1Report />;
+        return isManager ? <NR1Report /> : null;
       case 'integrations':
-        return <IntegrationsDashboard />;
+        return isManager ? <IntegrationsDashboard /> : null;
       case 'dashboard-rh':
-        return <DashboardRH />;
+        return isManager ? <DashboardRH /> : null;
       default:
         return null;
     }
@@ -118,6 +120,7 @@ export default function Dashboard() {
           onTabChange={setActiveTab}
           gamificationDisabled={!stressLevel}
           scores={scores as any}
+          isManager={isManager}
         />
 
         <div className="flex-1 flex flex-col min-w-0">

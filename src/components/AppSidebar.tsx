@@ -43,10 +43,10 @@ interface AppSidebarProps {
   onTabChange: (tab: string) => void;
   gamificationDisabled?: boolean;
   scores?: Record<string, FeatureScore | null>;
-  [key: string]: any;
+  isManager?: boolean;
 }
 
-export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, scores = {} }: AppSidebarProps) {
+export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, scores = {}, isManager = false }: AppSidebarProps) {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const { state } = useSidebar();
@@ -117,41 +117,45 @@ export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, score
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <Separator className="my-1 bg-sidebar-border" />
+        {isManager && (
+          <>
+            <Separator className="my-1 bg-sidebar-border" />
 
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-muted-foreground text-[10px] uppercase tracking-wider font-semibold">
-            {!collapsed ? 'Gestor / RH' : '📊'}
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {managerItems.map((item) => (
-                <SidebarMenuItem key={item.value} className="relative">
-                  <SidebarMenuButton
-                    onClick={() => onTabChange(item.value)}
-                    isActive={activeTab === item.value}
-                    tooltip={item.title}
-                    className={`transition-all duration-200 ${
-                      activeTab === item.value
-                        ? 'bg-sidebar-primary/15 text-sidebar-primary font-medium'
-                        : 'text-sidebar-foreground hover:bg-sidebar-accent'
-                    }`}
-                  >
-                    <item.icon className="h-4 w-4 flex-shrink-0" />
-                    {!collapsed && (
-                      <span className="truncate flex-1">{item.title}</span>
-                    )}
-                    {scores[item.value] && (
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white leading-none ${scores[item.value]!.color} ${collapsed ? 'absolute -top-1 -right-1 scale-75' : ''}`}>
-                        {scores[item.value]!.label}
-                      </span>
-                    )}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-sidebar-muted-foreground text-[10px] uppercase tracking-wider font-semibold">
+                {!collapsed ? 'Gestor / RH' : '📊'}
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {managerItems.map((item) => (
+                    <SidebarMenuItem key={item.value} className="relative">
+                      <SidebarMenuButton
+                        onClick={() => onTabChange(item.value)}
+                        isActive={activeTab === item.value}
+                        tooltip={item.title}
+                        className={`transition-all duration-200 ${
+                          activeTab === item.value
+                            ? 'bg-sidebar-primary/15 text-sidebar-primary font-medium'
+                            : 'text-sidebar-foreground hover:bg-sidebar-accent'
+                        }`}
+                      >
+                        <item.icon className="h-4 w-4 flex-shrink-0" />
+                        {!collapsed && (
+                          <span className="truncate flex-1">{item.title}</span>
+                        )}
+                        {scores[item.value] && (
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white leading-none ${scores[item.value]!.color} ${collapsed ? 'absolute -top-1 -right-1 scale-75' : ''}`}>
+                            {scores[item.value]!.label}
+                          </span>
+                        )}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="p-2">
