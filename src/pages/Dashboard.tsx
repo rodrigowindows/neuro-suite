@@ -42,6 +42,7 @@ const PAGE_TITLES: Record<string, string> = {
 };
 
 const PAGE_DESCRIPTIONS: Record<string, string> = {
+  checkin: 'Triagem emocional rápida de 30 segundos',
   neuroscore: 'Scan facial via webcam para estimar nível de estresse com neurociência',
   gamification: 'Acompanhe seu progresso, streaks e conquistas',
   neurocoach: 'Coach de alta performance com IA personalizada',
