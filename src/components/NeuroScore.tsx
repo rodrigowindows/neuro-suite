@@ -16,58 +16,50 @@ interface NeuroScoreProps {
 export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [lastHrvValue, setLastHrvValue] = useState<number | undefined>(undefined);
   const [result, setResult] = useState<{
     blinkRate: number;
     stressLevel: string;
+    hrvValue?: number;
     message: string;
     emoji: string;
   } | null>(null);
   const [userName, setUserName] = useState<string>('');
   const { toast } = useToast();
 
-  // Carregar nome do usuário e último scan ao montar
   useEffect(() => {
     const loadUserDataAndScan = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          // Buscar perfil do usuário
           const { data: profile } = await supabase
             .from('profiles')
             .select('preferred_name, full_name')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
 
           if (profile) {
             setUserName(profile.preferred_name || profile.full_name || '');
           }
 
-          // Buscar último scan
           const { data } = await supabase
             .from('stress_scans')
             .select('*')
             .eq('user_id', user.id)
             .order('created_at', { ascending: false })
             .limit(1)
-            .single();
+            .maybeSingle();
 
           if (data) {
-            let emoji = '😊';
-            let message = 'Foco otimizado, produtividade alta';
-            if (data.stress_level === 'moderate') {
-              emoji = '😐';
-              message = 'Atenção normal, sugira pausas para evitar burnout';
-            } else if (data.stress_level === 'high') {
-              emoji = '😟';
-              message = 'Alerta estresse, priorize reequilíbrio (NR-1)';
-            }
-
+            const { emoji, message } = getStressDisplay(data.stress_level);
             setResult({
               blinkRate: data.blink_rate,
               stressLevel: data.stress_level,
+              hrvValue: data.hrv_value ?? undefined,
               message,
               emoji,
             });
+            if (data.hrv_value) setLastHrvValue(data.hrv_value);
           }
         }
       } catch (error) {
@@ -78,44 +70,38 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
     loadUserDataAndScan();
   }, []);
 
+  const getStressDisplay = (level: string) => {
+    if (level === 'moderate') return { emoji: '😐', message: 'Atenção normal, sugira pausas para evitar burnout' };
+    if (level === 'high') return { emoji: '😟', message: 'Alerta estresse, priorize reequilíbrio (NR-1)' };
+    return { emoji: '😊', message: 'Foco otimizado, produtividade alta' };
+  };
+
   const startScan = () => {
     setIsScanning(true);
     setProgress(0);
-    // NÃO limpar resultado - mantém última leitura visível
 
-    // Simular progresso
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
           return 100;
         }
-        return prev + (100 / 60); // 60 segundos
+        return prev + (100 / 60);
       });
     }, 1000);
   };
 
   const handleBlinkDetected = async (blinkRate: number, hrvValue?: number) => {
     let stressLevel = 'low';
-    let message = 'Foco otimizado, produtividade alta';
-    let emoji = '😊';
+    let { emoji, message } = getStressDisplay('low');
 
     if (blinkRate >= 15 && blinkRate <= 25) {
       stressLevel = 'moderate';
-      message = 'Atenção normal, sugira pausas para evitar burnout';
-      emoji = '😐';
+      ({ emoji, message } = getStressDisplay('moderate'));
     } else if (blinkRate > 25) {
       stressLevel = 'high';
-      message = 'Alerta estresse, priorize reequilíbrio (NR-1)';
-      emoji = '😟';
+      ({ emoji, message } = getStressDisplay('high'));
     }
-
-    setResult({
-      blinkRate: Math.round(blinkRate * 10) / 10,
-      stressLevel,
-      message,
-      emoji,
-    });
 
     // Validação cruzada: HRV<30ms + piscadas>25/min = alerta alto
     if (hrvValue && hrvValue < 30 && blinkRate > 25) {
@@ -123,6 +109,15 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
       message = 'Alerta estresse: HRV baixo + piscadas altas (validação cruzada)';
       emoji = '🚨';
     }
+
+    setResult({
+      blinkRate: Math.round(blinkRate * 10) / 10,
+      stressLevel,
+      hrvValue,
+      message,
+      emoji,
+    });
+    setLastHrvValue(hrvValue);
 
     // Salvar no banco
     try {
@@ -140,7 +135,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
     }
 
     onScoreComplete(stressLevel, hrvValue);
-    
+
     toast({
       title: 'Scan completo! 🎯',
       description: `Nível de estresse: ${stressLevel === 'low' ? 'Baixo' : stressLevel === 'moderate' ? 'Moderado' : 'Alto'}${hrvValue ? ` • HRV: ${hrvValue}ms` : ''}`,
@@ -158,10 +153,10 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
-            NeuroScore - Detecção de Estresse
+            NeuroScore — Detecção de Estresse
           </CardTitle>
           <CardDescription>
-            Análise de taxa de piscadas via webcam para estimar estresse (baseado em neurociência)
+            Análise de taxa de piscadas + HRV via webcam para estimar estresse (baseado em neurociência)
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -191,7 +186,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Funciona corretamente pelo computador. Integrações com Slack, Zoom, Meet, Teams em breve.</p>
+                  <p>Posicione seu rosto na webcam e fique natural por 60 segundos.</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -210,11 +205,17 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
                 <p className="text-muted-foreground">{result.message}</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+              <div className={`grid ${result.hrvValue ? 'grid-cols-3' : 'grid-cols-2'} gap-4 pt-4 border-t`}>
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground">Taxa de piscadas</p>
                   <p className="text-2xl font-bold text-primary">{result.blinkRate}/min</p>
                 </div>
+                {result.hrvValue && (
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">HRV</p>
+                    <p className="text-2xl font-bold text-accent">{result.hrvValue}<span className="text-sm">ms</span></p>
+                  </div>
+                )}
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground">Diagnóstico</p>
                   <p className="text-2xl font-bold text-secondary">
@@ -237,7 +238,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
               <PostScanActionPlan
                 stressLevel={result.stressLevel}
                 blinkRate={result.blinkRate}
-                hrvValue={undefined}
+                hrvValue={result.hrvValue ?? lastHrvValue}
               />
             </div>
           )}
