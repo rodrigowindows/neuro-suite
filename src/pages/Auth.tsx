@@ -27,6 +27,15 @@ export default function Auth() {
   const [signupName, setSignupName] = useState('');
   const [signupPreferredName, setSignupPreferredName] = useState('');
 
+  const handleGoogleSignIn = async () => {
+    const { error } = await lovable.auth.signInWithOAuth('google', {
+      redirect_uri: window.location.origin,
+    });
+    if (error) {
+      toast.error('Erro ao entrar com Google');
+    }
+  };
+
   const handleForgotPassword = async () => {
     if (!loginEmail) {
       toast.error('Digite seu email primeiro');
