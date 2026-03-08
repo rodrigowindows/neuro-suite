@@ -66,7 +66,7 @@ export default function Dashboard() {
     refreshScores();
   };
 
-  if (loading) {
+  if (loading || rolesLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
