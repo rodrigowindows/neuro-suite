@@ -5,6 +5,7 @@ import { FileText, Download, Shield, AlertTriangle, CheckCircle, Sparkles, Loade
 import { supabase } from '@/integrations/supabase/client';
 import ExportPDFButton from './ExportPDFButton';
 import NR1ComplianceScoreCard from './NR1ComplianceScoreCard';
+import PGRReportGenerator from './PGRReportGenerator';
 
 interface ReportData {
   totalScans: number;
