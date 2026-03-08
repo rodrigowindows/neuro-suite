@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 export interface FeatureScores {
   neuroscore: { label: string; color: string } | null;
@@ -13,29 +14,29 @@ export interface FeatureScores {
   'dashboard-rh': { label: string; color: string } | null;
 }
 
+const defaultScores: FeatureScores = {
+  neuroscore: null,
+  gamification: null,
+  neurocoach: null,
+  'ai-insights': null,
+  alerts: null,
+  roi: null,
+  nr1: null,
+  integrations: null,
+  'dashboard-rh': null,
+};
+
 export function useFeatureScores() {
-  const [scores, setScores] = useState<FeatureScores>({
-    neuroscore: null,
-    gamification: null,
-    neurocoach: null,
-    'ai-insights': null,
-    alerts: null,
-    roi: null,
-    nr1: null,
-    integrations: null,
-    'dashboard-rh': null,
-  });
+  const { user } = useAuth();
+  const [scores, setScores] = useState<FeatureScores>(defaultScores);
 
-  useEffect(() => {
-    loadScores();
-  }, []);
+  const loadScores = useCallback(async () => {
+    if (!user) {
+      setScores(defaultScores);
+      return;
+    }
 
-  const loadScores = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Parallel fetch all data
       const [scansRes, progressRes, coachRes, recentScansRes] = await Promise.all([
         supabase
           .from('stress_scans')
@@ -62,9 +63,8 @@ export function useFeatureScores() {
           .limit(200),
       ]);
 
-      const newScores: FeatureScores = { ...scores };
+      const newScores: FeatureScores = { ...defaultScores };
 
-      // NeuroScore - last stress level
       if (scansRes.data) {
         const level = scansRes.data.stress_level;
         newScores.neuroscore = {
@@ -73,17 +73,14 @@ export function useFeatureScores() {
         };
       }
 
-      // Gamification - streak
       if (progressRes.data) {
         const streak = progressRes.data.current_streak;
-        const badges = (progressRes.data.badges as any[]) || [];
         newScores.gamification = {
           label: streak > 0 ? `🔥${streak}` : `${progressRes.data.total_scans}`,
           color: streak >= 7 ? 'bg-orange-500' : streak >= 3 ? 'bg-yellow-500' : 'bg-muted',
         };
       }
 
-      // NeuroCoach - conversations count
       if (coachRes.data) {
         const count = coachRes.data.length;
         newScores.neurocoach = count > 0 ? {
@@ -92,7 +89,6 @@ export function useFeatureScores() {
         } : null;
       }
 
-      // Weekly scans data for RH features
       if (recentScansRes.data && recentScansRes.data.length > 0) {
         const scans = recentScansRes.data;
         const total = scans.length;
@@ -104,13 +100,11 @@ export function useFeatureScores() {
         const hrvValues = scans.filter(s => s.hrv_value).map(s => Number(s.hrv_value));
         const avgHRV = hrvValues.length > 0 ? Math.round(hrvValues.reduce((a, b) => a + b, 0) / hrvValues.length) : 0;
 
-        // AI Insights - risk indicator
         newScores['ai-insights'] = {
           label: highPercent > 30 ? '⚠️' : highPercent > 15 ? '⚡' : '✅',
           color: highPercent > 30 ? 'bg-red-500' : highPercent > 15 ? 'bg-yellow-500' : 'bg-green-500',
         };
 
-        // Alerts - count of potential alerts
         let alertCount = 0;
         if (highPercent > 30) alertCount++;
         if (avgHRV > 0 && avgHRV < 30) alertCount++;
@@ -122,21 +116,18 @@ export function useFeatureScores() {
           color: 'bg-green-500',
         };
 
-        // ROI - wellness score
         const wellnessScore = Math.round(lowPercent * 0.6 + (100 - highPercent) * 0.4);
         newScores.roi = {
           label: `${wellnessScore}`,
           color: wellnessScore >= 70 ? 'bg-green-500' : wellnessScore >= 40 ? 'bg-yellow-500' : 'bg-red-500',
         };
 
-        // NR-1 - compliance status
         const riskLevel = highPercent > 30 ? 'high' : highPercent > 15 ? 'moderate' : 'low';
         newScores.nr1 = {
           label: riskLevel === 'low' ? '✅' : riskLevel === 'moderate' ? '⚡' : '⚠️',
           color: riskLevel === 'low' ? 'bg-green-500' : riskLevel === 'moderate' ? 'bg-yellow-500' : 'bg-red-500',
         };
 
-        // Dashboard RH - total scans
         newScores['dashboard-rh'] = {
           label: `${total}`,
           color: 'bg-primary',
@@ -147,7 +138,11 @@ export function useFeatureScores() {
     } catch (error) {
       console.error('Error loading feature scores:', error);
     }
-  };
+  }, [user?.id]);
+
+  useEffect(() => {
+    loadScores();
+  }, [loadScores]);
 
   return { scores, refreshScores: loadScores };
 }

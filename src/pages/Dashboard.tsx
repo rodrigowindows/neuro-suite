@@ -3,10 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useFeatureScores } from '@/hooks/useFeatureScores';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import FeedbackButton from '@/components/FeedbackButton';
+import DashboardSkeleton from '@/components/DashboardSkeleton';
+import WelcomeBanner from '@/components/WelcomeBanner';
 
 // Lazy-loaded feature components
 const NeuroScore = lazy(() => import('@/components/features/NeuroScore'));
@@ -60,10 +63,12 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { scores, refreshScores } = useFeatureScores();
   const { isManager, isAdmin, loading: rolesLoading } = useUserRole();
+  const { profile } = useUserProfile();
   const [stressLevel, setStressLevel] = useState('');
   const [hrvValue, setHRVValue] = useState<number | undefined>(undefined);
   const [activeTab, setActiveTab] = useState('neuroscore');
   const [showMeditation, setShowMeditation] = useState(false);
+  const [isFirstVisit, setIsFirstVisit] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -71,29 +76,37 @@ export default function Dashboard() {
     }
   }, [user, loading, navigate]);
 
+  // Detect first visit (no scans yet)
+  useEffect(() => {
+    if (scores.neuroscore === null && !loading) {
+      setIsFirstVisit(true);
+    }
+  }, [scores.neuroscore, loading]);
+
   const handleStressLevelComplete = (level: string, hrv?: number) => {
     setStressLevel(level);
     setHRVValue(hrv);
+    setIsFirstVisit(false);
     if (hrv && hrv < 30) setShowMeditation(true);
     setActiveTab('gamification');
     refreshScores();
   };
 
   if (loading || rolesLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-4">
-          <div className="animate-spin h-10 w-10 border-[3px] border-primary border-t-transparent rounded-full mx-auto" />
-          <p className="text-muted-foreground text-sm">Carregando...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   const renderContent = () => {
     switch (activeTab) {
       case 'neuroscore':
-        return <NeuroScore onScoreComplete={handleStressLevelComplete} />;
+        return (
+          <>
+            {isFirstVisit && (
+              <WelcomeBanner displayName={profile?.displayName || ''} />
+            )}
+            <NeuroScore onScoreComplete={handleStressLevelComplete} />
+          </>
+        );
       case 'gamification':
         return stressLevel ? (
           <>
