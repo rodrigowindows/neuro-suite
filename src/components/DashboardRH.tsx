@@ -88,6 +88,9 @@ Predição,"${prediction}"`;
       {/* Company Score */}
       <CompanyScoreCard />
 
+      {/* Turnover Prediction */}
+      <TurnoverPrediction />
+
       <Card className="shadow-soft border-primary/20">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
