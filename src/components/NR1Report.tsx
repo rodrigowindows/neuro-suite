@@ -296,6 +296,77 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
             </div>
           </div>
 
+          {/* AI NR-1 Insights */}
+          <Button
+            onClick={async () => {
+              setLoadingAI(true);
+              try {
+                const { data, error } = await supabase.functions.invoke('ai-insights', {
+                  body: {
+                    type: 'nr1_insights',
+                    data: {
+                      totalScans: reportData.totalScans,
+                      period: reportData.period,
+                      lowPercent: reportData.lowPercent,
+                      moderatePercent: reportData.moderatePercent,
+                      highPercent: reportData.highPercent,
+                      avgHRV: reportData.avgHRV,
+                      riskLevel: reportData.riskLevel,
+                    },
+                  },
+                });
+                if (error) throw error;
+                if (data?.error) throw new Error(data.error);
+                setAiInsights(data.result);
+              } catch (e: any) {
+                console.error('Erro AI NR-1:', e);
+              } finally {
+                setLoadingAI(false);
+              }
+            }}
+            disabled={loadingAI}
+            variant="outline"
+            className="w-full gap-2"
+          >
+            {loadingAI ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4 text-accent" />}
+            {loadingAI ? 'Gerando análise jurídica...' : '✨ Gerar Insights NR-1 com IA'}
+          </Button>
+
+          {aiInsights && (
+            <Card className="bg-accent/5 border-accent/20">
+              <CardContent className="p-4 space-y-3">
+                <p className="font-bold text-sm flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-accent" />
+                  Análise Jurídica IA — {aiInsights.riskClassification}
+                </p>
+                <p className="text-xs text-muted-foreground">{aiInsights.legalAnalysis}</p>
+
+                {aiInsights.requiredActions?.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-semibold text-destructive uppercase mb-1">Ações Obrigatórias:</p>
+                    {aiInsights.requiredActions.map((a, i) => (
+                      <p key={i} className="text-xs text-muted-foreground pl-2">• {a}</p>
+                    ))}
+                  </div>
+                )}
+
+                {aiInsights.complianceGaps?.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-semibold text-yellow-600 uppercase mb-1">Lacunas de Compliance:</p>
+                    {aiInsights.complianceGaps.map((g, i) => (
+                      <p key={i} className="text-xs text-muted-foreground pl-2">• {g}</p>
+                    ))}
+                  </div>
+                )}
+
+                <div className="p-2 bg-muted/30 rounded-lg">
+                  <p className="text-[10px] font-semibold mb-1">📄 Texto para PGR:</p>
+                  <p className="text-[10px] text-muted-foreground italic">{aiInsights.executiveText}</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Legal Reference */}
           <div className="p-3 bg-muted/20 rounded-lg text-[10px] text-muted-foreground space-y-1">
             <p className="font-semibold">⚖️ Base Legal:</p>
