@@ -29,7 +29,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  // Carregar nome do usuário
+  // Carregar nome do usuário via hook
   useEffect(() => {
     const loadUserName = async () => {
       try {

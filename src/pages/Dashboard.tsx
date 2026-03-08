@@ -6,7 +6,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
-import NeuroScore from '@/components/NeuroScore';
+import NeuroScore from '@/components/features/NeuroScore';
 import NeuroCoach from '@/components/NeuroCoach';
 import DashboardRH from '@/components/DashboardRH';
 import Gamification from '@/components/Gamification';
