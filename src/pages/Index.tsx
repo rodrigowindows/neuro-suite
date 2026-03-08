@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useNavigate } from "react-router-dom";
 import { Activity, MessageCircle, Trophy, Users, Zap, Target, Shield } from "lucide-react";
 import neuroSuiteLogo from '@/assets/neurosuite-logo.jpg';
+import { FEEDBACK_FORM_URL } from '@/lib/constants';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -25,9 +26,9 @@ const Index = () => {
       <main className="container mx-auto px-4 py-8 sm:py-12 md:py-16 max-w-6xl">
         {/* Hero Banner */}
         <section className="text-center mb-12 sm:mb-16 md:mb-20 space-y-4 sm:space-y-6">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight px-2">
-            Vire o Jogo do Estresse em <span className="bg-gradient-hero bg-clip-text text-transparent">60 segundos! 🚀</span>
-          </h2>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight px-2">
+            Detecção de Estresse via Webcam em <span className="bg-gradient-hero bg-clip-text text-transparent">60 segundos! 🚀</span>
+          </h1>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto px-4">
             Webcam lê piscadas + HRV, IA coach te dá plano PNL pra alta performance. 
             <span className="font-semibold text-foreground"> Reduz turnover 30%, NR-1 compliant.</span>
@@ -53,9 +54,9 @@ const Index = () => {
 
         {/* Benefícios Section */}
         <section id="beneficios" className="mb-12 sm:mb-16 md:mb-20 px-4">
-          <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8 sm:mb-12">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8 sm:mb-12">
             Como o NeuroSuite Transforma Seu Bem-Estar 💪
-          </h3>
+          </h2>
           <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
             <Card className="border-primary/20 hover:shadow-elegant transition-all">
               <CardHeader>
@@ -233,7 +234,7 @@ const Index = () => {
               </p>
               <Button 
                 variant="outline"
-                onClick={() => window.open('https://docs.google.com/forms/d/e/1FAIpQLSe81DxmsG0amW42BCTsr2w2nplmT8uLsedNpNVCE-pC7HCj_g/viewform?usp=dialog', '_blank')}
+                onClick={() => window.open(FEEDBACK_FORM_URL, '_blank')}
               >
                 Enviar Feedback
               </Button>
