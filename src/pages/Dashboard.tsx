@@ -36,6 +36,7 @@ const PAGE_DESCRIPTIONS: Record<string, string> = {
   neuroscore: 'Scan facial via webcam para estimar nível de estresse com neurociência',
   gamification: 'Acompanhe seu progresso, streaks e conquistas',
   neurocoach: 'Coach de alta performance com IA personalizada',
+  leadership: 'Módulos premium de desenvolvimento de liderança com IA',
   'ai-insights': 'Análises preditivas de burnout e sentimento',
   alerts: 'Alertas inteligentes para gestão de equipes',
   roi: 'Retorno sobre investimento em saúde ocupacional',
