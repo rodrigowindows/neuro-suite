@@ -36,6 +36,15 @@ export default function Auth() {
     }
   };
 
+  const handleAppleSignIn = async () => {
+    const { error } = await lovable.auth.signInWithOAuth('apple', {
+      redirect_uri: window.location.origin,
+    });
+    if (error) {
+      toast.error('Erro ao entrar com Apple');
+    }
+  };
+
   const handleForgotPassword = async () => {
     if (!loginEmail) {
       toast.error('Digite seu email primeiro');
