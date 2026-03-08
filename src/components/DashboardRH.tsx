@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { BarChart, Download, TrendingUp, Users, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { FEEDBACK_FORM_URL } from '@/lib/constants';
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
