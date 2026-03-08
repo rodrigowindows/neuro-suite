@@ -245,6 +245,9 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* Trend Chart */}
+      <StressTrendChart />
     </div>
   );
 }
