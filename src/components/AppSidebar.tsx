@@ -45,7 +45,7 @@ interface AppSidebarProps {
   scores?: Record<string, FeatureScore | null>;
 }
 
-export function AppSidebar({ activeTab, onTabChange, gamificationDisabled }: AppSidebarProps) {
+export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, scores = {} }: AppSidebarProps) {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const { state } = useSidebar();
