@@ -61,6 +61,7 @@ export default function Dashboard() {
     setHRVValue(hrv);
     if (hrv && hrv < 30) setShowMeditation(true);
     setActiveTab('gamification');
+    refreshScores();
   };
 
   if (loading) {
