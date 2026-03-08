@@ -161,6 +161,10 @@ export default function Dashboard() {
             <NeuroCoach stressLevel={stressLevel || 'moderate'} />
           </TabsContent>
 
+          <TabsContent value="ai-insights" className="space-y-6">
+            <AIInsightsDashboard />
+          </TabsContent>
+
           <TabsContent value="alerts" className="space-y-6">
             <HRAlerts />
           </TabsContent>
