@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import CompanyScoreCard from '@/components/CompanyScoreCard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BarChart, Download, TrendingUp, Users } from 'lucide-react';
@@ -83,6 +84,9 @@ Predição,"${prediction}"`;
 
   return (
     <div className="space-y-6">
+      {/* Company Score */}
+      <CompanyScoreCard />
+
       <Card className="shadow-soft border-primary/20">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
