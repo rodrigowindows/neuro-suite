@@ -168,6 +168,80 @@ Responda APENAS com o JSON, sem markdown.`;
         break;
       }
 
+      case 'pgr_report': {
+        systemPrompt = `Você é um engenheiro de segurança do trabalho e consultor de compliance especializado na elaboração de Programas de Gerenciamento de Riscos (PGR) conforme NR-1 (Portaria MTP 4.219/2022) e Portaria MTE 1.419/2024 que inclui riscos psicossociais.
+
+Gere um documento PGR COMPLETO e técnico, pronto para ser usado como parte do inventário de riscos da empresa.
+O documento deve seguir a estrutura oficial exigida pela legislação.
+Use linguagem técnica formal, adequada para documentação ocupacional.
+Responda SEMPRE em português brasileiro.
+
+FORMATO DE RESPOSTA (JSON):
+{
+  "titulo": "PROGRAMA DE GERENCIAMENTO DE RISCOS — RISCOS PSICOSSOCIAIS",
+  "versao": "string com versão e data",
+  "identificacaoEmpresa": {
+    "nota": "texto explicando que os dados são agregados e anonimizados conforme LGPD"
+  },
+  "objetivos": ["objetivo1", "objetivo2", "objetivo3"],
+  "fundamentacaoLegal": [
+    {"norma": "nome da norma", "dispositivo": "artigo/parágrafo", "descricao": "o que determina"}
+  ],
+  "inventarioRiscos": {
+    "fatoresIdentificados": [
+      {"fator": "nome do fator", "fonte": "fonte geradora", "classificacao": "leve|moderado|grave", "populacaoExposta": "descrição", "medidasControle": "medidas existentes"}
+    ],
+    "classificacaoGeral": "texto sobre classificação geral dos riscos",
+    "metodologia": "descrição da metodologia de avaliação utilizada (biometria + IA)"
+  },
+  "analiseQuantitativa": {
+    "resumo": "parágrafo com análise dos números",
+    "indicadores": [
+      {"indicador": "nome", "valor": "valor", "interpretacao": "texto"}
+    ]
+  },
+  "planoAcao": [
+    {"acao": "descrição da ação", "responsavel": "cargo responsável sugerido", "prazo": "prazo sugerido", "prioridade": "alta|média|baixa", "indicadorEficacia": "como medir"}
+  ],
+  "cronograma": [
+    {"fase": "nome da fase", "periodo": "prazo", "atividades": ["atividade1", "atividade2"]}
+  ],
+  "monitoramento": {
+    "frequencia": "frequência de reavaliação",
+    "indicadores": ["indicador1", "indicador2"],
+    "responsavel": "cargo sugerido"
+  },
+  "declaracaoLGPD": "texto sobre proteção de dados e anonimização",
+  "conclusao": "parágrafo conclusivo técnico"
+}
+
+Responda APENAS com o JSON, sem markdown.`;
+
+        userPrompt = `Dados biométricos agregados da empresa para elaboração do PGR:
+PERÍODO DE COLETA: ${data.period}
+TOTAL DE AVALIAÇÕES BIOMÉTRICAS: ${data.totalScans}
+NÚMERO DE COLABORADORES AVALIADOS: ${data.totalEmployees || 'não informado'}
+COLABORADORES ATIVOS NO PERÍODO: ${data.activeEmployees || 'não informado'}
+TAXA DE ADESÃO: ${data.adoptionRate || 'não informado'}%
+
+DISTRIBUIÇÃO DE ESTRESSE OCUPACIONAL:
+- Estresse Baixo (zona verde): ${data.lowPercent}%
+- Estresse Moderado (zona amarela): ${data.moderatePercent}%
+- Estresse Alto (zona vermelha): ${data.highPercent}%
+
+INDICADORES BIOMÉTRICOS:
+- HRV Médio (RMSSD): ${data.avgHRV}ms
+- Nível de risco atual: ${data.riskLevel}
+- Tendência: ${data.trend || 'estável'}
+- Dias consecutivos com risco alto: ${data.consecutiveHighDays || 0}
+
+CONTEXTO ADICIONAL:
+- Ferramenta de monitoramento: NeuroSuite (análise facial + HRV)
+- Frequência de coleta: contínua (scans voluntários)
+- Dados anonimizados conforme LGPD`;
+        break;
+      }
+
       default:
         return new Response(
           JSON.stringify({ error: `Unknown type: ${type}` }),
