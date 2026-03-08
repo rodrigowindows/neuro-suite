@@ -3,13 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogOut, Activity, MessageCircle, BarChart, Trophy, Plug } from 'lucide-react';
+import { LogOut, Activity, MessageCircle, BarChart, Trophy, Plug, Calculator, Shield, Bell } from 'lucide-react';
 import NeuroScore from '@/components/NeuroScore';
 import NeuroCoach from '@/components/NeuroCoach';
 import DashboardRH from '@/components/DashboardRH';
 import Gamification from '@/components/Gamification';
 import MiniMeditation from '@/components/MiniMeditation';
 import IntegrationsDashboard from '@/components/IntegrationsDashboard';
+import ROIDashboard from '@/components/ROIDashboard';
+import NR1Report from '@/components/NR1Report';
+import HRAlerts from '@/components/HRAlerts';
 import neuroSuiteLogo from '@/assets/neurosuite-logo.jpg';
 import FeedbackButton from '@/components/FeedbackButton';
 import BackButton from '@/components/BackButton';
@@ -89,31 +92,45 @@ export default function Dashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full grid-cols-5 p-0.5 sm:p-1 h-auto">
-            <TabsTrigger value="neuroscore" className="gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5">
-              <Activity className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">NeuroScore</span>
+          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-8 p-0.5 sm:p-1 h-auto">
+            <TabsTrigger value="neuroscore" className="gap-1 text-[10px] sm:text-xs py-2">
+              <Activity className="h-3 w-3" />
+              <span className="hidden sm:inline">Score</span>
               <span className="sm:hidden">Score</span>
             </TabsTrigger>
-            <TabsTrigger value="gamification" className="gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5" disabled={!stressLevel}>
-              <Trophy className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Conquistas</span>
-              <span className="sm:hidden">🏆</span>
+            <TabsTrigger value="gamification" className="gap-1 text-[10px] sm:text-xs py-2" disabled={!stressLevel}>
+              <Trophy className="h-3 w-3" />
+              <span>🏆</span>
             </TabsTrigger>
-            <TabsTrigger value="neurocoach" className="gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5">
-              <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">NeuroCoach</span>
-              <span className="sm:hidden">Coach</span>
+            <TabsTrigger value="neurocoach" className="gap-1 text-[10px] sm:text-xs py-2">
+              <MessageCircle className="h-3 w-3" />
+              <span className="hidden sm:inline">Coach</span>
+              <span className="sm:hidden">IA</span>
             </TabsTrigger>
-            <TabsTrigger value="integrations" className="gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5">
-              <Plug className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden md:inline">Integrações</span>
-              <span className="md:hidden">API</span>
+            <TabsTrigger value="alerts" className="gap-1 text-[10px] sm:text-xs py-2">
+              <Bell className="h-3 w-3" />
+              <span className="hidden sm:inline">Alertas</span>
+              <span className="sm:hidden">🔔</span>
             </TabsTrigger>
-            <TabsTrigger value="dashboard-rh" className="gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5">
-              <BarChart className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden md:inline">Dashboard RH</span>
-              <span className="md:hidden">RH</span>
+            <TabsTrigger value="roi" className="gap-1 text-[10px] sm:text-xs py-2">
+              <Calculator className="h-3 w-3" />
+              <span className="hidden sm:inline">ROI</span>
+              <span className="sm:hidden">💰</span>
+            </TabsTrigger>
+            <TabsTrigger value="nr1" className="gap-1 text-[10px] sm:text-xs py-2">
+              <Shield className="h-3 w-3" />
+              <span className="hidden sm:inline">NR-1</span>
+              <span className="sm:hidden">📋</span>
+            </TabsTrigger>
+            <TabsTrigger value="integrations" className="gap-1 text-[10px] sm:text-xs py-2">
+              <Plug className="h-3 w-3" />
+              <span className="hidden sm:inline">API</span>
+              <span className="sm:hidden">🔗</span>
+            </TabsTrigger>
+            <TabsTrigger value="dashboard-rh" className="gap-1 text-[10px] sm:text-xs py-2">
+              <BarChart className="h-3 w-3" />
+              <span className="hidden sm:inline">RH</span>
+              <span className="sm:hidden">📊</span>
             </TabsTrigger>
           </TabsList>
 
@@ -136,6 +153,18 @@ export default function Dashboard() {
 
           <TabsContent value="neurocoach" className="space-y-6">
             <NeuroCoach stressLevel={stressLevel || 'moderate'} />
+          </TabsContent>
+
+          <TabsContent value="alerts" className="space-y-6">
+            <HRAlerts />
+          </TabsContent>
+
+          <TabsContent value="roi" className="space-y-6">
+            <ROIDashboard />
+          </TabsContent>
+
+          <TabsContent value="nr1" className="space-y-6">
+            <NR1Report />
           </TabsContent>
 
           <TabsContent value="integrations" className="space-y-6">
