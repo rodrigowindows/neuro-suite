@@ -7,6 +7,7 @@ import { Scan, Activity } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import WebcamCapture from './WebcamCapture';
+import PostScanActionPlan from './PostScanActionPlan';
 
 interface NeuroScoreProps {
   onScoreComplete: (stressLevel: string, hrvValue?: number) => void;
