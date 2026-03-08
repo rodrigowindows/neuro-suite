@@ -28,7 +28,7 @@ const Index = () => {
         <section className="text-center mb-12 sm:mb-16 md:mb-20 space-y-4 sm:space-y-6">
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight px-2">
             Detecção de Estresse via Webcam em <span className="bg-gradient-hero bg-clip-text text-transparent">60 segundos! 🚀</span>
-          </h2>
+          </h1>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto px-4">
             Webcam lê piscadas + HRV, IA coach te dá plano PNL pra alta performance. 
             <span className="font-semibold text-foreground"> Reduz turnover 30%, NR-1 compliant.</span>
