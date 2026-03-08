@@ -93,7 +93,7 @@ export default function Dashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-8 p-0.5 sm:p-1 h-auto">
+          <TabsList className="grid w-full grid-cols-5 sm:grid-cols-9 p-0.5 sm:p-1 h-auto">
             <TabsTrigger value="neuroscore" className="gap-1 text-[10px] sm:text-xs py-2">
               <Activity className="h-3 w-3" />
               <span className="hidden sm:inline">Score</span>
@@ -107,6 +107,11 @@ export default function Dashboard() {
               <MessageCircle className="h-3 w-3" />
               <span className="hidden sm:inline">Coach</span>
               <span className="sm:hidden">IA</span>
+            </TabsTrigger>
+            <TabsTrigger value="ai-insights" className="gap-1 text-[10px] sm:text-xs py-2">
+              <Brain className="h-3 w-3" />
+              <span className="hidden sm:inline">IA</span>
+              <span className="sm:hidden">🧠</span>
             </TabsTrigger>
             <TabsTrigger value="alerts" className="gap-1 text-[10px] sm:text-xs py-2">
               <Bell className="h-3 w-3" />
