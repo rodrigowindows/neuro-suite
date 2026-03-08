@@ -26,6 +26,7 @@ const HRAlerts = lazy(() => import('@/components/HRAlerts'));
 const AIInsightsDashboard = lazy(() => import('@/components/AIInsightsDashboard'));
 const LeadershipCoaching = lazy(() => import('@/components/LeadershipCoaching'));
 const DailyCheckin = lazy(() => import('@/components/DailyCheckin'));
+const CheckinHistory = lazy(() => import('@/components/CheckinHistory'));
 
 const PAGE_TITLES: Record<string, string> = {
   checkin: 'Check-in Diário',
