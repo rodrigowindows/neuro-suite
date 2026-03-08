@@ -146,7 +146,7 @@ Predição,"${prediction}"`;
             Dashboard RH - Análise de Bem-Estar (7 dias)
           </CardTitle>
           <CardDescription>
-            Dados agregados anônimos com RLS ativo • Limite 100 scans (free tier)
+            Dados agregados anônimos da equipe • Últimos 7 dias
           </CardDescription>
           <Button onClick={exportCSV} variant="outline" size="sm" className="mt-3">
             <Download className="mr-2 h-4 w-4" />

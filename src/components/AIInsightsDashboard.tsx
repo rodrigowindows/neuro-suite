@@ -158,9 +158,9 @@ export default function AIInsightsDashboard() {
       const allUserMessages = conversations.flatMap(c => 
         (c.messages as any[]).filter((m: any) => m.role === 'user')
       );
-      if (userMessages.length === 0) throw new Error('Sem mensagens do usuário para analisar.');
+      if (allUserMessages.length === 0) throw new Error('Sem mensagens do usuário para analisar.');
 
-      const result = await callAI('sentiment_analysis', { messages: userMessages });
+      const result = await callAI('sentiment_analysis', { messages: allUserMessages });
       setSentiment(result);
     } catch (e: any) {
       toast({ title: 'Erro', description: e.message, variant: 'destructive' });

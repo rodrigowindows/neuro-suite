@@ -47,7 +47,7 @@ export default function Auth() {
         preferredName: signupPreferredName,
       });
       const { error } = await signUp(validated.email, validated.password, validated.fullName, validated.preferredName);
-      if (!error) navigate('/');
+      // Don't navigate - user needs to confirm email first
     } catch (error: any) {
       if (error.errors) toast.error(error.errors[0].message);
     }

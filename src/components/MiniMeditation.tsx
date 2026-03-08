@@ -162,7 +162,9 @@ export default function MiniMeditation({ trigger }: MiniMeditationProps) {
         </Button>
 
         <p className="text-xs text-center text-muted-foreground">
-          A voz guiada usa Text-to-Speech nativo do browser (gratuito)
+          {ttsSupported 
+            ? 'A voz guiada usa Text-to-Speech nativo do browser (gratuito)' 
+            : '⚠️ Voz não suportada neste navegador. Siga as instruções visuais na tela.'}
         </p>
       </CardContent>
     </Card>

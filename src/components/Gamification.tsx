@@ -275,12 +275,12 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
         {/* Novo badge toast */}
         {showNewBadge && (
           <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top">
-            <Card className="shadow-lg border-2 border-yellow-500 bg-yellow-50">
+            <Card className="shadow-lg border-2 border-yellow-500 bg-yellow-50 dark:bg-yellow-950/80">
               <CardContent className="p-4 flex items-center gap-3">
                 <Zap className="h-8 w-8 text-yellow-500" />
                 <div>
-                  <p className="font-bold text-yellow-900">🎉 Nova Conquista!</p>
-                  <p className="text-sm text-yellow-700">Confira seus badges!</p>
+                  <p className="font-bold text-yellow-900 dark:text-yellow-200">🎉 Nova Conquista!</p>
+                  <p className="text-sm text-yellow-700 dark:text-yellow-400">Confira seus badges!</p>
                 </div>
               </CardContent>
             </Card>
