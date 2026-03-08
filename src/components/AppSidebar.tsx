@@ -1,4 +1,4 @@
-import { Activity, MessageCircle, Trophy, Brain, Bell, Calculator, Shield, Plug, BarChart, LogOut, Settings, GraduationCap, UserCircle } from 'lucide-react';
+import { Activity, MessageCircle, Trophy, Brain, Bell, Calculator, Shield, Plug, BarChart, LogOut, Settings, GraduationCap, UserCircle, Sun } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import neuroSuiteLogo from '@/assets/neurosuite-logo.jpg';
@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
 const employeeItems = [
+  { title: 'Check-in', value: 'checkin', icon: Sun, emoji: '☀️' },
   { title: 'NeuroScore', value: 'neuroscore', icon: Activity, emoji: '🧠' },
   { title: 'Gamificação', value: 'gamification', icon: Trophy, emoji: '🏆' },
   { title: 'NeuroCoach', value: 'neurocoach', icon: MessageCircle, emoji: '💬' },

@@ -25,8 +25,10 @@ const NR1Report = lazy(() => import('@/components/NR1Report'));
 const HRAlerts = lazy(() => import('@/components/HRAlerts'));
 const AIInsightsDashboard = lazy(() => import('@/components/AIInsightsDashboard'));
 const LeadershipCoaching = lazy(() => import('@/components/LeadershipCoaching'));
+const DailyCheckin = lazy(() => import('@/components/DailyCheckin'));
 
 const PAGE_TITLES: Record<string, string> = {
+  checkin: 'Check-in Diário',
   neuroscore: 'NeuroScore',
   gamification: 'Gamificação',
   neurocoach: 'NeuroCoach IA',
@@ -40,6 +42,7 @@ const PAGE_TITLES: Record<string, string> = {
 };
 
 const PAGE_DESCRIPTIONS: Record<string, string> = {
+  checkin: 'Triagem emocional rápida de 30 segundos',
   neuroscore: 'Scan facial via webcam para estimar nível de estresse com neurociência',
   gamification: 'Acompanhe seu progresso, streaks e conquistas',
   neurocoach: 'Coach de alta performance com IA personalizada',
@@ -68,7 +71,7 @@ export default function Dashboard() {
   const { profile } = useUserProfile();
   const [stressLevel, setStressLevel] = useState('');
   const [hrvValue, setHRVValue] = useState<number | undefined>(undefined);
-  const [activeTab, setActiveTab] = useState('neuroscore');
+  const [activeTab, setActiveTab] = useState('checkin');
   const [showMeditation, setShowMeditation] = useState(false);
   const [isFirstVisit, setIsFirstVisit] = useState(false);
 
@@ -100,6 +103,8 @@ export default function Dashboard() {
 
   const renderContent = () => {
     switch (activeTab) {
+      case 'checkin':
+        return <DailyCheckin />;
       case 'neuroscore':
         return (
           <>

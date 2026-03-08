@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.ai-insights]
 verify_jwt = false
+
+[functions.daily-checkin]
+verify_jwt = false
+
+[functions.proactive-alerts]
+verify_jwt = false
