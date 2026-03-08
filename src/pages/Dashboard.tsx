@@ -134,7 +134,7 @@ export default function Dashboard() {
           activeTab={activeTab}
           onTabChange={setActiveTab}
           gamificationDisabled={!stressLevel}
-          scores={scores as Record<string, { label: string; color: string } | null>}
+          scores={scores as unknown as Record<string, { label: string; color: string } | null>}
           isManager={isManager}
           isAdmin={isAdmin}
         />
