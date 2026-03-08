@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import NeuroScore from '@/components/features/NeuroScore';
-import NeuroCoach from '@/components/NeuroCoach';
+import NeuroCoach from '@/components/features/NeuroCoach';
 import DashboardRH from '@/components/DashboardRH';
 import Gamification from '@/components/Gamification';
 import MiniMeditation from '@/components/MiniMeditation';
