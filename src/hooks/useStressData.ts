@@ -2,6 +2,23 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { StressScan } from '@/types/stress';
 import { computeStats, computeTrend, computeConsecutiveHighDays } from '@/services/stressAnalytics';
+import type { StressStats, StressTrend } from '@/types/stress';
+
+interface UseStressDataOptions {
+  days?: number;
+  limit?: number;
+  filterByUser?: boolean;
+}
+
+interface UseStressDataReturn {
+  scans: StressScan[];
+  stats: StressStats;
+  trend: StressTrend | null;
+  consecutiveHighDays: number;
+  loading: boolean;
+  error: string | null;
+  refresh: () => Promise<void>;
+}
 
 export function useStressData(options: UseStressDataOptions = {}): UseStressDataReturn {
   const { days = 7, limit = 500, filterByUser = false } = options;
