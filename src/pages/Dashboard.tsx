@@ -23,6 +23,7 @@ const PAGE_TITLES: Record<string, string> = {
   neuroscore: 'NeuroScore',
   gamification: 'Gamificação',
   neurocoach: 'NeuroCoach IA',
+  leadership: 'Coaching Liderança',
   'ai-insights': 'IA Insights',
   alerts: 'Alertas RH',
   roi: 'ROI & Economia',
