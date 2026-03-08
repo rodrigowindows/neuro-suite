@@ -15,6 +15,17 @@ interface ReportData {
   period: string;
   riskLevel: 'low' | 'moderate' | 'high';
   recommendations: string[];
+  aiInsights?: any;
+}
+
+interface NR1AIInsights {
+  riskClassification: string;
+  legalAnalysis: string;
+  requiredActions: string[];
+  suggestedActions: string[];
+  complianceGaps: string[];
+  documentationNeeded: string[];
+  executiveText: string;
 }
 
 export default function NR1Report() {

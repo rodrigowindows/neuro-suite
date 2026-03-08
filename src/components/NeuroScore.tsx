@@ -233,6 +233,12 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
                   {result.stressLevel === 'high' && 'Pause agora: 2min de respiração profunda + reframe mental (PNL).'}
                 </p>
               </div>
+
+              <PostScanActionPlan
+                stressLevel={result.stressLevel}
+                blinkRate={result.blinkRate}
+                hrvValue={undefined}
+              />
             </div>
           )}
         </CardContent>
