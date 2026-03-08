@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { MessageCircle, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { CoachMessage, getInitialMessage, buildContext, exportConversation } from '@/services/coachService';
 import ToneSelector from './ToneSelector';
