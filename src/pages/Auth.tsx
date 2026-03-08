@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { signupSchema, loginSchema } from '@/lib/validations';
 import { supabase } from '@/integrations/supabase/client';
+import { lovable } from '@/integrations/lovable';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { CheckCircle, Mail } from 'lucide-react';
