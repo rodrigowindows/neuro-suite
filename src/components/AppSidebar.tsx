@@ -44,6 +44,7 @@ interface AppSidebarProps {
   gamificationDisabled?: boolean;
   scores?: Record<string, FeatureScore | null>;
   isManager?: boolean;
+  isAdmin?: boolean;
 }
 
 export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, scores = {}, isManager = false }: AppSidebarProps) {
