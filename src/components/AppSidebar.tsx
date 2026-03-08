@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
 const employeeItems = [
+  { title: 'Check-in', value: 'checkin', icon: Sun, emoji: '☀️' },
   { title: 'NeuroScore', value: 'neuroscore', icon: Activity, emoji: '🧠' },
   { title: 'Gamificação', value: 'gamification', icon: Trophy, emoji: '🏆' },
   { title: 'NeuroCoach', value: 'neurocoach', icon: MessageCircle, emoji: '💬' },
