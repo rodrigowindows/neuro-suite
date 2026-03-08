@@ -31,7 +31,7 @@ export default function AdminPanel() {
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth');
-    if (!authLoading && !roleLoading && !isAdmin) navigate('/');
+    if (!authLoading && !roleLoading && !isAdmin) navigate('/dashboard');
   }, [user, authLoading, isAdmin, roleLoading, navigate]);
 
   useEffect(() => {
@@ -141,7 +141,7 @@ export default function AdminPanel() {
   return (
     <div className="min-h-screen bg-background">
       <header className="h-14 flex items-center gap-3 border-b bg-card/60 backdrop-blur-sm px-4 sticky top-0 z-40">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+        <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>

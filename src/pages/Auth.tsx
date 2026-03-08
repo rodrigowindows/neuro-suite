@@ -67,7 +67,7 @@ export default function Auth() {
     try {
       const validated = loginSchema.parse({ email: loginEmail, password: loginPassword });
       const { error } = await signIn(validated.email, validated.password);
-      if (!error) navigate('/');
+      if (!error) navigate('/dashboard');
     } catch (error: any) {
       if (error.errors) toast.error(error.errors[0].message);
     }
