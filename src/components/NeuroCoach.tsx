@@ -129,7 +129,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
       const { data, error } = await supabase.functions.invoke('neuro-coach', {
         body: {
           messages: [...messages, userMessage],
-          stressLevel,
+          stressLevel: effectiveStressLevel,
           context,
           userName,
           communicationTone,
