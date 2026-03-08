@@ -47,7 +47,7 @@ interface AppSidebarProps {
   isAdmin?: boolean;
 }
 
-export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, scores = {}, isManager = false }: AppSidebarProps) {
+export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, scores = {}, isManager = false, isAdmin = false }: AppSidebarProps) {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const { state } = useSidebar();
