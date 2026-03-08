@@ -77,6 +77,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('checkin');
   const [showMeditation, setShowMeditation] = useState(false);
   const [isFirstVisit, setIsFirstVisit] = useState(false);
+  const stressNotif = useStressNotifications();
 
   useEffect(() => {
     if (!loading && !user) {
