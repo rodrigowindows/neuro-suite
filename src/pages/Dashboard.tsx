@@ -46,7 +46,7 @@ export default function Dashboard() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { scores, refreshScores } = useFeatureScores();
-  const { isManager, loading: rolesLoading } = useUserRole();
+  const { isManager, isAdmin, loading: rolesLoading } = useUserRole();
   const [stressLevel, setStressLevel] = useState('');
   const [hrvValue, setHRVValue] = useState<number | undefined>(undefined);
   const [activeTab, setActiveTab] = useState('neuroscore');
@@ -121,6 +121,7 @@ export default function Dashboard() {
           gamificationDisabled={!stressLevel}
           scores={scores as any}
           isManager={isManager}
+          isAdmin={isAdmin}
         />
 
         <div className="flex-1 flex flex-col min-w-0">

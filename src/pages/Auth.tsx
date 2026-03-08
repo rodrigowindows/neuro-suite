@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { signupSchema, loginSchema } from '@/lib/validations';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { CheckCircle, Mail } from 'lucide-react';
@@ -24,6 +25,22 @@ export default function Auth() {
   const [signupPassword, setSignupPassword] = useState('');
   const [signupName, setSignupName] = useState('');
   const [signupPreferredName, setSignupPreferredName] = useState('');
+
+  const handleForgotPassword = async () => {
+    if (!loginEmail) {
+      toast.error('Digite seu email primeiro');
+      return;
+    }
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(loginEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success('Email de recuperação enviado! Verifique sua caixa de entrada.');
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao enviar email');
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,6 +123,13 @@ export default function Auth() {
                   <Button type="submit" className="w-full mt-2" disabled={isLoading}>
                     {isLoading ? 'Entrando...' : 'Entrar'}
                   </Button>
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="w-full text-xs text-muted-foreground hover:text-primary transition-colors mt-2 text-center"
+                  >
+                    Esqueceu sua senha?
+                  </button>
                 </form>
               </TabsContent>
 

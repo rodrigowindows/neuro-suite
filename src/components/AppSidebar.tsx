@@ -1,4 +1,4 @@
-import { Activity, MessageCircle, Trophy, Brain, Bell, Calculator, Shield, Plug, BarChart, LogOut } from 'lucide-react';
+import { Activity, MessageCircle, Trophy, Brain, Bell, Calculator, Shield, Plug, BarChart, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import neuroSuiteLogo from '@/assets/neurosuite-logo.jpg';
@@ -44,9 +44,10 @@ interface AppSidebarProps {
   gamificationDisabled?: boolean;
   scores?: Record<string, FeatureScore | null>;
   isManager?: boolean;
+  isAdmin?: boolean;
 }
 
-export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, scores = {}, isManager = false }: AppSidebarProps) {
+export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, scores = {}, isManager = false, isAdmin = false }: AppSidebarProps) {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const { state } = useSidebar();
@@ -158,7 +159,18 @@ export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, score
         )}
       </SidebarContent>
 
-      <SidebarFooter className="p-2">
+      <SidebarFooter className="p-2 space-y-1">
+        {isAdmin && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/admin')}
+            className="w-full justify-start gap-2 text-sidebar-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent"
+          >
+            <Settings className="h-4 w-4 flex-shrink-0" />
+            {!collapsed && <span>Admin</span>}
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="sm"
