@@ -31,7 +31,7 @@ export default function AdminPanel() {
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth');
-    if (!authLoading && !roleLoading && !isAdmin) navigate('/');
+    if (!authLoading && !roleLoading && !isAdmin) navigate('/dashboard');
   }, [user, authLoading, isAdmin, roleLoading, navigate]);
 
   useEffect(() => {
