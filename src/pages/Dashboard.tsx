@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useFeatureScores } from '@/hooks/useFeatureScores';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -43,6 +44,7 @@ const PAGE_DESCRIPTIONS: Record<string, string> = {
 export default function Dashboard() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { scores, refreshScores } = useFeatureScores();
   const [stressLevel, setStressLevel] = useState('');
   const [hrvValue, setHRVValue] = useState<number | undefined>(undefined);
   const [activeTab, setActiveTab] = useState('neuroscore');
@@ -59,6 +61,7 @@ export default function Dashboard() {
     setHRVValue(hrv);
     if (hrv && hrv < 30) setShowMeditation(true);
     setActiveTab('gamification');
+    refreshScores();
   };
 
   if (loading) {
@@ -114,6 +117,7 @@ export default function Dashboard() {
           activeTab={activeTab}
           onTabChange={setActiveTab}
           gamificationDisabled={!stressLevel}
+          scores={scores as any}
         />
 
         <div className="flex-1 flex flex-col min-w-0">

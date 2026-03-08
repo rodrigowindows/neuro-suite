@@ -33,13 +33,20 @@ const managerItems = [
   { title: 'Dashboard RH', value: 'dashboard-rh', icon: BarChart, emoji: '📊' },
 ];
 
+interface FeatureScore {
+  label: string;
+  color: string;
+}
+
 interface AppSidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   gamificationDisabled?: boolean;
+  scores?: Record<string, FeatureScore | null>;
+  [key: string]: any;
 }
 
-export function AppSidebar({ activeTab, onTabChange, gamificationDisabled }: AppSidebarProps) {
+export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, scores = {} }: AppSidebarProps) {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const { state } = useSidebar();
@@ -80,7 +87,7 @@ export function AppSidebar({ activeTab, onTabChange, gamificationDisabled }: App
           <SidebarGroupContent>
             <SidebarMenu>
               {employeeItems.map((item) => (
-                <SidebarMenuItem key={item.value}>
+                <SidebarMenuItem key={item.value} className="relative">
                   <SidebarMenuButton
                     onClick={() => {
                       if (item.value === 'gamification' && gamificationDisabled) return;
@@ -95,7 +102,14 @@ export function AppSidebar({ activeTab, onTabChange, gamificationDisabled }: App
                     } ${item.value === 'gamification' && gamificationDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
                   >
                     <item.icon className="h-4 w-4 flex-shrink-0" />
-                    {!collapsed && <span className="truncate">{item.title}</span>}
+                    {!collapsed && (
+                      <span className="truncate flex-1">{item.title}</span>
+                    )}
+                    {scores[item.value] && (
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white leading-none ${scores[item.value]!.color} ${collapsed ? 'absolute -top-1 -right-1 scale-75' : ''}`}>
+                        {scores[item.value]!.label}
+                      </span>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -112,7 +126,7 @@ export function AppSidebar({ activeTab, onTabChange, gamificationDisabled }: App
           <SidebarGroupContent>
             <SidebarMenu>
               {managerItems.map((item) => (
-                <SidebarMenuItem key={item.value}>
+                <SidebarMenuItem key={item.value} className="relative">
                   <SidebarMenuButton
                     onClick={() => onTabChange(item.value)}
                     isActive={activeTab === item.value}
@@ -124,7 +138,14 @@ export function AppSidebar({ activeTab, onTabChange, gamificationDisabled }: App
                     }`}
                   >
                     <item.icon className="h-4 w-4 flex-shrink-0" />
-                    {!collapsed && <span className="truncate">{item.title}</span>}
+                    {!collapsed && (
+                      <span className="truncate flex-1">{item.title}</span>
+                    )}
+                    {scores[item.value] && (
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white leading-none ${scores[item.value]!.color} ${collapsed ? 'absolute -top-1 -right-1 scale-75' : ''}`}>
+                        {scores[item.value]!.label}
+                      </span>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
