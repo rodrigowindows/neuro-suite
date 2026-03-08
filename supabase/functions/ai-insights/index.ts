@@ -242,7 +242,56 @@ CONTEXTO ADICIONAL:
         break;
       }
 
-      default:
+      case 'turnover_prediction': {
+        systemPrompt = `Você é um especialista em People Analytics e retenção de talentos.
+Analise os dados de estresse, engajamento e frequência de uso de cada colaborador (anonimizado por ID) e estime o risco de turnover.
+Responda SEMPRE em português brasileiro. Seja direto e acionável.
+
+FORMATO DE RESPOSTA (JSON):
+{
+  "overallRisk": "low" | "moderate" | "high" | "critical",
+  "overallScore": número de 0-100 (100 = risco máximo),
+  "summary": "parágrafo executivo sobre a situação geral de retenção",
+  "employees": [
+    {
+      "id": "ID anonimizado do colaborador",
+      "riskScore": número de 0-100,
+      "riskLevel": "low" | "moderate" | "high" | "critical",
+      "factors": ["fator1", "fator2"],
+      "recommendation": "recomendação específica para este caso",
+      "signals": ["sinal1", "sinal2"]
+    }
+  ],
+  "topRisks": ["insight1 sobre os maiores riscos", "insight2"],
+  "retentionActions": [
+    {"action": "ação de retenção", "priority": "alta|média|baixa", "impact": "descrição do impacto esperado"}
+  ],
+  "costEstimate": "estimativa textual do custo de turnover se não agir"
+}
+
+Ordene os employees por riskScore decrescente. Máximo 15 colaboradores.
+Responda APENAS com o JSON, sem markdown.`;
+
+        userPrompt = `Dados dos colaboradores (anonimizados) dos últimos 30 dias:
+
+${(data.employees || []).map((e: any) => `Colaborador ${e.id}:
+- Total de scans: ${e.totalScans}
+- % Estresse Alto: ${e.highPercent}%
+- % Estresse Moderado: ${e.moderatePercent}%
+- % Estresse Baixo: ${e.lowPercent}%
+- HRV Médio: ${e.avgHRV}ms
+- Dias ativos (scans): ${e.activeDays}
+- Último scan: ${e.lastScanDaysAgo} dias atrás
+- Tendência de estresse: ${e.trend}
+`).join('\n')}
+
+CONTEXTO DA EMPRESA:
+- Total de colaboradores monitorados: ${data.totalEmployees}
+- Taxa de adesão geral: ${data.adoptionRate}%
+- Estresse alto médio da empresa: ${data.companyHighPercent}%`;
+        break;
+      }
+
         return new Response(
           JSON.stringify({ error: `Unknown type: ${type}` }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
