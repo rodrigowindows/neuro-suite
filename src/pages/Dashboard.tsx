@@ -117,6 +117,7 @@ export default function Dashboard() {
           activeTab={activeTab}
           onTabChange={setActiveTab}
           gamificationDisabled={!stressLevel}
+          scores={scores}
         />
 
         <div className="flex-1 flex flex-col min-w-0">
