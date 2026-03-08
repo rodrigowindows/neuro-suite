@@ -63,7 +63,11 @@ describe("exportConversation", () => {
       { role: "user", content: "Hi" },
     ];
     const blob = exportConversation(messages);
-    const text = await blob.text();
+    const text = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.readAsText(blob);
+    });
     expect(text).toContain("NeuroCoach: Hello");
     expect(text).toContain("Você: Hi");
   });
