@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogOut, Activity, MessageCircle, BarChart, Trophy, Plug, Calculator, Shield, Bell, Brain } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { AppSidebar } from '@/components/AppSidebar';
 import NeuroScore from '@/components/NeuroScore';
 import NeuroCoach from '@/components/NeuroCoach';
 import DashboardRH from '@/components/DashboardRH';
@@ -14,14 +14,36 @@ import ROIDashboard from '@/components/ROIDashboard';
 import NR1Report from '@/components/NR1Report';
 import HRAlerts from '@/components/HRAlerts';
 import AIInsightsDashboard from '@/components/AIInsightsDashboard';
-import neuroSuiteLogo from '@/assets/neurosuite-logo.jpg';
 import FeedbackButton from '@/components/FeedbackButton';
-import BackButton from '@/components/BackButton';
+
+const PAGE_TITLES: Record<string, string> = {
+  neuroscore: 'NeuroScore',
+  gamification: 'Gamificação',
+  neurocoach: 'NeuroCoach IA',
+  'ai-insights': 'IA Insights',
+  alerts: 'Alertas RH',
+  roi: 'ROI & Economia',
+  nr1: 'NR-1 Compliance',
+  integrations: 'Integrações',
+  'dashboard-rh': 'Dashboard RH',
+};
+
+const PAGE_DESCRIPTIONS: Record<string, string> = {
+  neuroscore: 'Scan facial via webcam para estimar nível de estresse com neurociência',
+  gamification: 'Acompanhe seu progresso, streaks e conquistas',
+  neurocoach: 'Coach de alta performance com IA personalizada',
+  'ai-insights': 'Análises preditivas de burnout e sentimento',
+  alerts: 'Alertas inteligentes para gestão de equipes',
+  roi: 'Retorno sobre investimento em saúde ocupacional',
+  nr1: 'Compliance e relatórios NR-1 automatizados',
+  integrations: 'Conecte com suas ferramentas de RH',
+  'dashboard-rh': 'Visão consolidada dos indicadores de bem-estar',
+};
 
 export default function Dashboard() {
-  const { user, signOut, loading } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [stressLevel, setStressLevel] = useState<string>('');
+  const [stressLevel, setStressLevel] = useState('');
   const [hrvValue, setHRVValue] = useState<number | undefined>(undefined);
   const [activeTab, setActiveTab] = useState('neuroscore');
   const [showMeditation, setShowMeditation] = useState(false);
@@ -35,168 +57,105 @@ export default function Dashboard() {
   const handleStressLevelComplete = (level: string, hrv?: number) => {
     setStressLevel(level);
     setHRVValue(hrv);
-    
-    // Ativar mini-meditação se HRV < 30
-    if (hrv && hrv < 30) {
-      setShowMeditation(true);
-    }
-    
+    if (hrv && hrv < 30) setShowMeditation(true);
     setActiveTab('gamification');
-  };
-
-  const handleLogout = async () => {
-    await signOut();
-    navigate('/auth');
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
-          <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full mx-auto" />
-          <p className="text-muted-foreground">Carregando...</p>
+          <div className="animate-spin h-10 w-10 border-[3px] border-primary border-t-transparent rounded-full mx-auto" />
+          <p className="text-muted-foreground text-sm">Carregando...</p>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      <BackButton />
-      <FeedbackButton />
-      
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50 shadow-soft">
-        <div className="container mx-auto px-4 py-3 md:py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <img 
-              src={neuroSuiteLogo} 
-              alt="NeuroSuite Logo" 
-              className="h-10 sm:h-12 w-auto object-contain"
-            />
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'neuroscore':
+        return <NeuroScore onScoreComplete={handleStressLevelComplete} />;
+      case 'gamification':
+        return stressLevel ? (
+          <>
+            <Gamification stressLevel={stressLevel} hrvValue={hrvValue} />
+            {showMeditation && <MiniMeditation trigger={showMeditation} />}
+          </>
+        ) : (
+          <div className="text-center py-16 text-muted-foreground">
+            <p className="text-lg font-medium">Complete o NeuroScore primeiro</p>
+            <p className="text-sm mt-1">Faça um scan para desbloquear a gamificação</p>
           </div>
-          <Button variant="ghost" size="sm" onClick={handleLogout}>
-            <LogOut className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Sair</span>
-          </Button>
+        );
+      case 'neurocoach':
+        return <NeuroCoach stressLevel={stressLevel || 'moderate'} />;
+      case 'ai-insights':
+        return <AIInsightsDashboard />;
+      case 'alerts':
+        return <HRAlerts />;
+      case 'roi':
+        return <ROIDashboard />;
+      case 'nr1':
+        return <NR1Report />;
+      case 'integrations':
+        return <IntegrationsDashboard />;
+      case 'dashboard-rh':
+        return <DashboardRH />;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        <AppSidebar
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          gamificationDisabled={!stressLevel}
+        />
+
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Top bar */}
+          <header className="h-14 flex items-center gap-3 border-b bg-card/60 backdrop-blur-sm px-4 sticky top-0 z-40">
+            <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
+            <div className="flex flex-col min-w-0">
+              <h1 className="font-display font-bold text-sm sm:text-base truncate">
+                {PAGE_TITLES[activeTab]}
+              </h1>
+              <p className="text-[11px] text-muted-foreground truncate hidden sm:block">
+                {PAGE_DESCRIPTIONS[activeTab]}
+              </p>
+            </div>
+          </header>
+
+          {/* Content */}
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-6xl w-full mx-auto">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+                className="space-y-6"
+              >
+                {renderContent()}
+              </motion.div>
+            </AnimatePresence>
+          </main>
+
+          {/* Footer */}
+          <footer className="border-t bg-card/30 px-4 py-3 text-center">
+            <p className="text-[11px] text-muted-foreground">
+              NeuroSuite v1.0 (Beta) · Lincolnectd Neurobusiness · LGPD
+            </p>
+          </footer>
         </div>
-      </header>
 
-      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8 max-w-5xl">
-        <div className="mb-4 sm:mb-6 md:mb-8 space-y-2 sm:space-y-3">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight">
-            🧠 NeuroSuite - Reduza Turnover e Aumente Produtividade
-          </h2>
-          <p className="text-muted-foreground text-xs sm:text-sm md:text-base max-w-3xl">
-            Scan via webcam detecta padrões de piscadas (NeuroScore) para estimar estresse baseado em neurociência. 
-            Valide com HRV de pulseira. NeuroCoach IA personaliza plano com PNL para bem-estar, alta performance e compliance NR-1.
-          </p>
-        </div>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full grid-cols-5 sm:grid-cols-9 p-0.5 sm:p-1 h-auto">
-            <TabsTrigger value="neuroscore" className="gap-1 text-[10px] sm:text-xs py-2">
-              <Activity className="h-3 w-3" />
-              <span className="hidden sm:inline">Score</span>
-              <span className="sm:hidden">Score</span>
-            </TabsTrigger>
-            <TabsTrigger value="gamification" className="gap-1 text-[10px] sm:text-xs py-2" disabled={!stressLevel}>
-              <Trophy className="h-3 w-3" />
-              <span>🏆</span>
-            </TabsTrigger>
-            <TabsTrigger value="neurocoach" className="gap-1 text-[10px] sm:text-xs py-2">
-              <MessageCircle className="h-3 w-3" />
-              <span className="hidden sm:inline">Coach</span>
-              <span className="sm:hidden">IA</span>
-            </TabsTrigger>
-            <TabsTrigger value="ai-insights" className="gap-1 text-[10px] sm:text-xs py-2">
-              <Brain className="h-3 w-3" />
-              <span className="hidden sm:inline">IA</span>
-              <span className="sm:hidden">🧠</span>
-            </TabsTrigger>
-            <TabsTrigger value="alerts" className="gap-1 text-[10px] sm:text-xs py-2">
-              <Bell className="h-3 w-3" />
-              <span className="hidden sm:inline">Alertas</span>
-              <span className="sm:hidden">🔔</span>
-            </TabsTrigger>
-            <TabsTrigger value="roi" className="gap-1 text-[10px] sm:text-xs py-2">
-              <Calculator className="h-3 w-3" />
-              <span className="hidden sm:inline">ROI</span>
-              <span className="sm:hidden">💰</span>
-            </TabsTrigger>
-            <TabsTrigger value="nr1" className="gap-1 text-[10px] sm:text-xs py-2">
-              <Shield className="h-3 w-3" />
-              <span className="hidden sm:inline">NR-1</span>
-              <span className="sm:hidden">📋</span>
-            </TabsTrigger>
-            <TabsTrigger value="integrations" className="gap-1 text-[10px] sm:text-xs py-2">
-              <Plug className="h-3 w-3" />
-              <span className="hidden sm:inline">API</span>
-              <span className="sm:hidden">🔗</span>
-            </TabsTrigger>
-            <TabsTrigger value="dashboard-rh" className="gap-1 text-[10px] sm:text-xs py-2">
-              <BarChart className="h-3 w-3" />
-              <span className="hidden sm:inline">RH</span>
-              <span className="sm:hidden">📊</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="neuroscore" className="space-y-6">
-            <NeuroScore onScoreComplete={handleStressLevelComplete} />
-          </TabsContent>
-
-          <TabsContent value="gamification" className="space-y-6">
-            {stressLevel ? (
-              <>
-                <Gamification stressLevel={stressLevel} hrvValue={hrvValue} />
-                {showMeditation && <MiniMeditation trigger={showMeditation} />}
-              </>
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                Complete o NeuroScore primeiro
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="neurocoach" className="space-y-6">
-            <NeuroCoach stressLevel={stressLevel || 'moderate'} />
-          </TabsContent>
-
-          <TabsContent value="ai-insights" className="space-y-6">
-            <AIInsightsDashboard />
-          </TabsContent>
-
-          <TabsContent value="alerts" className="space-y-6">
-            <HRAlerts />
-          </TabsContent>
-
-          <TabsContent value="roi" className="space-y-6">
-            <ROIDashboard />
-          </TabsContent>
-
-          <TabsContent value="nr1" className="space-y-6">
-            <NR1Report />
-          </TabsContent>
-
-          <TabsContent value="integrations" className="space-y-6">
-            <IntegrationsDashboard />
-          </TabsContent>
-
-          <TabsContent value="dashboard-rh" className="space-y-6">
-            <DashboardRH />
-          </TabsContent>
-        </Tabs>
-
-        <footer className="mt-12 p-6 bg-card/50 rounded-lg border text-sm space-y-3">
-          <p className="font-semibold">🔬 Validação Científica:</p>
-          <p className="text-muted-foreground">
-            Compare NeuroScore com HRV da pulseira para validação cruzada. Para empresas: Reduza até 25% do absenteísmo 
-            com compliance NR-1 (gestão de riscos psicossociais). Compartilhe feedback para evoluir a ferramenta.
-          </p>
-          <p className="text-xs text-muted-foreground pt-2 border-t">
-            NeuroSuite v1.0 (Beta) | Desenvolvido por Lincolnectd Neurobusiness para demos corporativas | Dados anônimos protegidos por LGPD
-          </p>
-        </footer>
-      </main>
-    </div>
+        <FeedbackButton />
+      </div>
+    </SidebarProvider>
   );
 }

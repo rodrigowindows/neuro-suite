@@ -1,102 +1,125 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* NeuroSuite Beta Design System - Corporate Wellness Theme */
-
 @layer base {
   :root {
-    /* Corporate Wellness - Zen Soft Theme (Blue-Green Calm + Orange Energy) */
-    --background: 180 25% 97%;
-    --foreground: 200 15% 15%;
+    /* NeuroSuite Premium Design System */
+    --background: 210 20% 98%;
+    --foreground: 220 20% 12%;
 
-    /* Primary Colors - Zen Blue for Trust & Calm */
-    --primary: 200 65% 48%; /* Deep zen blue: Trust & calm */
+    /* Primary - Deep Teal for Trust & Neuroscience */
+    --primary: 185 65% 38%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 195 60% 65%; /* Lighter blue for glow effects */
+    --primary-glow: 180 55% 55%;
 
-    /* Secondary - Soft Green for Wellness & Growth */
-    --secondary: 155 45% 52%; /* Balanced green: Well-being */
-    --secondary-foreground: 200 15% 15%;
+    /* Secondary - Slate Blue for Calm Intelligence */
+    --secondary: 220 25% 93%;
+    --secondary-foreground: 220 20% 20%;
 
-    /* Accent - Warm Orange for Energy & Motivation */
-    --accent: 28 80% 58%; /* Warm orange: High performance */
+    /* Accent - Warm Amber for Energy */
+    --accent: 32 90% 55%;
     --accent-foreground: 0 0% 100%;
 
-    /* Neutrals - Soft Grays for Balance */
-    --muted: 180 15% 92%;
-    --muted-foreground: 200 10% 40%;
+    /* Neutrals */
+    --muted: 210 15% 94%;
+    --muted-foreground: 215 12% 48%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 200 15% 15%;
+    --popover-foreground: 220 20% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 200 15% 15%;
+    --card-foreground: 220 20% 12%;
 
-    /* Borders & Inputs */
-    --border: 180 15% 88%;
-    --input: 180 15% 88%;
-    --ring: 200 65% 48%;
+    --border: 215 15% 90%;
+    --input: 215 15% 90%;
+    --ring: 185 65% 38%;
 
     /* Status Colors */
-    --success: 145 60% 45%;
-    --warning: 35 85% 55%;
-    --destructive: 0 70% 55%;
+    --success: 152 55% 42%;
+    --warning: 38 90% 55%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Zen Gradients - Blue to Green with Orange accent */
-    --gradient-primary: linear-gradient(135deg, hsl(200, 65%, 48%), hsl(155, 45%, 52%));
-    --gradient-hero: linear-gradient(135deg, hsl(200, 65%, 48%), hsl(155, 45%, 52%), hsl(28, 80%, 58%));
-    --gradient-subtle: linear-gradient(180deg, hsl(180, 25%, 97%), hsl(195, 50%, 95%));
+    /* Sidebar */
+    --sidebar-background: 220 20% 12%;
+    --sidebar-foreground: 210 15% 85%;
+    --sidebar-primary: 185 65% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 18% 18%;
+    --sidebar-accent-foreground: 210 15% 90%;
+    --sidebar-border: 220 18% 20%;
+    --sidebar-ring: 185 65% 48%;
+    --sidebar-muted: 220 18% 22%;
+    --sidebar-muted-foreground: 210 10% 55%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(185, 65%, 38%), hsl(165, 50%, 45%));
+    --gradient-hero: linear-gradient(135deg, hsl(220, 20%, 12%), hsl(220, 25%, 18%));
+    --gradient-subtle: linear-gradient(180deg, hsl(210, 20%, 98%), hsl(210, 25%, 95%));
+    --gradient-accent: linear-gradient(135deg, hsl(185, 65%, 38%), hsl(32, 90%, 55%));
 
     /* Shadows */
-    --shadow-soft: 0 2px 8px hsl(200, 15%, 80% / 0.15);
-    --shadow-elegant: 0 10px 30px -10px hsl(200, 65%, 48% / 0.25);
-    --shadow-glow: 0 0 40px hsl(155, 45%, 52% / 0.35);
+    --shadow-soft: 0 1px 3px hsl(220 20% 12% / 0.06), 0 1px 2px hsl(220 20% 12% / 0.04);
+    --shadow-medium: 0 4px 16px hsl(220 20% 12% / 0.08), 0 2px 4px hsl(220 20% 12% / 0.04);
+    --shadow-elegant: 0 12px 40px -12px hsl(185 65% 38% / 0.2);
+    --shadow-glow: 0 0 30px hsl(185 65% 38% / 0.15);
 
-    /* Animations */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-    --radius: 0.75rem;
+    --radius: 0.625rem;
   }
 
   .dark {
-    --background: 200 25% 10%;
-    --foreground: 180 10% 95%;
+    --background: 220 22% 8%;
+    --foreground: 210 15% 92%;
 
-    --primary: 200 65% 52%;
+    --primary: 185 60% 48%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 195 60% 68%;
+    --primary-glow: 180 55% 60%;
 
-    --secondary: 155 40% 45%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 220 20% 16%;
+    --secondary-foreground: 210 15% 90%;
 
-    --accent: 28 80% 62%;
+    --accent: 32 85% 58%;
     --accent-foreground: 0 0% 100%;
 
-    --card: 200 25% 12%;
-    --card-foreground: 180 10% 95%;
-    --popover: 200 25% 12%;
-    --popover-foreground: 180 10% 95%;
+    --card: 220 22% 11%;
+    --card-foreground: 210 15% 92%;
+    --popover: 220 22% 11%;
+    --popover-foreground: 210 15% 92%;
 
-    --muted: 200 20% 18%;
-    --muted-foreground: 180 10% 65%;
+    --muted: 220 18% 16%;
+    --muted-foreground: 210 10% 55%;
 
-    --border: 200 20% 22%;
-    --input: 200 20% 22%;
-    --ring: 200 65% 52%;
+    --border: 220 18% 18%;
+    --input: 220 18% 18%;
+    --ring: 185 60% 48%;
 
-    --success: 145 50% 50%;
-    --warning: 35 80% 60%;
-    --destructive: 0 70% 60%;
+    --success: 152 50% 48%;
+    --warning: 38 85% 58%;
+    --destructive: 0 68% 55%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(200, 65%, 52%), hsl(155, 40%, 45%));
-    --gradient-hero: linear-gradient(135deg, hsl(200, 65%, 52%), hsl(155, 40%, 45%), hsl(28, 80%, 62%));
-    --gradient-subtle: linear-gradient(180deg, hsl(200, 25%, 10%), hsl(195, 40%, 12%));
+    --sidebar-background: 220 25% 6%;
+    --sidebar-foreground: 210 15% 82%;
+    --sidebar-primary: 185 60% 52%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 22% 12%;
+    --sidebar-accent-foreground: 210 15% 88%;
+    --sidebar-border: 220 22% 14%;
+    --sidebar-ring: 185 60% 52%;
+    --sidebar-muted: 220 22% 14%;
+    --sidebar-muted-foreground: 210 10% 50%;
 
-    --shadow-soft: 0 2px 8px hsl(0, 0%, 0% / 0.3);
-    --shadow-elegant: 0 10px 30px -10px hsl(200, 65%, 52% / 0.4);
-    --shadow-glow: 0 0 40px hsl(155, 40%, 45% / 0.5);
+    --gradient-primary: linear-gradient(135deg, hsl(185, 60%, 48%), hsl(165, 45%, 42%));
+    --gradient-hero: linear-gradient(135deg, hsl(220, 25%, 6%), hsl(220, 22%, 12%));
+    --gradient-subtle: linear-gradient(180deg, hsl(220, 22%, 8%), hsl(220, 20%, 10%));
+    --gradient-accent: linear-gradient(135deg, hsl(185, 60%, 48%), hsl(32, 85%, 58%));
+
+    --shadow-soft: 0 1px 3px hsl(0 0% 0% / 0.2);
+    --shadow-medium: 0 4px 16px hsl(0 0% 0% / 0.3);
+    --shadow-elegant: 0 12px 40px -12px hsl(185 60% 48% / 0.3);
+    --shadow-glow: 0 0 30px hsl(185 60% 48% / 0.2);
   }
 }
 
@@ -106,6 +129,22 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-card/80 backdrop-blur-xl border border-border/50;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-accent);
   }
 }
