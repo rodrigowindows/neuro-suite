@@ -105,6 +105,7 @@ export default function Dashboard() {
             {isFirstVisit && (
               <WelcomeBanner displayName={profile?.displayName || ''} />
             )}
+            <WellnessScoreCard />
             <NeuroScore onScoreComplete={handleStressLevelComplete} />
           </>
         );

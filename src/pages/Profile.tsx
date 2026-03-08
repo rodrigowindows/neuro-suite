@@ -135,6 +135,9 @@ export default function Profile() {
           transition={{ duration: 0.3 }}
           className="space-y-6"
         >
+          {/* Wellness Score */}
+          <WellnessScoreCard compact />
+
           {/* Profile Info */}
           <Card>
             <CardHeader className="pb-3">
