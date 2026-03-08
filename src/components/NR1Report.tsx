@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { FileText, Download, Shield, AlertTriangle, CheckCircle, Sparkles, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import ExportPDFButton from './ExportPDFButton';
 
 interface ReportData {
   totalScans: number;
