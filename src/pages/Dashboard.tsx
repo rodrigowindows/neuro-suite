@@ -28,6 +28,7 @@ const LeadershipCoaching = lazy(() => import('@/components/LeadershipCoaching'))
 const DailyCheckin = lazy(() => import('@/components/DailyCheckin'));
 
 const PAGE_TITLES: Record<string, string> = {
+  checkin: 'Check-in Diário',
   neuroscore: 'NeuroScore',
   gamification: 'Gamificação',
   neurocoach: 'NeuroCoach IA',
