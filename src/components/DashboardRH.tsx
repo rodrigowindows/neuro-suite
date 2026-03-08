@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import CompanyScoreCard from '@/components/CompanyScoreCard';
+import TurnoverPrediction from '@/components/TurnoverPrediction';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BarChart, Download, TrendingUp, Users } from 'lucide-react';
