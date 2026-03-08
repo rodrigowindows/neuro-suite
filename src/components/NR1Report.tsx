@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FileText, Download, Shield, AlertTriangle, CheckCircle, Sparkles, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import ExportPDFButton from './ExportPDFButton';
+import NR1ComplianceScoreCard from './NR1ComplianceScoreCard';
 
 interface ReportData {
   totalScans: number;
