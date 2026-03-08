@@ -218,6 +218,9 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
 
   return (
     <div className="space-y-6">
+      {/* NR-1 Compliance Score */}
+      <NR1ComplianceScoreCard />
+
       <Card className="shadow-soft border-primary/20">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
