@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import WebcamCapture from './WebcamCapture';
 import PostScanActionPlan from './PostScanActionPlan';
+import StressTrendChart from './StressTrendChart';
 
 interface NeuroScoreProps {
   onScoreComplete: (stressLevel: string, hrvValue?: number) => void;
@@ -244,6 +245,9 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* Trend Chart */}
+      <StressTrendChart />
     </div>
   );
 }

@@ -17,11 +17,13 @@ import NR1Report from '@/components/NR1Report';
 import HRAlerts from '@/components/HRAlerts';
 import AIInsightsDashboard from '@/components/AIInsightsDashboard';
 import FeedbackButton from '@/components/FeedbackButton';
+import LeadershipCoaching from '@/components/LeadershipCoaching';
 
 const PAGE_TITLES: Record<string, string> = {
   neuroscore: 'NeuroScore',
   gamification: 'Gamificação',
   neurocoach: 'NeuroCoach IA',
+  leadership: 'Coaching Liderança',
   'ai-insights': 'IA Insights',
   alerts: 'Alertas RH',
   roi: 'ROI & Economia',
@@ -34,6 +36,7 @@ const PAGE_DESCRIPTIONS: Record<string, string> = {
   neuroscore: 'Scan facial via webcam para estimar nível de estresse com neurociência',
   gamification: 'Acompanhe seu progresso, streaks e conquistas',
   neurocoach: 'Coach de alta performance com IA personalizada',
+  leadership: 'Módulos premium de desenvolvimento de liderança com IA',
   'ai-insights': 'Análises preditivas de burnout e sentimento',
   alerts: 'Alertas inteligentes para gestão de equipes',
   roi: 'Retorno sobre investimento em saúde ocupacional',
@@ -95,6 +98,8 @@ export default function Dashboard() {
         );
       case 'neurocoach':
         return <NeuroCoach stressLevel={stressLevel || undefined} />;
+      case 'leadership':
+        return <LeadershipCoaching stressLevel={stressLevel || undefined} />;
       case 'ai-insights':
         return isManager ? <AIInsightsDashboard /> : null;
       case 'alerts':
