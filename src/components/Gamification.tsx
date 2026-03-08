@@ -43,7 +43,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
         .from('user_progress')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Erro ao carregar progresso:', error);
