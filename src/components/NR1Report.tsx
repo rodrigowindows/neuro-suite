@@ -5,6 +5,7 @@ import { FileText, Download, Shield, AlertTriangle, CheckCircle, Sparkles, Loade
 import { supabase } from '@/integrations/supabase/client';
 import ExportPDFButton from './ExportPDFButton';
 import NR1ComplianceScoreCard from './NR1ComplianceScoreCard';
+import PGRReportGenerator from './PGRReportGenerator';
 
 interface ReportData {
   totalScans: number;
@@ -220,6 +221,9 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
     <div className="space-y-6">
       {/* NR-1 Compliance Score */}
       <NR1ComplianceScoreCard />
+
+      {/* PGR Report Generator */}
+      <PGRReportGenerator />
 
       <Card className="shadow-soft border-primary/20">
         <CardHeader>

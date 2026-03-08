@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import ToneSelector from "./ToneSelector";
 
 // Note: Radix Select has jsdom compatibility issues with scrollIntoView
@@ -7,28 +7,28 @@ import ToneSelector from "./ToneSelector";
 
 describe("ToneSelector", () => {
   it("renders title", () => {
-    render(<ToneSelector value="" onChange={() => {}} />);
-    expect(screen.getByText(/Escolha teu tom de comunicação/)).toBeInTheDocument();
+    const { getByText } = render(<ToneSelector value="" onChange={() => {}} />);
+    expect(getByText(/Escolha teu tom de comunicação/)).toBeInTheDocument();
   });
 
   it("renders description", () => {
-    render(<ToneSelector value="" onChange={() => {}} />);
-    expect(screen.getByText(/Selecione como prefere/)).toBeInTheDocument();
+    const { getByText } = render(<ToneSelector value="" onChange={() => {}} />);
+    expect(getByText(/Selecione como prefere/)).toBeInTheDocument();
   });
 
   it("shows placeholder when no value", () => {
-    render(<ToneSelector value="" onChange={() => {}} />);
-    expect(screen.getByText("Selecione um tom...")).toBeInTheDocument();
+    const { getByText } = render(<ToneSelector value="" onChange={() => {}} />);
+    expect(getByText("Selecione um tom...")).toBeInTheDocument();
   });
 
   it("renders select trigger", () => {
-    render(<ToneSelector value="" onChange={() => {}} />);
-    expect(screen.getByRole("combobox")).toBeInTheDocument();
+    const { getByRole } = render(<ToneSelector value="" onChange={() => {}} />);
+    expect(getByRole("combobox")).toBeInTheDocument();
   });
 
   it("has correct emoji in header", () => {
-    render(<ToneSelector value="" onChange={() => {}} />);
-    expect(screen.getByText(/🎯/)).toBeInTheDocument();
+    const { getByText } = render(<ToneSelector value="" onChange={() => {}} />);
+    expect(getByText(/🎯/)).toBeInTheDocument();
   });
 
   it("applies accent styling classes", () => {

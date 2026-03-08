@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import ScanResult from "./ScanResult";
 import { StressResult } from "@/services/stressCalculator";
 
@@ -17,50 +17,50 @@ const mockResult: StressResult = {
 
 describe("ScanResult", () => {
   it("renders emoji", () => {
-    render(<ScanResult result={mockResult} userName="" />);
-    expect(screen.getByText("😐")).toBeInTheDocument();
+    const { getByText } = render(<ScanResult result={mockResult} userName="" />);
+    expect(getByText("😐")).toBeInTheDocument();
   });
 
   it("displays stress level label", () => {
-    render(<ScanResult result={mockResult} userName="" />);
-    expect(screen.getByText(/Moderado/)).toBeInTheDocument();
+    const { getByText } = render(<ScanResult result={mockResult} userName="" />);
+    expect(getByText(/Moderado/)).toBeInTheDocument();
   });
 
   it("shows blink rate", () => {
-    render(<ScanResult result={mockResult} userName="" />);
-    expect(screen.getByText("20/min")).toBeInTheDocument();
+    const { getByText } = render(<ScanResult result={mockResult} userName="" />);
+    expect(getByText("20/min")).toBeInTheDocument();
   });
 
   it("displays user name when provided", () => {
-    render(<ScanResult result={mockResult} userName="João" />);
-    expect(screen.getByText(/João/)).toBeInTheDocument();
+    const { getByText } = render(<ScanResult result={mockResult} userName="João" />);
+    expect(getByText(/João/)).toBeInTheDocument();
   });
 
   it("shows HRV when provided", () => {
     const resultWithHrv: StressResult = { ...mockResult, hrvValue: 45 };
-    render(<ScanResult result={resultWithHrv} userName="" />);
-    expect(screen.getByText("45")).toBeInTheDocument();
-    expect(screen.getByText("ms")).toBeInTheDocument();
+    const { getByText } = render(<ScanResult result={resultWithHrv} userName="" />);
+    expect(getByText("45")).toBeInTheDocument();
+    expect(getByText("ms")).toBeInTheDocument();
   });
 
   it("hides HRV column when not provided", () => {
-    render(<ScanResult result={mockResult} userName="" />);
-    expect(screen.queryByText("HRV")).not.toBeInTheDocument();
+    const { queryByText } = render(<ScanResult result={mockResult} userName="" />);
+    expect(queryByText("HRV")).not.toBeInTheDocument();
   });
 
   it("displays diagnostic label", () => {
-    render(<ScanResult result={mockResult} userName="" />);
-    expect(screen.getByText("Normal")).toBeInTheDocument();
+    const { getByText } = render(<ScanResult result={mockResult} userName="" />);
+    expect(getByText("Normal")).toBeInTheDocument();
   });
 
   it("shows PNL tip section", () => {
-    render(<ScanResult result={mockResult} userName="" />);
-    expect(screen.getByText("💡 Dica PNL:")).toBeInTheDocument();
+    const { getByText } = render(<ScanResult result={mockResult} userName="" />);
+    expect(getByText("💡 Dica PNL:")).toBeInTheDocument();
   });
 
   it("renders PostScanActionPlan", () => {
-    render(<ScanResult result={mockResult} userName="" />);
-    expect(screen.getByTestId("post-scan-action-plan")).toBeInTheDocument();
+    const { getByTestId } = render(<ScanResult result={mockResult} userName="" />);
+    expect(getByTestId("post-scan-action-plan")).toBeInTheDocument();
   });
 
   it("handles low stress level", () => {
@@ -69,9 +69,9 @@ describe("ScanResult", () => {
       stressLevel: "low",
       emoji: "😊",
     };
-    render(<ScanResult result={lowResult} userName="" />);
-    expect(screen.getByText("😊")).toBeInTheDocument();
-    expect(screen.getByText(/Baixo/)).toBeInTheDocument();
+    const { getByText } = render(<ScanResult result={lowResult} userName="" />);
+    expect(getByText("😊")).toBeInTheDocument();
+    expect(getByText(/Baixo/)).toBeInTheDocument();
   });
 
   it("handles high stress level", () => {
@@ -80,8 +80,8 @@ describe("ScanResult", () => {
       stressLevel: "high",
       emoji: "😟",
     };
-    render(<ScanResult result={highResult} userName="" />);
-    expect(screen.getByText("😟")).toBeInTheDocument();
-    expect(screen.getByText(/Alto/)).toBeInTheDocument();
+    const { getByText } = render(<ScanResult result={highResult} userName="" />);
+    expect(getByText("😟")).toBeInTheDocument();
+    expect(getByText(/Alto/)).toBeInTheDocument();
   });
 });
