@@ -54,9 +54,9 @@ const Index = () => {
 
         {/* Benefícios Section */}
         <section id="beneficios" className="mb-12 sm:mb-16 md:mb-20 px-4">
-          <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8 sm:mb-12">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8 sm:mb-12">
             Como o NeuroSuite Transforma Seu Bem-Estar 💪
-          </h3>
+          </h2>
           <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
             <Card className="border-primary/20 hover:shadow-elegant transition-all">
               <CardHeader>
