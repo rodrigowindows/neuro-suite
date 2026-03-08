@@ -63,10 +63,10 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
             .from('coach_conversations')
             .select('*')
             .eq('user_id', user.id)
-            .eq('stress_level', stressLevel)
+            .eq('stress_level', effectiveStressLevel)
             .order('updated_at', { ascending: false })
             .limit(1)
-            .single();
+            .maybeSingle();
 
           if (data && data.messages && Array.isArray(data.messages)) {
             setMessages(data.messages as unknown as Message[]);
