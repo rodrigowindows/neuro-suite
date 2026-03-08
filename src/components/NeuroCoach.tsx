@@ -14,7 +14,7 @@ interface Message {
 }
 
 interface NeuroCoachProps {
-  stressLevel: string;
+  stressLevel?: string;
 }
 
 export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
