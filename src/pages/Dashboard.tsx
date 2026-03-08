@@ -115,6 +115,9 @@ export default function Dashboard() {
             <DailyCheckin />
             <CheckinHistory />
             <WeeklyComparison />
+            <div className="flex justify-center">
+              <WellnessReportPDF />
+            </div>
           </>
         );
       case 'neuroscore':
