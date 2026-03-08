@@ -84,6 +84,9 @@ Predição,"${prediction}"`;
 
   return (
     <div className="space-y-6">
+      {/* Company Score */}
+      <CompanyScoreCard />
+
       <Card className="shadow-soft border-primary/20">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
