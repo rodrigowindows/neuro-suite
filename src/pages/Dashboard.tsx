@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useFeatureScores } from '@/hooks/useFeatureScores';
@@ -9,28 +9,10 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import FeedbackButton from '@/components/FeedbackButton';
 import DashboardSkeleton from '@/components/DashboardSkeleton';
-import WelcomeBanner from '@/components/WelcomeBanner';
 import StressAlertBanner from '@/components/StressAlertBanner';
+import DashboardContent from '@/components/DashboardContent';
 import { useStressNotifications } from '@/hooks/useStressNotifications';
-
-// Lazy-loaded feature components
-const NeuroScore = lazy(() => import('@/components/features/NeuroScore'));
-const WellnessScoreCard = lazy(() => import('@/components/WellnessScoreCard'));
-const NeuroCoach = lazy(() => import('@/components/features/NeuroCoach'));
-const DashboardRH = lazy(() => import('@/components/DashboardRH'));
-const Gamification = lazy(() => import('@/components/Gamification'));
-const GamificationScoreCard = lazy(() => import('@/components/GamificationScoreCard'));
-const MiniMeditation = lazy(() => import('@/components/MiniMeditation'));
-const IntegrationsDashboard = lazy(() => import('@/components/IntegrationsDashboard'));
-const ROIDashboard = lazy(() => import('@/components/ROIDashboard'));
-const NR1Report = lazy(() => import('@/components/NR1Report'));
-const HRAlerts = lazy(() => import('@/components/HRAlerts'));
-const AIInsightsDashboard = lazy(() => import('@/components/AIInsightsDashboard'));
-const LeadershipCoaching = lazy(() => import('@/components/LeadershipCoaching'));
-const DailyCheckin = lazy(() => import('@/components/DailyCheckin'));
-const CheckinHistory = lazy(() => import('@/components/CheckinHistory'));
-const WeeklyComparison = lazy(() => import('@/components/WeeklyComparison'));
-const WellnessReportPDF = lazy(() => import('@/components/WellnessReportPDF'));
+import { supabase } from '@/integrations/supabase/client';
 
 const PAGE_TITLES: Record<string, string> = {
   checkin: 'Check-in Diário',
@@ -60,14 +42,6 @@ const PAGE_DESCRIPTIONS: Record<string, string> = {
   'dashboard-rh': 'Visão consolidada dos indicadores de bem-estar',
 };
 
-function LazyFallback() {
-  return (
-    <div className="flex items-center justify-center py-16">
-      <div className="animate-spin h-8 w-8 border-[3px] border-primary border-t-transparent rounded-full" />
-    </div>
-  );
-}
-
 export default function Dashboard() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -87,12 +61,27 @@ export default function Dashboard() {
     }
   }, [user, loading, navigate]);
 
-  // Detect first visit (no scans yet)
+  // Load last stress level from DB so state persists across refreshes
   useEffect(() => {
-    if (scores.neuroscore === null && !loading) {
-      setIsFirstVisit(true);
-    }
-  }, [scores.neuroscore, loading]);
+    if (!user) return;
+    const loadLastScan = async () => {
+      const { data } = await supabase
+        .from('stress_scans')
+        .select('stress_level, hrv_value')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (data) {
+        setStressLevel(data.stress_level);
+        if (data.hrv_value) setHRVValue(Number(data.hrv_value));
+      } else {
+        setIsFirstVisit(true);
+      }
+    };
+    loadLastScan();
+  }, [user?.id]);
 
   const handleStressLevelComplete = (level: string, hrv?: number) => {
     setStressLevel(level);
@@ -107,63 +96,6 @@ export default function Dashboard() {
     return <DashboardSkeleton />;
   }
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'checkin':
-        return (
-          <>
-            <DailyCheckin />
-            <CheckinHistory />
-            <WeeklyComparison />
-            <div className="flex justify-center">
-              <WellnessReportPDF />
-            </div>
-          </>
-        );
-      case 'neuroscore':
-        return (
-          <>
-            {isFirstVisit && (
-              <WelcomeBanner displayName={profile?.displayName || ''} />
-            )}
-            <WellnessScoreCard />
-            <NeuroScore onScoreComplete={handleStressLevelComplete} />
-          </>
-        );
-      case 'gamification':
-        return stressLevel ? (
-          <>
-            <GamificationScoreCard />
-            <Gamification stressLevel={stressLevel} hrvValue={hrvValue} />
-            {showMeditation && <MiniMeditation trigger={showMeditation} />}
-          </>
-        ) : (
-          <div className="text-center py-16 text-muted-foreground">
-            <p className="text-lg font-medium">Complete o NeuroScore primeiro</p>
-            <p className="text-sm mt-1">Faça um scan para desbloquear a gamificação</p>
-          </div>
-        );
-      case 'neurocoach':
-        return <NeuroCoach stressLevel={stressLevel || undefined} />;
-      case 'leadership':
-        return <LeadershipCoaching stressLevel={stressLevel || undefined} />;
-      case 'ai-insights':
-        return isManager ? <AIInsightsDashboard /> : null;
-      case 'alerts':
-        return isManager ? <HRAlerts /> : null;
-      case 'roi':
-        return isManager ? <ROIDashboard /> : null;
-      case 'nr1':
-        return isManager ? <NR1Report /> : null;
-      case 'integrations':
-        return isManager ? <IntegrationsDashboard /> : null;
-      case 'dashboard-rh':
-        return isManager ? <DashboardRH /> : null;
-      default:
-        return null;
-    }
-  };
-
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
@@ -177,7 +109,6 @@ export default function Dashboard() {
         />
 
         <div className="flex-1 flex flex-col min-w-0">
-          {/* Top bar */}
           <header className="h-14 flex items-center gap-3 border-b bg-card/60 backdrop-blur-sm px-4 sticky top-0 z-40">
             <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
             <div className="flex flex-col min-w-0">
@@ -190,7 +121,6 @@ export default function Dashboard() {
             </div>
           </header>
 
-          {/* Content */}
           <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-6xl w-full mx-auto space-y-4">
             {stressNotif.isCritical && (
               <StressAlertBanner
@@ -208,14 +138,20 @@ export default function Dashboard() {
                 transition={{ duration: 0.25, ease: 'easeOut' }}
                 className="space-y-6"
               >
-                <Suspense fallback={<LazyFallback />}>
-                  {renderContent()}
-                </Suspense>
+                <DashboardContent
+                  activeTab={activeTab}
+                  stressLevel={stressLevel}
+                  hrvValue={hrvValue}
+                  showMeditation={showMeditation}
+                  isFirstVisit={isFirstVisit}
+                  isManager={isManager}
+                  displayName={profile?.displayName || ''}
+                  onScoreComplete={handleStressLevelComplete}
+                />
               </motion.div>
             </AnimatePresence>
           </main>
 
-          {/* Footer */}
           <footer className="border-t bg-card/30 px-4 py-3 text-center">
             <p className="text-[11px] text-muted-foreground">
               NeuroSuite v1.0 (Beta) · Lincolnectd Neurobusiness · LGPD

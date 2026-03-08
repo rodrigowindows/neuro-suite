@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { StressScan } from '@/types/stress';
+import { useAuth } from '@/hooks/useAuth';
+import type { StressScan, StressStats, StressTrend } from '@/types/stress';
 import { computeStats, computeTrend, computeConsecutiveHighDays } from '@/services/stressAnalytics';
-import type { StressStats, StressTrend } from '@/types/stress';
 
 interface UseStressDataOptions {
   days?: number;
@@ -22,21 +22,22 @@ interface UseStressDataReturn {
 
 export function useStressData(options: UseStressDataOptions = {}): UseStressDataReturn {
   const { days = 7, limit = 500, filterByUser = false } = options;
+  const { user } = useAuth();
 
   const [scans, setScans] = useState<StressScan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
+    if (!user) {
+      setScans([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
       const since = new Date();
       since.setDate(since.getDate() - days);
 
@@ -61,7 +62,7 @@ export function useStressData(options: UseStressDataOptions = {}): UseStressData
     } finally {
       setLoading(false);
     }
-  }, [days, limit, filterByUser]);
+  }, [user?.id, days, limit, filterByUser]);
 
   useEffect(() => {
     fetchData();

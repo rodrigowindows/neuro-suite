@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { MessageCircle, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { CoachMessage, getInitialMessage, buildContext, exportConversation } from '@/services/coachService';
 import ToneSelector from './ToneSelector';
@@ -22,6 +23,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [communicationTone, setCommunicationTone] = useState('');
+  const { user } = useAuth();
   const { profile } = useUserProfile();
   const { toast } = useToast();
 
@@ -29,7 +31,6 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
   useEffect(() => {
     const loadOrCreateConversation = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const { data } = await supabase
             .from('coach_conversations')
@@ -50,15 +51,13 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
         console.error('Erro ao carregar conversa:', error);
       }
 
-      if (messages.length === 0) {
-        setMessages([{ role: 'assistant', content: getInitialMessage(effectiveStressLevel) }]);
-      }
+      setMessages([{ role: 'assistant', content: getInitialMessage(effectiveStressLevel) }]);
     };
 
     if (effectiveStressLevel) {
       loadOrCreateConversation();
     }
-  }, [effectiveStressLevel]);
+  }, [effectiveStressLevel, user?.id]);
 
   const sendMessage = async (text: string) => {
     const userMessage: CoachMessage = { role: 'user', content: text };
@@ -90,9 +89,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
           .from('coach_conversations')
           .update({ messages: allMessages as any, updated_at: new Date().toISOString() })
           .eq('id', conversationId);
-      } else {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
+      } else if (user) {
           const { data: newConv } = await supabase
             .from('coach_conversations')
             .insert([{ user_id: user.id, stress_level: effectiveStressLevel, messages: allMessages as any }])
@@ -100,7 +97,6 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
             .single();
           if (newConv) setConversationId(newConv.id);
         }
-      }
     } catch (error: any) {
       console.error('Erro ao enviar mensagem:', error);
       toast({ title: 'Erro', description: error.message || 'Não foi possível enviar a mensagem', variant: 'destructive' });
