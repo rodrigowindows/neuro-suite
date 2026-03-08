@@ -106,6 +106,13 @@ export default function Auth() {
                   <Button type="submit" className="w-full mt-2" disabled={isLoading}>
                     {isLoading ? 'Entrando...' : 'Entrar'}
                   </Button>
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="w-full text-xs text-muted-foreground hover:text-primary transition-colors mt-2 text-center"
+                  >
+                    Esqueceu sua senha?
+                  </button>
                 </form>
               </TabsContent>
 
