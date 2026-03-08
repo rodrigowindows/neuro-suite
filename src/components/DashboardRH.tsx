@@ -92,6 +92,9 @@ Predição,"${prediction}"`;
       {/* Turnover Prediction */}
       <TurnoverPrediction />
 
+      {/* Sector Benchmark */}
+      <SectorBenchmark />
+
       <Card className="shadow-soft border-primary/20">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
