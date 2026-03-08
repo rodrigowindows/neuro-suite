@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Activity, MessageCircle, Trophy, Users, Zap, Target, Shield, ArrowRight, Star, TrendingUp, Brain, ChevronDown } from "lucide-react";
+import { Activity, MessageCircle, Trophy, Users, Zap, Target, Shield, ArrowRight, Star, TrendingUp, Brain, ChevronDown, HeartPulse, BarChart3, FileText, Bell, Sparkles, CalendarCheck } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import neuroSuiteLogo from '@/assets/neurosuite-logo.jpg';
@@ -32,6 +32,21 @@ const stats = [
   { value: 'NR-1', label: 'Compliant', icon: Shield },
 ];
 
+const modules = [
+  { icon: CalendarCheck, title: 'Check-in Diário', desc: 'Triagem emocional de 30s com IA que gera micro-coaching personalizado baseado no humor e energia.', tag: 'Colaborador' },
+  { icon: Activity, title: 'NeuroScore', desc: 'Scan facial via webcam detecta piscadas e estima HRV para calcular nível de estresse sem wearable.', tag: 'Colaborador' },
+  { icon: MessageCircle, title: 'NeuroCoach IA', desc: 'Coach de alta performance com PNL, neurociência e respiração 4-7-8 adaptado ao seu nível de estresse.', tag: 'Colaborador' },
+  { icon: Trophy, title: 'Gamificação', desc: 'Streaks, badges e rankings que transformam o cuidado com bem-estar em hábito motivador.', tag: 'Colaborador' },
+  { icon: HeartPulse, title: 'Mini Meditação', desc: 'Sessões guiadas de 2 minutos ativadas automaticamente quando HRV está baixo.', tag: 'Colaborador' },
+  { icon: BarChart3, title: 'Dashboard RH', desc: 'Visão agregada e anônima da equipe com distribuição de estresse, HRV médio e análise preditiva.', tag: 'Gestor' },
+  { icon: Brain, title: 'IA Insights', desc: 'Predição de burnout, análise de sentimento e geração automática de relatório PGR (NR-1).', tag: 'Gestor' },
+  { icon: Bell, title: 'Alertas Proativos', desc: 'Notificações inteligentes quando colaboradores atingem estresse crítico por dias consecutivos.', tag: 'Gestor' },
+  { icon: TrendingUp, title: 'Predição de Turnover', desc: 'IA analisa padrões da equipe e estima risco de rotatividade com impacto financeiro.', tag: 'Gestor' },
+  { icon: Shield, title: 'NR-1 Compliance', desc: 'Geração automática de relatório PGR com inventário de riscos e plano de ação técnico.', tag: 'Compliance' },
+  { icon: FileText, title: 'Relatório PDF', desc: 'Exportação completa de métricas, gráficos e histórico de bem-estar para documentação.', tag: 'Compliance' },
+  { icon: Sparkles, title: 'Coaching Liderança', desc: 'Módulo premium de desenvolvimento de liderança com IA para gestores e C-level.', tag: 'Premium' },
+];
+
 export default function Index() {
   const navigate = useNavigate();
   const heroRef = useRef<HTMLElement>(null);
@@ -51,6 +66,9 @@ export default function Index() {
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => document.getElementById('beneficios')?.scrollIntoView({ behavior: 'smooth' })} className="hidden md:flex">
               Benefícios
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => document.getElementById('modulos')?.scrollIntoView({ behavior: 'smooth' })} className="hidden md:flex">
+              Módulos
             </Button>
             <Button variant="ghost" size="sm" onClick={() => document.getElementById('depoimentos')?.scrollIntoView({ behavior: 'smooth' })} className="hidden md:flex">
               Depoimentos
@@ -156,6 +174,61 @@ export default function Index() {
                 </motion.div>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* Modules */}
+        <section id="modulos" className="py-16 sm:py-24 bg-muted/30" aria-labelledby="modules-heading">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-12">
+              <h2 id="modules-heading" className="text-3xl sm:text-4xl font-display font-bold mb-4">
+                12 Módulos Integrados 🧩
+              </h2>
+              <p className="text-muted-foreground max-w-xl mx-auto">Do colaborador ao C-level, cada módulo foi projetado com neurociência e IA para máximo impacto.</p>
+            </motion.div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {modules.map((m, i) => {
+                const tagColors: Record<string, string> = {
+                  Colaborador: 'bg-primary/10 text-primary',
+                  Gestor: 'bg-accent/20 text-accent-foreground',
+                  Compliance: 'bg-emerald-500/10 text-emerald-600',
+                  Premium: 'bg-amber-500/10 text-amber-600',
+                };
+                return (
+                  <motion.div
+                    key={m.title}
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.06, duration: 0.4 }}
+                  >
+                    <Card className="h-full border-border/50 hover:shadow-soft transition-all duration-300">
+                      <CardContent className="p-4 flex gap-3">
+                        <div className="p-2 bg-primary/10 rounded-lg h-fit shrink-0">
+                          <m.icon className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-sm">{m.title}</h3>
+                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${tagColors[m.tag] || 'bg-muted text-muted-foreground'}`}>
+                              {m.tag}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground leading-relaxed">{m.desc}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mt-10">
+              <Button size="lg" onClick={() => navigate('/auth')} className="gap-2 shadow-elegant">
+                Experimentar Todos os Módulos <ArrowRight className="h-4 w-4" />
+              </Button>
+            </motion.div>
           </div>
         </section>
 
