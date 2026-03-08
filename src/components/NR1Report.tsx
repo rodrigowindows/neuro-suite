@@ -222,6 +222,9 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
       {/* NR-1 Compliance Score */}
       <NR1ComplianceScoreCard />
 
+      {/* PGR Report Generator */}
+      <PGRReportGenerator />
+
       <Card className="shadow-soft border-primary/20">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
