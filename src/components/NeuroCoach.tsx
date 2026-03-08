@@ -116,7 +116,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
 
     try {
       // Preparar contexto com HRV se fornecido
-      let context = `Nível de estresse detectado: ${stressLevel}. `;
+      let context = `Nível de estresse detectado: ${effectiveStressLevel}. `;
       const hrvNum = parseFloat(hrvValue);
       if (!isNaN(hrvNum)) {
         context += `HRV (RMSSD): ${hrvNum}ms. `;
