@@ -17,7 +17,8 @@ interface NeuroCoachProps {
   stressLevel?: string;
 }
 
-export default function NeuroCoach({ stressLevel = 'unknown' }: NeuroCoachProps) {
+export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
+  const effectiveStressLevel = stressLevel || 'unknown';
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [hrvValue, setHrvValue] = useState('40');
@@ -62,10 +63,10 @@ export default function NeuroCoach({ stressLevel = 'unknown' }: NeuroCoachProps)
             .from('coach_conversations')
             .select('*')
             .eq('user_id', user.id)
-            .eq('stress_level', stressLevel)
+            .eq('stress_level', effectiveStressLevel)
             .order('updated_at', { ascending: false })
             .limit(1)
-            .single();
+            .maybeSingle();
 
           if (data && data.messages && Array.isArray(data.messages)) {
             setMessages(data.messages as unknown as Message[]);
@@ -81,22 +82,24 @@ export default function NeuroCoach({ stressLevel = 'unknown' }: NeuroCoachProps)
       if (messages.length === 0) {
         let initialMessage = '';
         
-        if (stressLevel === 'low') {
+        if (effectiveStressLevel === 'low') {
           initialMessage = 'Ótimo foco! 😊 Qual expectativa de performance você quer elevar? Sugestão PNL: Ancore uma memória de sucesso para manter alta produtividade.';
-        } else if (stressLevel === 'moderate') {
+        } else if (effectiveStressLevel === 'moderate') {
           initialMessage = 'Para reduzir turnover, o que drena sua energia? 😐 Reframe como oportunidade (PNL) para equilibrar bem-estar e performance.';
-        } else {
+        } else if (effectiveStressLevel === 'high') {
           initialMessage = 'Alerta burnout (NR-1). 😟 Qual pausa sensorial (respiração 4-7-8) te recarrega? Vamos criar um plano de reequilíbrio imediato.';
+        } else {
+          initialMessage = 'Olá! 👋 Faça um scan primeiro para eu calibrar minha análise ao seu estado atual. Enquanto isso, me conta: como você está se sentindo?';
         }
 
         setMessages([{ role: 'assistant', content: initialMessage }]);
       }
     };
 
-    if (stressLevel) {
+    if (effectiveStressLevel) {
       loadOrCreateConversation();
     }
-  }, [stressLevel]);
+  }, [effectiveStressLevel]);
 
   // Auto-scroll para última mensagem
   useEffect(() => {
@@ -113,7 +116,7 @@ export default function NeuroCoach({ stressLevel = 'unknown' }: NeuroCoachProps)
 
     try {
       // Preparar contexto com HRV se fornecido
-      let context = `Nível de estresse detectado: ${stressLevel}. `;
+      let context = `Nível de estresse detectado: ${effectiveStressLevel}. `;
       const hrvNum = parseFloat(hrvValue);
       if (!isNaN(hrvNum)) {
         context += `HRV (RMSSD): ${hrvNum}ms. `;
@@ -126,7 +129,7 @@ export default function NeuroCoach({ stressLevel = 'unknown' }: NeuroCoachProps)
       const { data, error } = await supabase.functions.invoke('neuro-coach', {
         body: {
           messages: [...messages, userMessage],
-          stressLevel,
+          stressLevel: effectiveStressLevel,
           context,
           userName,
           communicationTone,
@@ -160,7 +163,7 @@ export default function NeuroCoach({ stressLevel = 'unknown' }: NeuroCoachProps)
             .from('coach_conversations')
             .insert([{
               user_id: user.id,
-              stress_level: stressLevel,
+              stress_level: effectiveStressLevel,
               messages: allMessages as any,
             }])
             .select()

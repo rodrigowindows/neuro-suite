@@ -151,15 +151,16 @@ export default function AIInsightsDashboard() {
         .select('messages')
         .eq('user_id', user.id)
         .order('updated_at', { ascending: false })
-        .limit(1)
-        .single();
+        .limit(5);
 
-      if (!conversations?.messages) throw new Error('Sem conversas para analisar. Use o NeuroCoach primeiro.');
+      if (!conversations || conversations.length === 0) throw new Error('Sem conversas para analisar. Use o NeuroCoach primeiro.');
 
-      const userMessages = (conversations.messages as any[]).filter((m: any) => m.role === 'user');
-      if (userMessages.length === 0) throw new Error('Sem mensagens do usuário para analisar.');
+      const allUserMessages = conversations.flatMap(c => 
+        (c.messages as any[]).filter((m: any) => m.role === 'user')
+      );
+      if (allUserMessages.length === 0) throw new Error('Sem mensagens do usuário para analisar.');
 
-      const result = await callAI('sentiment_analysis', { messages: userMessages });
+      const result = await callAI('sentiment_analysis', { messages: allUserMessages });
       setSentiment(result);
     } catch (e: any) {
       toast({ title: 'Erro', description: e.message, variant: 'destructive' });
