@@ -44,13 +44,13 @@ export default function NR1Report() {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+      // No user_id filter - managers see all team data via RLS
       const { data: scans } = await supabase
         .from('stress_scans')
         .select('stress_level, hrv_value, created_at')
-        .eq('user_id', user.id)
         .gte('created_at', thirtyDaysAgo.toISOString())
         .order('created_at', { ascending: false })
-        .limit(200);
+        .limit(500);
 
       if (scans && scans.length > 0) {
         const total = scans.length;
