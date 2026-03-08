@@ -25,6 +25,7 @@ const NR1Report = lazy(() => import('@/components/NR1Report'));
 const HRAlerts = lazy(() => import('@/components/HRAlerts'));
 const AIInsightsDashboard = lazy(() => import('@/components/AIInsightsDashboard'));
 const LeadershipCoaching = lazy(() => import('@/components/LeadershipCoaching'));
+const DailyCheckin = lazy(() => import('@/components/DailyCheckin'));
 
 const PAGE_TITLES: Record<string, string> = {
   neuroscore: 'NeuroScore',
