@@ -17,6 +17,7 @@ import NR1Report from '@/components/NR1Report';
 import HRAlerts from '@/components/HRAlerts';
 import AIInsightsDashboard from '@/components/AIInsightsDashboard';
 import FeedbackButton from '@/components/FeedbackButton';
+import LeadershipCoaching from '@/components/LeadershipCoaching';
 
 const PAGE_TITLES: Record<string, string> = {
   neuroscore: 'NeuroScore',
