@@ -61,22 +61,24 @@ export default function DashboardRH() {
           ? hrvValues.reduce((a, b) => a + b, 0) / hrvValues.length
           : 0;
 
-        setStats({
+        const newStats = {
           lowPercent: Math.round((low / total) * 100),
           moderatePercent: Math.round((moderate / total) * 100),
           highPercent: Math.round((high / total) * 100),
           totalScans: total,
           avgHRV: Math.round(avgHRV),
-        });
+        };
 
-        // Predição simples baseada em padrões
+        setStats(newStats);
+
+        // Predição baseada nos dados calculados (não no state antigo)
         let predictionText = '';
-        if (stats.highPercent > 30) {
-          predictionText = `⚠️ Risco alto detectado (${stats.highPercent}% estresse alto). Intervenções urgentes recomendadas.`;
-        } else if (stats.moderatePercent > 50) {
-          predictionText = `⚡ Atenção: ${stats.moderatePercent}% em estresse moderado. Sugira pausas preventivas.`;
+        if (newStats.highPercent > 30) {
+          predictionText = `⚠️ Risco alto detectado (${newStats.highPercent}% estresse alto). Intervenções urgentes recomendadas.`;
+        } else if (newStats.moderatePercent > 50) {
+          predictionText = `⚡ Atenção: ${newStats.moderatePercent}% em estresse moderado. Sugira pausas preventivas.`;
         } else {
-          predictionText = `✅ Time tá brilhando! ${stats.lowPercent}% em baixo estresse. Continue com práticas de bem-estar.`;
+          predictionText = `✅ Time tá brilhando! ${newStats.lowPercent}% em baixo estresse. Continue com práticas de bem-estar.`;
         }
         setPrediction(predictionText);
       }
