@@ -113,6 +113,7 @@ export default function Dashboard() {
           <>
             <DailyCheckin />
             <CheckinHistory />
+            <WeeklyComparison />
           </>
         );
       case 'neuroscore':
