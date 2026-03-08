@@ -1,0 +1,239 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      return new Response(
+        JSON.stringify({ error: 'LOVABLE_API_KEY not configured' }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { type, data } = await req.json();
+    console.log(`AI Insights request: ${type}`);
+
+    let systemPrompt = '';
+    let userPrompt = '';
+
+    switch (type) {
+      case 'burnout_prediction': {
+        systemPrompt = `Você é um analista de dados de saúde ocupacional especializado em prevenção de burnout. 
+Analise os dados biométricos fornecidos e gere uma análise preditiva de risco de burnout.
+Responda SEMPRE em português brasileiro.
+Seja direto e objetivo. Use dados concretos.
+
+FORMATO DE RESPOSTA (JSON):
+{
+  "riskScore": número de 0-100,
+  "riskLevel": "low" | "moderate" | "high" | "critical",
+  "prediction": "texto curto sobre a previsão",
+  "factors": ["fator1", "fator2", "fator3"],
+  "recommendation": "recomendação principal",
+  "timeframe": "em quanto tempo o burnout pode ocorrer se nada mudar"
+}
+
+Responda APENAS com o JSON, sem markdown.`;
+
+        userPrompt = `Dados dos últimos 30 dias:
+- Total de scans: ${data.totalScans}
+- % Estresse Baixo: ${data.lowPercent}%
+- % Estresse Moderado: ${data.moderatePercent}%
+- % Estresse Alto: ${data.highPercent}%
+- HRV Médio: ${data.avgHRV}ms
+- Tendência de estresse alto: ${data.trend || 'estável'}
+- Dias consecutivos com estresse alto: ${data.consecutiveHighDays || 0}
+- Streak de scans: ${data.currentStreak || 0} dias`;
+        break;
+      }
+
+      case 'weekly_summary': {
+        systemPrompt = `Você é um consultor de RH especializado em wellness corporativo e compliance NR-1.
+Gere um resumo executivo semanal conciso e acionável baseado nos dados fornecidos.
+Responda SEMPRE em português brasileiro.
+
+FORMATO DE RESPOSTA (JSON):
+{
+  "headline": "manchete de 1 linha resumindo a semana",
+  "highlights": ["destaque1", "destaque2", "destaque3"],
+  "concerns": ["preocupação1", "preocupação2"],
+  "actions": ["ação1", "ação2", "ação3"],
+  "wellnessScore": número de 0-100,
+  "complianceStatus": "compliant" | "attention" | "non-compliant",
+  "executiveSummary": "parágrafo de 3-4 linhas para o C-level"
+}
+
+Responda APENAS com o JSON, sem markdown.`;
+
+        userPrompt = `Dados da semana:
+- Total de scans: ${data.totalScans}
+- % Estresse Baixo: ${data.lowPercent}%
+- % Estresse Moderado: ${data.moderatePercent}%
+- % Estresse Alto: ${data.highPercent}%
+- HRV Médio: ${data.avgHRV}ms
+- Engajamento (scans/dia): ${data.scansPerDay || 0}
+- Variação vs semana anterior: ${data.weekOverWeek || 'sem dados'}`;
+        break;
+      }
+
+      case 'action_plan': {
+        systemPrompt = `Você é um neurocoach de alta performance. 
+Após cada scan de estresse, gere um micro-plano de ação personalizado de 24h.
+Responda SEMPRE em português brasileiro.
+Seja prático, específico e motivador.
+
+FORMATO DE RESPOSTA (JSON):
+{
+  "title": "título motivacional curto",
+  "urgency": "low" | "medium" | "high",
+  "tasks": [
+    {"time": "agora", "action": "ação imediata", "duration": "2min", "science": "base científica curta"},
+    {"time": "próxima 1h", "action": "ação", "duration": "5min", "science": "base"},
+    {"time": "hoje", "action": "ação", "duration": "15min", "science": "base"}
+  ],
+  "avoidList": ["evitar1", "evitar2"],
+  "mantra": "frase motivacional baseada em neurociência"
+}
+
+Responda APENAS com o JSON, sem markdown.`;
+
+        userPrompt = `Resultado do scan atual:
+- Nível de estresse: ${data.stressLevel}
+- Taxa de piscadas: ${data.blinkRate}/min
+- HRV: ${data.hrvValue || 'não informado'}ms
+- Hora do dia: ${new Date().getHours()}h
+- Histórico recente: ${data.recentHistory || 'primeiro scan'}`;
+        break;
+      }
+
+      case 'sentiment_analysis': {
+        systemPrompt = `Você é um psicólogo organizacional especializado em análise de sentimento.
+Analise as mensagens do chat de coaching e extraia insights emocionais.
+Responda SEMPRE em português brasileiro.
+
+FORMATO DE RESPOSTA (JSON):
+{
+  "overallSentiment": "positive" | "neutral" | "negative" | "mixed",
+  "sentimentScore": número de -100 a 100,
+  "emotions": ["emoção1", "emoção2"],
+  "themes": ["tema1", "tema2"],
+  "engagementLevel": "low" | "medium" | "high",
+  "insight": "insight principal sobre o estado emocional"
+}
+
+Responda APENAS com o JSON, sem markdown.`;
+
+        userPrompt = `Mensagens do usuário no coaching:
+${data.messages?.map((m: any) => `- ${m.content}`).join('\n') || 'sem mensagens'}`;
+        break;
+      }
+
+      case 'nr1_insights': {
+        systemPrompt = `Você é um advogado trabalhista e consultor de compliance especializado em NR-1 e gestão de riscos psicossociais.
+Gere insights e textos prontos para relatório NR-1 baseado nos dados fornecidos.
+Use linguagem técnica-jurídica adequada para compliance.
+Responda SEMPRE em português brasileiro.
+
+FORMATO DE RESPOSTA (JSON):
+{
+  "riskClassification": "Grau de Risco I" | "Grau de Risco II" | "Grau de Risco III" | "Grau de Risco IV",
+  "legalAnalysis": "parágrafo técnico-jurídico sobre a situação",
+  "requiredActions": ["ação obrigatória 1", "ação obrigatória 2"],
+  "suggestedActions": ["ação sugerida 1", "ação sugerida 2"],
+  "complianceGaps": ["lacuna1", "lacuna2"],
+  "documentationNeeded": ["documento1", "documento2"],
+  "executiveText": "texto pronto para inserir no PGR (Programa de Gerenciamento de Riscos)"
+}
+
+Responda APENAS com o JSON, sem markdown.`;
+
+        userPrompt = `Dados agregados para compliance NR-1:
+- Total de avaliações: ${data.totalScans}
+- Período: ${data.period}
+- % Estresse Baixo: ${data.lowPercent}%
+- % Estresse Moderado: ${data.moderatePercent}%  
+- % Estresse Alto: ${data.highPercent}%
+- HRV Médio: ${data.avgHRV}ms
+- Nível de risco atual: ${data.riskLevel}
+- Tendência: ${data.trend || 'estável'}`;
+        break;
+      }
+
+      default:
+        return new Response(
+          JSON.stringify({ error: `Unknown type: ${type}` }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+    }
+
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ error: 'Rate limit exceeded. Tente novamente em alguns segundos.' }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'Créditos de IA esgotados. Recarregue seus créditos.' }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      const errorText = await response.text();
+      console.error("AI gateway error:", response.status, errorText);
+      throw new Error(`AI gateway error: ${response.status}`);
+    }
+
+    const aiData = await response.json();
+    const content = aiData.choices?.[0]?.message?.content ?? '';
+
+    // Parse JSON response
+    let parsed;
+    try {
+      // Remove markdown code blocks if present
+      const cleaned = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      parsed = JSON.parse(cleaned);
+    } catch {
+      console.error('Failed to parse AI response as JSON:', content);
+      parsed = { raw: content, parseError: true };
+    }
+
+    console.log(`AI Insights response generated for: ${type}`);
+
+    return new Response(JSON.stringify({ result: parsed }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+
+  } catch (error: any) {
+    console.error("AI Insights error:", error);
+    return new Response(
+      JSON.stringify({ error: error.message || 'Unknown error' }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+});

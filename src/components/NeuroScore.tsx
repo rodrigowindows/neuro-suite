@@ -7,6 +7,7 @@ import { Scan, Activity } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import WebcamCapture from './WebcamCapture';
+import PostScanActionPlan from './PostScanActionPlan';
 
 interface NeuroScoreProps {
   onScoreComplete: (stressLevel: string, hrvValue?: number) => void;
@@ -232,6 +233,12 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
                   {result.stressLevel === 'high' && 'Pause agora: 2min de respiração profunda + reframe mental (PNL).'}
                 </p>
               </div>
+
+              <PostScanActionPlan
+                stressLevel={result.stressLevel}
+                blinkRate={result.blinkRate}
+                hrvValue={undefined}
+              />
             </div>
           )}
         </CardContent>

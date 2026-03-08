@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogOut, Activity, MessageCircle, BarChart, Trophy, Plug, Calculator, Shield, Bell } from 'lucide-react';
+import { LogOut, Activity, MessageCircle, BarChart, Trophy, Plug, Calculator, Shield, Bell, Brain } from 'lucide-react';
 import NeuroScore from '@/components/NeuroScore';
 import NeuroCoach from '@/components/NeuroCoach';
 import DashboardRH from '@/components/DashboardRH';
@@ -13,6 +13,7 @@ import IntegrationsDashboard from '@/components/IntegrationsDashboard';
 import ROIDashboard from '@/components/ROIDashboard';
 import NR1Report from '@/components/NR1Report';
 import HRAlerts from '@/components/HRAlerts';
+import AIInsightsDashboard from '@/components/AIInsightsDashboard';
 import neuroSuiteLogo from '@/assets/neurosuite-logo.jpg';
 import FeedbackButton from '@/components/FeedbackButton';
 import BackButton from '@/components/BackButton';
@@ -92,7 +93,7 @@ export default function Dashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-8 p-0.5 sm:p-1 h-auto">
+          <TabsList className="grid w-full grid-cols-5 sm:grid-cols-9 p-0.5 sm:p-1 h-auto">
             <TabsTrigger value="neuroscore" className="gap-1 text-[10px] sm:text-xs py-2">
               <Activity className="h-3 w-3" />
               <span className="hidden sm:inline">Score</span>
@@ -106,6 +107,11 @@ export default function Dashboard() {
               <MessageCircle className="h-3 w-3" />
               <span className="hidden sm:inline">Coach</span>
               <span className="sm:hidden">IA</span>
+            </TabsTrigger>
+            <TabsTrigger value="ai-insights" className="gap-1 text-[10px] sm:text-xs py-2">
+              <Brain className="h-3 w-3" />
+              <span className="hidden sm:inline">IA</span>
+              <span className="sm:hidden">🧠</span>
             </TabsTrigger>
             <TabsTrigger value="alerts" className="gap-1 text-[10px] sm:text-xs py-2">
               <Bell className="h-3 w-3" />
@@ -153,6 +159,10 @@ export default function Dashboard() {
 
           <TabsContent value="neurocoach" className="space-y-6">
             <NeuroCoach stressLevel={stressLevel || 'moderate'} />
+          </TabsContent>
+
+          <TabsContent value="ai-insights" className="space-y-6">
+            <AIInsightsDashboard />
           </TabsContent>
 
           <TabsContent value="alerts" className="space-y-6">
