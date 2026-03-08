@@ -104,7 +104,12 @@ export default function Dashboard() {
   const renderContent = () => {
     switch (activeTab) {
       case 'checkin':
-        return <DailyCheckin />;
+        return (
+          <>
+            <DailyCheckin />
+            <CheckinHistory />
+          </>
+        );
       case 'neuroscore':
         return (
           <>
