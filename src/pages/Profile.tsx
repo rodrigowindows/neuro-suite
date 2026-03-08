@@ -12,6 +12,7 @@ import BackButton from '@/components/BackButton';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { User, Mail, Save, Shield, LogOut } from 'lucide-react';
+import WellnessScoreCard from '@/components/WellnessScoreCard';
 import { z } from 'zod';
 
 const profileSchema = z.object({
