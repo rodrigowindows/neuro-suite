@@ -71,7 +71,7 @@ export default function Dashboard() {
   const { profile } = useUserProfile();
   const [stressLevel, setStressLevel] = useState('');
   const [hrvValue, setHRVValue] = useState<number | undefined>(undefined);
-  const [activeTab, setActiveTab] = useState('neuroscore');
+  const [activeTab, setActiveTab] = useState('checkin');
   const [showMeditation, setShowMeditation] = useState(false);
   const [isFirstVisit, setIsFirstVisit] = useState(false);
 
