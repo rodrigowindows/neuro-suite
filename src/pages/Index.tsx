@@ -177,6 +177,60 @@ export default function Index() {
           </div>
         </section>
 
+        {/* Modules */}
+        <section id="modulos" className="py-16 sm:py-24 bg-muted/30" aria-labelledby="modules-heading">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-12">
+              <h2 id="modules-heading" className="text-3xl sm:text-4xl font-display font-bold mb-4">
+                12 Módulos Integrados 🧩
+              </h2>
+              <p className="text-muted-foreground max-w-xl mx-auto">Do colaborador ao C-level, cada módulo foi projetado com neurociência e IA para máximo impacto.</p>
+            </motion.div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {modules.map((m, i) => {
+                const tagColors: Record<string, string> = {
+                  Colaborador: 'bg-primary/10 text-primary',
+                  Gestor: 'bg-accent/20 text-accent-foreground',
+                  Compliance: 'bg-emerald-500/10 text-emerald-600',
+                  Premium: 'bg-amber-500/10 text-amber-600',
+                };
+                return (
+                  <motion.div
+                    key={m.title}
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.06, duration: 0.4 }}
+                  >
+                    <Card className="h-full border-border/50 hover:shadow-soft transition-all duration-300">
+                      <CardContent className="p-4 flex gap-3">
+                        <div className="p-2 bg-primary/10 rounded-lg h-fit shrink-0">
+                          <m.icon className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-sm">{m.title}</h3>
+                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${tagColors[m.tag] || 'bg-muted text-muted-foreground'}`}>
+                              {m.tag}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground leading-relaxed">{m.desc}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mt-10">
+              <Button size="lg" onClick={() => navigate('/auth')} className="gap-2 shadow-elegant">
+                Experimentar Todos os Módulos <ArrowRight className="h-4 w-4" />
+              </Button>
+            </motion.div>
+          </div>
+
         {/* Testimonials */}
         <section id="depoimentos" className="py-16 sm:py-24 bg-muted/30" aria-labelledby="testimonials-heading">
           <div className="container mx-auto px-4 max-w-5xl">
