@@ -10,6 +10,8 @@ import { AppSidebar } from '@/components/AppSidebar';
 import FeedbackButton from '@/components/FeedbackButton';
 import DashboardSkeleton from '@/components/DashboardSkeleton';
 import WelcomeBanner from '@/components/WelcomeBanner';
+import StressAlertBanner from '@/components/StressAlertBanner';
+import { useStressNotifications } from '@/hooks/useStressNotifications';
 
 // Lazy-loaded feature components
 const NeuroScore = lazy(() => import('@/components/features/NeuroScore'));
