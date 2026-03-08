@@ -96,17 +96,17 @@ export default function Dashboard() {
       case 'neurocoach':
         return <NeuroCoach stressLevel={stressLevel || undefined} />;
       case 'ai-insights':
-        return <AIInsightsDashboard />;
+        return isManager ? <AIInsightsDashboard /> : null;
       case 'alerts':
-        return <HRAlerts />;
+        return isManager ? <HRAlerts /> : null;
       case 'roi':
-        return <ROIDashboard />;
+        return isManager ? <ROIDashboard /> : null;
       case 'nr1':
-        return <NR1Report />;
+        return isManager ? <NR1Report /> : null;
       case 'integrations':
-        return <IntegrationsDashboard />;
+        return isManager ? <IntegrationsDashboard /> : null;
       case 'dashboard-rh':
-        return <DashboardRH />;
+        return isManager ? <DashboardRH /> : null;
       default:
         return null;
     }
