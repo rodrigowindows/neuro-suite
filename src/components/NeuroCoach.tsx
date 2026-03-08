@@ -39,7 +39,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
             .from('profiles')
             .select('preferred_name, full_name')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
 
           if (profile) {
             setUserName(profile.preferred_name || profile.full_name || '');
