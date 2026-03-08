@@ -17,6 +17,7 @@ const WellnessScoreCard = lazy(() => import('@/components/WellnessScoreCard'));
 const NeuroCoach = lazy(() => import('@/components/features/NeuroCoach'));
 const DashboardRH = lazy(() => import('@/components/DashboardRH'));
 const Gamification = lazy(() => import('@/components/Gamification'));
+const GamificationScoreCard = lazy(() => import('@/components/GamificationScoreCard'));
 const MiniMeditation = lazy(() => import('@/components/MiniMeditation'));
 const IntegrationsDashboard = lazy(() => import('@/components/IntegrationsDashboard'));
 const ROIDashboard = lazy(() => import('@/components/ROIDashboard'));
@@ -112,6 +113,7 @@ export default function Dashboard() {
       case 'gamification':
         return stressLevel ? (
           <>
+            <GamificationScoreCard />
             <Gamification stressLevel={stressLevel} hrvValue={hrvValue} />
             {showMeditation && <MiniMeditation trigger={showMeditation} />}
           </>

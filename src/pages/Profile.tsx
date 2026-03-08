@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { User, Mail, Save, Shield, LogOut } from 'lucide-react';
 import WellnessScoreCard from '@/components/WellnessScoreCard';
+import GamificationScoreCard from '@/components/GamificationScoreCard';
 import { z } from 'zod';
 
 const profileSchema = z.object({
@@ -137,6 +138,9 @@ export default function Profile() {
         >
           {/* Wellness Score */}
           <WellnessScoreCard compact />
+
+          {/* Gamification Score */}
+          <GamificationScoreCard compact />
 
           {/* Profile Info */}
           <Card>
