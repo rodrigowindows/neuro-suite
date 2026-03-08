@@ -3,18 +3,24 @@ import { Trophy, Flame, Award, Star, Zap, Target } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge as BadgeUI } from '@/components/ui/badge';
-
-interface AchievementBadge {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  earnedAt: string;
-}
+import type { AchievementBadge } from '@/types/stress';
 
 interface GamificationProps {
   stressLevel?: string;
   hrvValue?: number;
+}
+
+const BADGE_DEFINITIONS = [
+  { id: 'first_scan', name: '🎯 Primeira Missão', description: 'Completou primeiro scan!', icon: '🎯', condition: (scans: number) => scans === 1 },
+  { id: 'warrior', name: '⚡ Guerreiro da Performance', description: '10 scans completos!', icon: '⚡', condition: (scans: number) => scans >= 10 },
+] as const;
+
+function getStreakEmoji(streak: number): string {
+  if (streak >= 30) return '🔥🔥🔥';
+  if (streak >= 14) return '🔥🔥';
+  if (streak >= 7) return '🔥';
+  if (streak >= 3) return '⚡';
+  return '✨';
 }
 
 export default function Gamification({ stressLevel, hrvValue }: GamificationProps) {
@@ -66,7 +72,6 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Buscar progresso atual
       const { data: currentProgress } = await supabase
         .from('user_progress')
         .select('*')
@@ -75,77 +80,34 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
 
       const today = new Date().toISOString().split('T')[0];
       const lastScanDate = currentProgress?.last_scan_date;
-      
+
       let newStreak = currentProgress?.current_streak || 0;
       if (lastScanDate !== today) {
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
         const yesterdayStr = yesterday.toISOString().split('T')[0];
-        
-        if (lastScanDate === yesterdayStr) {
-          newStreak += 1;
-        } else {
-          newStreak = 1;
-        }
+        newStreak = lastScanDate === yesterdayStr ? newStreak + 1 : 1;
       }
 
       const newTotalScans = (currentProgress?.total_scans || 0) + 1;
       const newLongestStreak = Math.max(newStreak, currentProgress?.longest_streak || 0);
 
-      // Verificar novos badges
       const currentBadges = (currentProgress?.badges as unknown as AchievementBadge[]) || [];
       const newBadges: AchievementBadge[] = [...currentBadges];
       let earnedNewBadge = false;
 
-      // Badge: Zen Master (7 dias consecutivos)
-      if (newStreak >= 7 && !currentBadges.find((b) => b.id === 'zen_master')) {
-        newBadges.push({
-          id: 'zen_master',
-          name: '🧘 Zen Master',
-          description: '7 dias consecutivos!',
-          icon: '🧘',
-          earnedAt: new Date().toISOString(),
-        });
-        earnedNewBadge = true;
-      }
+      const addBadge = (id: string, name: string, description: string, icon: string) => {
+        if (!currentBadges.find(b => b.id === id)) {
+          newBadges.push({ id, name, description, icon, earnedAt: new Date().toISOString() });
+          earnedNewBadge = true;
+        }
+      };
 
-      // Badge: HRV Hero (HRV > 50ms)
-      if (hrvValue && hrvValue > 50 && !currentBadges.find((b) => b.id === 'hrv_hero')) {
-        newBadges.push({
-          id: 'hrv_hero',
-          name: '💗 HRV Hero',
-          description: 'HRV > 50ms',
-          icon: '💗',
-          earnedAt: new Date().toISOString(),
-        });
-        earnedNewBadge = true;
-      }
+      if (newStreak >= 7) addBadge('zen_master', '🧘 Zen Master', '7 dias consecutivos!', '🧘');
+      if (hrvValue && hrvValue > 50) addBadge('hrv_hero', '💗 HRV Hero', 'HRV > 50ms', '💗');
+      if (newTotalScans === 1) addBadge('first_scan', '🎯 Primeira Missão', 'Completou primeiro scan!', '🎯');
+      if (newTotalScans >= 10) addBadge('warrior', '⚡ Guerreiro da Performance', '10 scans completos!', '⚡');
 
-      // Badge: Primeira Missão (primeiro scan)
-      if (newTotalScans === 1 && !currentBadges.find((b) => b.id === 'first_scan')) {
-        newBadges.push({
-          id: 'first_scan',
-          name: '🎯 Primeira Missão',
-          description: 'Completou primeiro scan!',
-          icon: '🎯',
-          earnedAt: new Date().toISOString(),
-        });
-        earnedNewBadge = true;
-      }
-
-      // Badge: Guerreiro da Performance (10 scans)
-      if (newTotalScans >= 10 && !currentBadges.find((b) => b.id === 'warrior')) {
-        newBadges.push({
-          id: 'warrior',
-          name: '⚡ Guerreiro da Performance',
-          description: '10 scans completos!',
-          icon: '⚡',
-          earnedAt: new Date().toISOString(),
-        });
-        earnedNewBadge = true;
-      }
-
-      // Badge: Baixo Estresse Mantido (3 scans low consecutivos)
       if (stressLevel === 'low' && newTotalScans >= 3) {
         const recentScans = await supabase
           .from('stress_scans')
@@ -154,31 +116,29 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
           .order('created_at', { ascending: false })
           .limit(3);
 
-        if (recentScans.data?.every(s => s.stress_level === 'low') && 
-            !currentBadges.find((b) => b.id === 'low_stress_keeper')) {
-          newBadges.push({
-            id: 'low_stress_keeper',
-            name: '😊 Guardião do Zen',
-            description: '3 scans low consecutivos!',
-            icon: '😊',
-            earnedAt: new Date().toISOString(),
-          });
-          earnedNewBadge = true;
+        if (recentScans.data?.every(s => s.stress_level === 'low')) {
+          addBadge('low_stress_keeper', '😊 Guardião do Zen', '3 scans low consecutivos!', '😊');
         }
       }
 
-      // Upsert progresso
-      const { error } = await supabase
-        .from('user_progress')
-        .upsert({
-          id: currentProgress?.id,
-          user_id: user.id,
-          current_streak: newStreak,
-          longest_streak: newLongestStreak,
-          last_scan_date: today,
-          badges: newBadges as any,
-          total_scans: newTotalScans,
-        });
+      const badgesJson = JSON.parse(JSON.stringify(newBadges));
+
+      const { error } = currentProgress?.id
+        ? await supabase.from('user_progress').update({
+            current_streak: newStreak,
+            longest_streak: newLongestStreak,
+            last_scan_date: today,
+            badges: badgesJson,
+            total_scans: newTotalScans,
+          }).eq('id', currentProgress.id)
+        : await supabase.from('user_progress').insert({
+            user_id: user.id,
+            current_streak: newStreak,
+            longest_streak: newLongestStreak,
+            last_scan_date: today,
+            badges: badgesJson,
+            total_scans: newTotalScans,
+          });
 
       if (!error) {
         setCurrentStreak(newStreak);
@@ -194,14 +154,6 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
     } catch (error) {
       console.error('Erro ao atualizar progresso:', error);
     }
-  };
-
-  const getStreakEmoji = (streak: number) => {
-    if (streak >= 30) return '🔥🔥🔥';
-    if (streak >= 14) return '🔥🔥';
-    if (streak >= 7) return '🔥';
-    if (streak >= 3) return '⚡';
-    return '✨';
   };
 
   return (
@@ -224,7 +176,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
               {currentStreak} {getStreakEmoji(currentStreak)}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {currentStreak > 0 ? `Você tá ON FIRE! 🔥` : 'Comece sua jornada!'}
+              {currentStreak > 0 ? 'Você tá ON FIRE! 🔥' : 'Comece sua jornada!'}
             </p>
           </div>
 
@@ -292,8 +244,8 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
           <p className="text-xs font-semibold text-secondary mb-1">🎯 Próximo objetivo:</p>
           <p className="text-xs text-muted-foreground">
             {currentStreak < 7 && `Faça scan por mais ${7 - currentStreak} dias para 🧘 Zen Master`}
-            {currentStreak >= 7 && currentStreak < 30 && `Continue até 30 dias para Triple Fire! 🔥🔥🔥`}
-            {currentStreak >= 30 && `Você é uma lenda! Continue assim! 🏆`}
+            {currentStreak >= 7 && currentStreak < 30 && 'Continue até 30 dias para Triple Fire! 🔥🔥🔥'}
+            {currentStreak >= 30 && 'Você é uma lenda! Continue assim! 🏆'}
           </p>
         </div>
       </CardContent>

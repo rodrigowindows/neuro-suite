@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,21 +8,9 @@ import { Bell, AlertTriangle, CheckCircle, Settings, TrendingUp, Brain, Users, L
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
-
-interface Alert {
-  id: string;
-  type: 'critical' | 'warning' | 'info';
-  title: string;
-  description: string;
-  timestamp: Date;
-  acknowledged: boolean;
-}
-
-interface AlertThresholds {
-  highStressPercent: number;
-  lowHRVThreshold: number;
-  consecutiveHighDays: number;
-}
+import { useStressData } from '@/hooks/useStressData';
+import type { AlertThresholds } from '@/types/stress';
+import { generateAlerts, sortAlerts, getAlertStyles, type Alert } from '@/services/alertGenerator';
 
 interface ProactiveAlert {
   userId: string;
@@ -36,7 +24,7 @@ interface ProactiveAlert {
 }
 
 export default function HRAlerts() {
-  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [acknowledgedIds, setAcknowledgedIds] = useState<Set<string>>(new Set());
   const [proactiveAlerts, setProactiveAlerts] = useState<ProactiveAlert[]>([]);
   const [aiSummary, setAiSummary] = useState('');
   const [teamStats, setTeamStats] = useState({ totalMonitored: 0, atRiskCount: 0, totalScans: 0 });
@@ -46,137 +34,21 @@ export default function HRAlerts() {
     consecutiveHighDays: 3,
   });
   const [showSettings, setShowSettings] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [proactiveLoading, setProactiveLoading] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    analyzeAndGenerateAlerts();
-  }, [thresholds]);
+  const { stats, trend, consecutiveHighDays, loading } = useStressData({ days: 7 });
 
-  const analyzeAndGenerateAlerts = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+  const alerts = useMemo(() => {
+    if (loading || stats.totalScans === 0) return [];
+    const generated = generateAlerts(stats, trend, consecutiveHighDays, thresholds);
+    return generated.map(a => ({
+      ...a,
+      acknowledged: acknowledgedIds.has(a.id),
+    }));
+  }, [stats, trend, consecutiveHighDays, thresholds, loading, acknowledgedIds]);
 
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-      const { data: scans } = await supabase
-        .from('stress_scans')
-        .select('stress_level, hrv_value, created_at')
-        .gte('created_at', sevenDaysAgo.toISOString())
-        .order('created_at', { ascending: false })
-        .limit(500);
-
-      if (!scans || scans.length === 0) {
-        setLoading(false);
-        return;
-      }
-
-      const generatedAlerts: Alert[] = [];
-      const total = scans.length;
-      const highCount = scans.filter(s => s.stress_level === 'high').length;
-      const highPercent = (highCount / total) * 100;
-
-      if (highPercent > thresholds.highStressPercent) {
-        generatedAlerts.push({
-          id: 'high_stress',
-          type: 'critical',
-          title: '🚨 Limite de Estresse Alto Ultrapassado',
-          description: `${Math.round(highPercent)}% dos scans indicam estresse alto (limite: ${thresholds.highStressPercent}%). Intervenção urgente recomendada.`,
-          timestamp: new Date(),
-          acknowledged: false,
-        });
-      }
-
-      const hrvValues = scans.filter(s => s.hrv_value).map(s => Number(s.hrv_value));
-      const avgHRV = hrvValues.length > 0 ? hrvValues.reduce((a, b) => a + b, 0) / hrvValues.length : 0;
-
-      if (avgHRV > 0 && avgHRV < thresholds.lowHRVThreshold) {
-        generatedAlerts.push({
-          id: 'low_hrv',
-          type: 'critical',
-          title: '❤️ HRV Médio Abaixo do Limite',
-          description: `HRV médio: ${Math.round(avgHRV)}ms (limite: ${thresholds.lowHRVThreshold}ms). Possível sobrecarga do sistema nervoso autônomo.`,
-          timestamp: new Date(),
-          acknowledged: false,
-        });
-      }
-
-      const scansByDay = new Map<string, string[]>();
-      scans.forEach(s => {
-        const day = new Date(s.created_at!).toISOString().split('T')[0];
-        if (!scansByDay.has(day)) scansByDay.set(day, []);
-        scansByDay.get(day)!.push(s.stress_level);
-      });
-
-      let consecutiveHigh = 0;
-      const sortedDays = Array.from(scansByDay.keys()).sort().reverse();
-      for (const day of sortedDays) {
-        const dayScans = scansByDay.get(day)!;
-        const dayHighPercent = dayScans.filter(s => s === 'high').length / dayScans.length;
-        if (dayHighPercent > 0.5) consecutiveHigh++;
-        else break;
-      }
-
-      if (consecutiveHigh >= thresholds.consecutiveHighDays) {
-        generatedAlerts.push({
-          id: 'consecutive_high',
-          type: 'warning',
-          title: '⚠️ Estresse Alto Consecutivo',
-          description: `${consecutiveHigh} dias consecutivos com maioria de scans em estresse alto. Risco de burnout.`,
-          timestamp: new Date(),
-          acknowledged: false,
-        });
-      }
-
-      if (scans.length >= 4) {
-        const half = Math.floor(scans.length / 2);
-        const recentHigh = scans.slice(0, half).filter(s => s.stress_level === 'high').length / half;
-        const olderHigh = scans.slice(half).filter(s => s.stress_level === 'high').length / (scans.length - half);
-
-        if (recentHigh > olderHigh * 1.5) {
-          generatedAlerts.push({
-            id: 'trend_worsening',
-            type: 'warning',
-            title: '📈 Tendência de Piora Detectada',
-            description: `O estresse alto aumentou ${Math.round((recentHigh - olderHigh) * 100)}% na semana recente.`,
-            timestamp: new Date(),
-            acknowledged: false,
-          });
-        }
-
-        if (recentHigh < olderHigh * 0.5 && olderHigh > 0) {
-          generatedAlerts.push({
-            id: 'trend_improving',
-            type: 'info',
-            title: '✅ Tendência de Melhora',
-            description: 'O estresse alto reduziu significativamente. As intervenções estão funcionando!',
-            timestamp: new Date(),
-            acknowledged: false,
-          });
-        }
-      }
-
-      if (scans.length < 3) {
-        generatedAlerts.push({
-          id: 'low_engagement',
-          type: 'info',
-          title: '📊 Baixo Engajamento',
-          description: `Apenas ${scans.length} scans nos últimos 7 dias. Incentive o uso regular.`,
-          timestamp: new Date(),
-          acknowledged: false,
-        });
-      }
-
-      setAlerts(generatedAlerts);
-    } catch (error) {
-      console.error('Erro ao gerar alertas:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const sortedAlerts = useMemo(() => sortAlerts(alerts), [alerts]);
 
   const runProactiveAnalysis = async () => {
     setProactiveLoading(true);
@@ -199,24 +71,17 @@ export default function HRAlerts() {
         title: 'Análise concluída',
         description: `${data.atRiskCount} colaborador(es) em risco identificados.`,
       });
-    } catch (e: any) {
-      toast({ title: 'Erro', description: e.message, variant: 'destructive' });
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Erro desconhecido';
+      toast({ title: 'Erro', description: message, variant: 'destructive' });
     } finally {
       setProactiveLoading(false);
     }
   };
 
   const acknowledgeAlert = (alertId: string) => {
-    setAlerts(prev => prev.map(a => a.id === alertId ? { ...a, acknowledged: true } : a));
+    setAcknowledgedIds(prev => new Set(prev).add(alertId));
     toast({ title: 'Alerta reconhecido' });
-  };
-
-  const getAlertStyles = (type: Alert['type']) => {
-    switch (type) {
-      case 'critical': return { bg: 'bg-destructive/10', border: 'border-destructive/30', icon: 'text-destructive' };
-      case 'warning': return { bg: 'bg-orange-500/10', border: 'border-orange-500/30', icon: 'text-orange-500' };
-      case 'info': return { bg: 'bg-primary/10', border: 'border-primary/30', icon: 'text-primary' };
-    }
   };
 
   const criticalCount = alerts.filter(a => a.type === 'critical' && !a.acknowledged).length;
@@ -303,7 +168,7 @@ export default function HRAlerts() {
                 </Card>
               )}
 
-              {alerts.length === 0 ? (
+              {sortedAlerts.length === 0 ? (
                 <div className="text-center py-8">
                   <CheckCircle className="h-12 w-12 text-primary mx-auto mb-3 opacity-60" />
                   <p className="text-sm font-semibold">Tudo OK! 🎉</p>
@@ -311,33 +176,31 @@ export default function HRAlerts() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {alerts
-                    .sort((a, b) => ({ critical: 0, warning: 1, info: 2 }[a.type] - { critical: 0, warning: 1, info: 2 }[b.type]))
-                    .map((alert) => {
-                      const styles = getAlertStyles(alert.type);
-                      return (
-                        <Card key={alert.id} className={`${styles.bg} ${styles.border} border ${alert.acknowledged ? 'opacity-50' : ''}`}>
-                          <CardContent className="p-3 sm:p-4 flex items-start gap-3">
-                            {alert.type === 'critical' ? (
-                              <AlertTriangle className={`h-5 w-5 ${styles.icon} shrink-0 mt-0.5`} />
-                            ) : alert.type === 'warning' ? (
-                              <TrendingUp className={`h-5 w-5 ${styles.icon} shrink-0 mt-0.5`} />
-                            ) : (
-                              <CheckCircle className={`h-5 w-5 ${styles.icon} shrink-0 mt-0.5`} />
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold">{alert.title}</p>
-                              <p className="text-xs text-muted-foreground mt-1">{alert.description}</p>
-                            </div>
-                            {!alert.acknowledged && (
-                              <Button variant="ghost" size="sm" className="shrink-0 text-xs" onClick={() => acknowledgeAlert(alert.id)}>
-                                OK
-                              </Button>
-                            )}
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
+                  {sortedAlerts.map((alert) => {
+                    const styles = getAlertStyles(alert.type);
+                    return (
+                      <Card key={alert.id} className={`${styles.bg} ${styles.border} border ${alert.acknowledged ? 'opacity-50' : ''}`}>
+                        <CardContent className="p-3 sm:p-4 flex items-start gap-3">
+                          {alert.type === 'critical' ? (
+                            <AlertTriangle className={`h-5 w-5 ${styles.icon} shrink-0 mt-0.5`} />
+                          ) : alert.type === 'warning' ? (
+                            <TrendingUp className={`h-5 w-5 ${styles.icon} shrink-0 mt-0.5`} />
+                          ) : (
+                            <CheckCircle className={`h-5 w-5 ${styles.icon} shrink-0 mt-0.5`} />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold">{alert.title}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{alert.description}</p>
+                          </div>
+                          {!alert.acknowledged && (
+                            <Button variant="ghost" size="sm" className="shrink-0 text-xs" onClick={() => acknowledgeAlert(alert.id)}>
+                              OK
+                            </Button>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               )}
             </CardContent>

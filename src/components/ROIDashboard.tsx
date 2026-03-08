@@ -1,83 +1,29 @@
-import { useEffect, useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DollarSign, TrendingDown, Users, Calculator } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-
-interface ROIData {
-  totalEmployees: number;
-  avgSalary: number;
-  turnoverRate: number;
-  absenteeismDays: number;
-}
+import { useStressData } from '@/hooks/useStressData';
+import { calculateROI, formatCurrency, type ROIInputs } from '@/services/roiCalculator';
 
 export default function ROIDashboard() {
-  const [roiData, setRoiData] = useState<ROIData>({
+  const [roiData, setRoiData] = useState<ROIInputs>({
     totalEmployees: 100,
     avgSalary: 5000,
     turnoverRate: 15,
     absenteeismDays: 12,
   });
-  const [stressReduction, setStressReduction] = useState(0);
 
-  useEffect(() => {
-    loadStressData();
-  }, []);
+  const { trend } = useStressData({ days: 30 });
+  const stressReduction = trend?.direction === 'improving'
+    ? Math.max(0, trend.olderHighPercent - trend.recentHighPercent)
+    : 0;
 
-  const loadStressData = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+  const roi = useMemo(() => calculateROI(roiData), [roiData]);
 
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-      // No user_id filter - managers see all team data via RLS
-      const { data: scans } = await supabase
-        .from('stress_scans')
-        .select('stress_level, created_at')
-        .gte('created_at', thirtyDaysAgo.toISOString())
-        .order('created_at', { ascending: true })
-        .limit(500);
-
-      if (scans && scans.length >= 2) {
-        const half = Math.floor(scans.length / 2);
-        const firstHalf = scans.slice(0, half);
-        const secondHalf = scans.slice(half);
-
-        const highFirst = firstHalf.filter(s => s.stress_level === 'high').length / firstHalf.length;
-        const highSecond = secondHalf.filter(s => s.stress_level === 'high').length / secondHalf.length;
-
-        const reduction = Math.max(0, Math.round((highFirst - highSecond) * 100));
-        setStressReduction(reduction);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar dados de estresse:', error);
-    }
+  const updateField = (field: keyof ROIInputs, value: string) => {
+    setRoiData(prev => ({ ...prev, [field]: Number(value) || 0 }));
   };
-
-  // Cálculos de ROI
-  const turnoverCostPerEmployee = roiData.avgSalary * 6; // 6 meses de salário para substituir
-  const annualTurnoverCost = (roiData.totalEmployees * (roiData.turnoverRate / 100)) * turnoverCostPerEmployee;
-  const absenteeismCostPerDay = roiData.avgSalary / 22; // custo por dia útil
-  const annualAbsenteeismCost = roiData.totalEmployees * roiData.absenteeismDays * absenteeismCostPerDay;
-  const totalCostWithoutNeuroSuite = annualTurnoverCost + annualAbsenteeismCost;
-
-  // NeuroSuite reduz turnover em 25% e absenteísmo em 20% (benchmarks do mercado)
-  const turnoverReductionRate = 0.25;
-  const absenteeismReductionRate = 0.20;
-  const savingsTurnover = annualTurnoverCost * turnoverReductionRate;
-  const savingsAbsenteeism = annualAbsenteeismCost * absenteeismReductionRate;
-  const totalSavings = savingsTurnover + savingsAbsenteeism;
-
-  const neuroSuiteCost = roiData.totalEmployees * 29; // R$29/colaborador/mês
-  const annualNeuroSuiteCost = neuroSuiteCost * 12;
-  const netROI = totalSavings - annualNeuroSuiteCost;
-  const roiPercentage = annualNeuroSuiteCost > 0 ? Math.round((netROI / annualNeuroSuiteCost) * 100) : 0;
-
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
   return (
     <div className="space-y-6">
@@ -96,43 +42,23 @@ export default function ROIDashboard() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label htmlFor="employees" className="text-xs">Nº Colaboradores</Label>
-              <Input
-                id="employees"
-                type="number"
-                value={roiData.totalEmployees}
-                onChange={(e) => setRoiData({ ...roiData, totalEmployees: Number(e.target.value) || 0 })}
-                className="h-9"
-              />
+              <Input id="employees" type="number" value={roiData.totalEmployees}
+                onChange={(e) => updateField('totalEmployees', e.target.value)} className="h-9" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="salary" className="text-xs">Salário Médio (R$)</Label>
-              <Input
-                id="salary"
-                type="number"
-                value={roiData.avgSalary}
-                onChange={(e) => setRoiData({ ...roiData, avgSalary: Number(e.target.value) || 0 })}
-                className="h-9"
-              />
+              <Input id="salary" type="number" value={roiData.avgSalary}
+                onChange={(e) => updateField('avgSalary', e.target.value)} className="h-9" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="turnover" className="text-xs">Turnover Anual (%)</Label>
-              <Input
-                id="turnover"
-                type="number"
-                value={roiData.turnoverRate}
-                onChange={(e) => setRoiData({ ...roiData, turnoverRate: Number(e.target.value) || 0 })}
-                className="h-9"
-              />
+              <Input id="turnover" type="number" value={roiData.turnoverRate}
+                onChange={(e) => updateField('turnoverRate', e.target.value)} className="h-9" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="absenteeism" className="text-xs">Dias Absenteísmo/Ano</Label>
-              <Input
-                id="absenteeism"
-                type="number"
-                value={roiData.absenteeismDays}
-                onChange={(e) => setRoiData({ ...roiData, absenteeismDays: Number(e.target.value) || 0 })}
-                className="h-9"
-              />
+              <Input id="absenteeism" type="number" value={roiData.absenteeismDays}
+                onChange={(e) => updateField('absenteeismDays', e.target.value)} className="h-9" />
             </div>
           </div>
 
@@ -146,15 +72,15 @@ export default function ROIDashboard() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <p className="text-[10px] text-muted-foreground uppercase">Custo Turnover/Ano</p>
-                  <p className="text-lg font-bold text-destructive">{formatCurrency(annualTurnoverCost)}</p>
+                  <p className="text-lg font-bold text-destructive">{formatCurrency(roi.annualTurnoverCost)}</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-muted-foreground uppercase">Custo Absenteísmo/Ano</p>
-                  <p className="text-lg font-bold text-destructive">{formatCurrency(annualAbsenteeismCost)}</p>
+                  <p className="text-lg font-bold text-destructive">{formatCurrency(roi.annualAbsenteeismCost)}</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-muted-foreground uppercase">Total Perdas/Ano</p>
-                  <p className="text-xl font-bold text-destructive">{formatCurrency(totalCostWithoutNeuroSuite)}</p>
+                  <p className="text-xl font-bold text-destructive">{formatCurrency(roi.totalCostWithoutNeuroSuite)}</p>
                 </div>
               </div>
             </CardContent>
@@ -170,15 +96,15 @@ export default function ROIDashboard() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <p className="text-[10px] text-muted-foreground uppercase">Redução Turnover (-25%)</p>
-                  <p className="text-lg font-bold" style={{ color: 'hsl(var(--success))' }}>{formatCurrency(savingsTurnover)}</p>
+                  <p className="text-lg font-bold" style={{ color: 'hsl(var(--success))' }}>{formatCurrency(roi.savingsTurnover)}</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-muted-foreground uppercase">Redução Absenteísmo (-20%)</p>
-                  <p className="text-lg font-bold" style={{ color: 'hsl(var(--success))' }}>{formatCurrency(savingsAbsenteeism)}</p>
+                  <p className="text-lg font-bold" style={{ color: 'hsl(var(--success))' }}>{formatCurrency(roi.savingsAbsenteeism)}</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-muted-foreground uppercase">Total Economia/Ano</p>
-                  <p className="text-xl font-bold" style={{ color: 'hsl(var(--success))' }}>{formatCurrency(totalSavings)}</p>
+                  <p className="text-xl font-bold" style={{ color: 'hsl(var(--success))' }}>{formatCurrency(roi.totalSavings)}</p>
                 </div>
               </div>
             </CardContent>
@@ -188,16 +114,16 @@ export default function ROIDashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="p-4 bg-primary/10 rounded-lg border border-primary/20 text-center">
               <p className="text-xs text-muted-foreground mb-1">Investimento NeuroSuite/Ano</p>
-              <p className="text-xl font-bold text-primary">{formatCurrency(annualNeuroSuiteCost)}</p>
+              <p className="text-xl font-bold text-primary">{formatCurrency(roi.annualNeuroSuiteCost)}</p>
               <p className="text-[10px] text-muted-foreground">R$29/colaborador/mês</p>
             </div>
             <div className="p-4 bg-accent/10 rounded-lg border border-accent/20 text-center">
               <p className="text-xs text-muted-foreground mb-1">ROI Líquido/Ano</p>
-              <p className="text-xl font-bold text-accent">{formatCurrency(netROI)}</p>
+              <p className="text-xl font-bold text-accent">{formatCurrency(roi.netROI)}</p>
             </div>
             <div className="p-4 bg-secondary/10 rounded-lg border border-secondary/20 text-center">
               <p className="text-xs text-muted-foreground mb-1">ROI %</p>
-              <p className="text-3xl font-bold text-secondary">{roiPercentage}%</p>
+              <p className="text-3xl font-bold text-secondary">{roi.roiPercentage}%</p>
               <p className="text-[10px] text-muted-foreground">retorno sobre investimento</p>
             </div>
           </div>
