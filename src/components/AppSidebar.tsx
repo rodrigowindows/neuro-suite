@@ -87,7 +87,7 @@ export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, score
           <SidebarGroupContent>
             <SidebarMenu>
               {employeeItems.map((item) => (
-                <SidebarMenuItem key={item.value}>
+                <SidebarMenuItem key={item.value} className="relative">
                   <SidebarMenuButton
                     onClick={() => {
                       if (item.value === 'gamification' && gamificationDisabled) return;
