@@ -230,6 +230,7 @@ export default function Index() {
               </Button>
             </motion.div>
           </div>
+        </section>
 
         {/* Testimonials */}
         <section id="depoimentos" className="py-16 sm:py-24 bg-muted/30" aria-labelledby="testimonials-heading">
