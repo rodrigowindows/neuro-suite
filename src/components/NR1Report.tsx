@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { FileText, Download, Shield, AlertTriangle, CheckCircle, Sparkles, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { FileText, Download, Shield, AlertTriangle, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
