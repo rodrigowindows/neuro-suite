@@ -22,6 +22,7 @@ const employeeItems = [
   { title: 'NeuroScore', value: 'neuroscore', icon: Activity, emoji: '🧠' },
   { title: 'Gamificação', value: 'gamification', icon: Trophy, emoji: '🏆' },
   { title: 'NeuroCoach', value: 'neurocoach', icon: MessageCircle, emoji: '💬' },
+  { title: 'Coaching Pro', value: 'leadership', icon: GraduationCap, emoji: '🎓' },
 ];
 
 const managerItems = [

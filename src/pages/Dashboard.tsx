@@ -98,6 +98,8 @@ export default function Dashboard() {
         );
       case 'neurocoach':
         return <NeuroCoach stressLevel={stressLevel || undefined} />;
+      case 'leadership':
+        return <LeadershipCoaching stressLevel={stressLevel || undefined} />;
       case 'ai-insights':
         return isManager ? <AIInsightsDashboard /> : null;
       case 'alerts':
