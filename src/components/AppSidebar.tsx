@@ -43,7 +43,7 @@ interface AppSidebarProps {
   onTabChange: (tab: string) => void;
   gamificationDisabled?: boolean;
   scores?: Record<string, FeatureScore | null>;
-  [key: string]: any;
+  isManager?: boolean;
 }
 
 export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, scores = {} }: AppSidebarProps) {
