@@ -46,6 +46,7 @@ export default function Dashboard() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { scores, refreshScores } = useFeatureScores();
+  const { isManager, loading: rolesLoading } = useUserRole();
   const [stressLevel, setStressLevel] = useState('');
   const [hrvValue, setHRVValue] = useState<number | undefined>(undefined);
   const [activeTab, setActiveTab] = useState('neuroscore');

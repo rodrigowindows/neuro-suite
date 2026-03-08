@@ -44,13 +44,13 @@ export default function HRAlerts() {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
+      // Remove user_id filter - managers see all team data via RLS
       const { data: scans } = await supabase
         .from('stress_scans')
         .select('stress_level, hrv_value, created_at')
-        .eq('user_id', user.id)
         .gte('created_at', sevenDaysAgo.toISOString())
         .order('created_at', { ascending: false })
-        .limit(100);
+        .limit(500);
 
       if (!scans || scans.length === 0) {
         setLoading(false);

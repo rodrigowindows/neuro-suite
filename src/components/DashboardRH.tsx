@@ -36,17 +36,16 @@ export default function DashboardRH() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Buscar scans dos últimos 7 dias (limite 100 para free tier)
+      // Remove user_id filter - managers see all team data via RLS
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
       const { data: scans, error } = await supabase
         .from('stress_scans')
         .select('stress_level, hrv_value')
-        .eq('user_id', user.id)
         .gte('created_at', sevenDaysAgo.toISOString())
         .order('created_at', { ascending: false })
-        .limit(100);
+        .limit(500);
 
       if (error) throw error;
 
