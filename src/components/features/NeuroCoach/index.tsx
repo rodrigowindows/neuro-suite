@@ -89,9 +89,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
           .from('coach_conversations')
           .update({ messages: allMessages as any, updated_at: new Date().toISOString() })
           .eq('id', conversationId);
-      } else {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
+      } else if (user) {
           const { data: newConv } = await supabase
             .from('coach_conversations')
             .insert([{ user_id: user.id, stress_level: effectiveStressLevel, messages: allMessages as any }])
@@ -99,7 +97,6 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
             .single();
           if (newConv) setConversationId(newConv.id);
         }
-      }
     } catch (error: any) {
       console.error('Erro ao enviar mensagem:', error);
       toast({ title: 'Erro', description: error.message || 'Não foi possível enviar a mensagem', variant: 'destructive' });
