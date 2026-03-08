@@ -137,7 +137,14 @@ export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, score
                     }`}
                   >
                     <item.icon className="h-4 w-4 flex-shrink-0" />
-                    {!collapsed && <span className="truncate">{item.title}</span>}
+                    {!collapsed && (
+                      <span className="truncate flex-1">{item.title}</span>
+                    )}
+                    {scores[item.value] && (
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white leading-none ${scores[item.value]!.color} ${collapsed ? 'absolute -top-1 -right-1 scale-75' : ''}`}>
+                        {scores[item.value]!.label}
+                      </span>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
