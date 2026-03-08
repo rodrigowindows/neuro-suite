@@ -121,17 +121,18 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
         }
       }
 
-      const { error } = await supabase
-        .from('user_progress')
-        .upsert({
-          id: currentProgress?.id,
-          user_id: user.id,
-          current_streak: newStreak,
-          longest_streak: newLongestStreak,
-          last_scan_date: today,
-          badges: newBadges as unknown as Record<string, unknown>[],
-          total_scans: newTotalScans,
-        });
+      const upsertData = {
+        user_id: user.id,
+        current_streak: newStreak,
+        longest_streak: newLongestStreak,
+        last_scan_date: today,
+        badges: newBadges as unknown as Record<string, unknown>[],
+        total_scans: newTotalScans,
+      };
+
+      const { error } = currentProgress?.id
+        ? await supabase.from('user_progress').update(upsertData).eq('id', currentProgress.id)
+        : await supabase.from('user_progress').insert(upsertData);
 
       if (!error) {
         setCurrentStreak(newStreak);
