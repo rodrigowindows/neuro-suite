@@ -32,6 +32,21 @@ const stats = [
   { value: 'NR-1', label: 'Compliant', icon: Shield },
 ];
 
+const modules = [
+  { icon: CalendarCheck, title: 'Check-in Diário', desc: 'Triagem emocional de 30s com IA que gera micro-coaching personalizado baseado no humor e energia.', tag: 'Colaborador' },
+  { icon: Activity, title: 'NeuroScore', desc: 'Scan facial via webcam detecta piscadas e estima HRV para calcular nível de estresse sem wearable.', tag: 'Colaborador' },
+  { icon: MessageCircle, title: 'NeuroCoach IA', desc: 'Coach de alta performance com PNL, neurociência e respiração 4-7-8 adaptado ao seu nível de estresse.', tag: 'Colaborador' },
+  { icon: Trophy, title: 'Gamificação', desc: 'Streaks, badges e rankings que transformam o cuidado com bem-estar em hábito motivador.', tag: 'Colaborador' },
+  { icon: HeartPulse, title: 'Mini Meditação', desc: 'Sessões guiadas de 2 minutos ativadas automaticamente quando HRV está baixo.', tag: 'Colaborador' },
+  { icon: BarChart3, title: 'Dashboard RH', desc: 'Visão agregada e anônima da equipe com distribuição de estresse, HRV médio e análise preditiva.', tag: 'Gestor' },
+  { icon: Brain, title: 'IA Insights', desc: 'Predição de burnout, análise de sentimento e geração automática de relatório PGR (NR-1).', tag: 'Gestor' },
+  { icon: Bell, title: 'Alertas Proativos', desc: 'Notificações inteligentes quando colaboradores atingem estresse crítico por dias consecutivos.', tag: 'Gestor' },
+  { icon: TrendingUp, title: 'Predição de Turnover', desc: 'IA analisa padrões da equipe e estima risco de rotatividade com impacto financeiro.', tag: 'Gestor' },
+  { icon: Shield, title: 'NR-1 Compliance', desc: 'Geração automática de relatório PGR com inventário de riscos e plano de ação técnico.', tag: 'Compliance' },
+  { icon: FileText, title: 'Relatório PDF', desc: 'Exportação completa de métricas, gráficos e histórico de bem-estar para documentação.', tag: 'Compliance' },
+  { icon: Sparkles, title: 'Coaching Liderança', desc: 'Módulo premium de desenvolvimento de liderança com IA para gestores e C-level.', tag: 'Premium' },
+];
+
 export default function Index() {
   const navigate = useNavigate();
   const heroRef = useRef<HTMLElement>(null);
