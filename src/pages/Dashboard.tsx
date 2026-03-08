@@ -10,6 +10,8 @@ import { AppSidebar } from '@/components/AppSidebar';
 import FeedbackButton from '@/components/FeedbackButton';
 import DashboardSkeleton from '@/components/DashboardSkeleton';
 import WelcomeBanner from '@/components/WelcomeBanner';
+import StressAlertBanner from '@/components/StressAlertBanner';
+import { useStressNotifications } from '@/hooks/useStressNotifications';
 
 // Lazy-loaded feature components
 const NeuroScore = lazy(() => import('@/components/features/NeuroScore'));
@@ -75,6 +77,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('checkin');
   const [showMeditation, setShowMeditation] = useState(false);
   const [isFirstVisit, setIsFirstVisit] = useState(false);
+  const stressNotif = useStressNotifications();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -182,7 +185,14 @@ export default function Dashboard() {
           </header>
 
           {/* Content */}
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-6xl w-full mx-auto">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-6xl w-full mx-auto space-y-4">
+            {stressNotif.isCritical && (
+              <StressAlertBanner
+                consecutiveHighDays={stressNotif.consecutiveHighDays}
+                highPercent={stressNotif.highPercent}
+                avgHRV={stressNotif.avgHRV}
+              />
+            )}
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}
