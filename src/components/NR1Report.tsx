@@ -30,7 +30,8 @@ export default function NR1Report() {
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
-
+  const [aiInsights, setAiInsights] = useState<NR1AIInsights | null>(null);
+  const [loadingAI, setLoadingAI] = useState(false);
   useEffect(() => {
     loadReportData();
   }, []);
