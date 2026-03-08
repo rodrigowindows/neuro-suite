@@ -226,15 +226,36 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
           <CardDescription>
             Relatório de compliance para gestão de riscos psicossociais conforme NR-1 e Portaria MTE 1.419/2024
           </CardDescription>
-          <div className="flex gap-2 mt-3">
+          <div className="flex gap-2 mt-3 flex-wrap">
             <Button onClick={exportReport} variant="default" size="sm" disabled={generating}>
               <Download className="mr-2 h-4 w-4" />
-              Exportar Relatório (.txt)
+              Exportar (.txt)
             </Button>
             <Button onClick={exportCSV} variant="outline" size="sm">
               <Download className="mr-2 h-4 w-4" />
               Exportar CSV
             </Button>
+            <ExportPDFButton
+              reportTitle="Relatório NR-1 — Riscos Psicossociais"
+              stats={[
+                { label: 'Total Scans', value: String(reportData.totalScans) },
+                { label: 'Estresse Baixo', value: `${reportData.lowPercent}%` },
+                { label: 'Estresse Moderado', value: `${reportData.moderatePercent}%` },
+                { label: 'Estresse Alto', value: `${reportData.highPercent}%` },
+                { label: 'HRV Médio', value: `${reportData.avgHRV}ms` },
+              ]}
+              sections={[
+                { title: '1. Resumo Executivo', content: `Período: ${reportData.period}\nTotal de Avaliações: ${reportData.totalScans}\nNível de Risco: ${reportData.riskLevel === 'high' ? 'ALTO ⚠️' : reportData.riskLevel === 'moderate' ? 'MODERADO' : 'BAIXO ✅'}` },
+                { title: '2. Distribuição de Estresse', content: `Baixo: ${reportData.lowPercent}%\nModerado: ${reportData.moderatePercent}%\nAlto: ${reportData.highPercent}%` },
+                { title: '3. Recomendações', content: reportData.recommendations.map((r, i) => `${i + 1}. ${r}`).join('\n') },
+                ...(aiInsights ? [
+                  { title: '4. Análise IA (NR-1)', content: aiInsights.legalAnalysis },
+                  { title: '5. Texto para PGR', content: aiInsights.executiveText },
+                ] : []),
+                { title: 'Base Legal', content: 'NR-1 (Portaria MTP 4.219/2022)\nLei 14.457/2022\nPortaria MTE 1.419/2024\nOIT C155' },
+              ]}
+              footer="Gerado automaticamente por NeuroSuite · Dados protegidos por LGPD"
+            />
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
