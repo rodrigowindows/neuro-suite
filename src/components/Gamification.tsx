@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Trophy, Flame, Award, Star, Zap, Target } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge as BadgeUI } from '@/components/ui/badge';
 import type { AchievementBadge } from '@/types/stress';
@@ -24,6 +25,7 @@ function getStreakEmoji(streak: number): string {
 }
 
 export default function Gamification({ stressLevel, hrvValue }: GamificationProps) {
+  const { user } = useAuth();
   const [currentStreak, setCurrentStreak] = useState(0);
   const [longestStreak, setLongestStreak] = useState(0);
   const [badges, setBadges] = useState<AchievementBadge[]>([]);
@@ -31,20 +33,18 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
   const [showNewBadge, setShowNewBadge] = useState(false);
 
   useEffect(() => {
-    loadProgress();
-  }, []);
+    if (user) loadProgress();
+  }, [user?.id]);
 
   useEffect(() => {
-    if (stressLevel) {
+    if (stressLevel && user) {
       updateProgress();
     }
   }, [stressLevel, hrvValue]);
 
   const loadProgress = async () => {
+    if (!user) return;
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
       const { data, error } = await supabase
         .from('user_progress')
         .select('*')
@@ -68,10 +68,8 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
   };
 
   const updateProgress = async () => {
+    if (!user) return;
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
       const { data: currentProgress } = await supabase
         .from('user_progress')
         .select('*')

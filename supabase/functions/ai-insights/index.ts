@@ -292,6 +292,7 @@ CONTEXTO DA EMPRESA:
         break;
       }
 
+      default:
         return new Response(
           JSON.stringify({ error: `Unknown type: ${type}` }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
