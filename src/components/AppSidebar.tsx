@@ -33,10 +33,16 @@ const managerItems = [
   { title: 'Dashboard RH', value: 'dashboard-rh', icon: BarChart, emoji: '📊' },
 ];
 
+interface FeatureScore {
+  label: string;
+  color: string;
+}
+
 interface AppSidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   gamificationDisabled?: boolean;
+  scores?: Record<string, FeatureScore | null>;
 }
 
 export function AppSidebar({ activeTab, onTabChange, gamificationDisabled }: AppSidebarProps) {
