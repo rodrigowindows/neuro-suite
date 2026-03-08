@@ -67,6 +67,9 @@ export default function Index() {
             <Button variant="ghost" size="sm" onClick={() => document.getElementById('beneficios')?.scrollIntoView({ behavior: 'smooth' })} className="hidden md:flex">
               Benefícios
             </Button>
+            <Button variant="ghost" size="sm" onClick={() => document.getElementById('modulos')?.scrollIntoView({ behavior: 'smooth' })} className="hidden md:flex">
+              Módulos
+            </Button>
             <Button variant="ghost" size="sm" onClick={() => document.getElementById('depoimentos')?.scrollIntoView({ behavior: 'smooth' })} className="hidden md:flex">
               Depoimentos
             </Button>
