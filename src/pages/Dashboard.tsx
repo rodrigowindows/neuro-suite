@@ -94,7 +94,7 @@ export default function Dashboard() {
           </div>
         );
       case 'neurocoach':
-        return <NeuroCoach stressLevel={stressLevel || 'moderate'} />;
+        return <NeuroCoach stressLevel={stressLevel || undefined} />;
       case 'ai-insights':
         return <AIInsightsDashboard />;
       case 'alerts':
