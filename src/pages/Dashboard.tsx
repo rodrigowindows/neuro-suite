@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useFeatureScores } from '@/hooks/useFeatureScores';
@@ -6,18 +6,20 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
-import NeuroScore from '@/components/features/NeuroScore';
-import NeuroCoach from '@/components/features/NeuroCoach';
-import DashboardRH from '@/components/DashboardRH';
-import Gamification from '@/components/Gamification';
-import MiniMeditation from '@/components/MiniMeditation';
-import IntegrationsDashboard from '@/components/IntegrationsDashboard';
-import ROIDashboard from '@/components/ROIDashboard';
-import NR1Report from '@/components/NR1Report';
-import HRAlerts from '@/components/HRAlerts';
-import AIInsightsDashboard from '@/components/AIInsightsDashboard';
 import FeedbackButton from '@/components/FeedbackButton';
-import LeadershipCoaching from '@/components/LeadershipCoaching';
+
+// Lazy-loaded feature components
+const NeuroScore = lazy(() => import('@/components/features/NeuroScore'));
+const NeuroCoach = lazy(() => import('@/components/features/NeuroCoach'));
+const DashboardRH = lazy(() => import('@/components/DashboardRH'));
+const Gamification = lazy(() => import('@/components/Gamification'));
+const MiniMeditation = lazy(() => import('@/components/MiniMeditation'));
+const IntegrationsDashboard = lazy(() => import('@/components/IntegrationsDashboard'));
+const ROIDashboard = lazy(() => import('@/components/ROIDashboard'));
+const NR1Report = lazy(() => import('@/components/NR1Report'));
+const HRAlerts = lazy(() => import('@/components/HRAlerts'));
+const AIInsightsDashboard = lazy(() => import('@/components/AIInsightsDashboard'));
+const LeadershipCoaching = lazy(() => import('@/components/LeadershipCoaching'));
 
 const PAGE_TITLES: Record<string, string> = {
   neuroscore: 'NeuroScore',
@@ -44,6 +46,14 @@ const PAGE_DESCRIPTIONS: Record<string, string> = {
   integrations: 'Conecte com suas ferramentas de RH',
   'dashboard-rh': 'Visão consolidada dos indicadores de bem-estar',
 };
+
+function LazyFallback() {
+  return (
+    <div className="flex items-center justify-center py-16">
+      <div className="animate-spin h-8 w-8 border-[3px] border-primary border-t-transparent rounded-full" />
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
@@ -124,7 +134,7 @@ export default function Dashboard() {
           activeTab={activeTab}
           onTabChange={setActiveTab}
           gamificationDisabled={!stressLevel}
-          scores={scores as any}
+          scores={scores}
           isManager={isManager}
           isAdmin={isAdmin}
         />
@@ -154,7 +164,9 @@ export default function Dashboard() {
                 transition={{ duration: 0.25, ease: 'easeOut' }}
                 className="space-y-6"
               >
-                {renderContent()}
+                <Suspense fallback={<LazyFallback />}>
+                  {renderContent()}
+                </Suspense>
               </motion.div>
             </AnimatePresence>
           </main>

@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BarChart, Download, TrendingUp, Users, AlertTriangle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { BarChart, Download, TrendingUp, Users } from 'lucide-react';
 import { FEEDBACK_FORM_URL } from '@/lib/constants';
 import { Bar } from 'react-chartjs-2';
 import {
@@ -14,80 +13,24 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
+import { useStressData } from '@/hooks/useStressData';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
+function getPrediction(highPercent: number, moderatePercent: number, lowPercent: number): string {
+  if (highPercent > 30) {
+    return `⚠️ Risco alto detectado (${highPercent}% estresse alto). Intervenções urgentes recomendadas.`;
+  }
+  if (moderatePercent > 50) {
+    return `⚡ Atenção: ${moderatePercent}% em estresse moderado. Sugira pausas preventivas.`;
+  }
+  return `✅ Time tá brilhando! ${lowPercent}% em baixo estresse. Continue com práticas de bem-estar.`;
+}
+
 export default function DashboardRH() {
-  const [stats, setStats] = useState({
-    lowPercent: 0,
-    moderatePercent: 0,
-    highPercent: 0,
-    totalScans: 0,
-    avgHRV: 0,
-  });
-  const [prediction, setPrediction] = useState('');
-  const [loading, setLoading] = useState(true);
+  const { stats, loading } = useStressData({ days: 7 });
 
-  useEffect(() => {
-    loadRHData();
-  }, []);
-
-  const loadRHData = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Remove user_id filter - managers see all team data via RLS
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-      const { data: scans, error } = await supabase
-        .from('stress_scans')
-        .select('stress_level, hrv_value')
-        .gte('created_at', sevenDaysAgo.toISOString())
-        .order('created_at', { ascending: false })
-        .limit(500);
-
-      if (error) throw error;
-
-      if (scans && scans.length > 0) {
-        const total = scans.length;
-        const low = scans.filter(s => s.stress_level === 'low').length;
-        const moderate = scans.filter(s => s.stress_level === 'moderate').length;
-        const high = scans.filter(s => s.stress_level === 'high').length;
-
-        const hrvValues = scans.filter(s => s.hrv_value).map(s => Number(s.hrv_value));
-        const avgHRV = hrvValues.length > 0
-          ? hrvValues.reduce((a, b) => a + b, 0) / hrvValues.length
-          : 0;
-
-        const newStats = {
-          lowPercent: Math.round((low / total) * 100),
-          moderatePercent: Math.round((moderate / total) * 100),
-          highPercent: Math.round((high / total) * 100),
-          totalScans: total,
-          avgHRV: Math.round(avgHRV),
-        };
-
-        setStats(newStats);
-
-        // Predição baseada nos dados calculados (não no state antigo)
-        let predictionText = '';
-        if (newStats.highPercent > 30) {
-          predictionText = `⚠️ Risco alto detectado (${newStats.highPercent}% estresse alto). Intervenções urgentes recomendadas.`;
-        } else if (newStats.moderatePercent > 50) {
-          predictionText = `⚡ Atenção: ${newStats.moderatePercent}% em estresse moderado. Sugira pausas preventivas.`;
-        } else {
-          predictionText = `✅ Time tá brilhando! ${newStats.lowPercent}% em baixo estresse. Continue com práticas de bem-estar.`;
-        }
-        setPrediction(predictionText);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar dados RH:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const prediction = getPrediction(stats.highPercent, stats.moderatePercent, stats.lowPercent);
 
   const exportCSV = () => {
     const csv = `Métrica,Valor
