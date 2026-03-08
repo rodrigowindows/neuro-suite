@@ -23,6 +23,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [communicationTone, setCommunicationTone] = useState('');
+  const { user } = useAuth();
   const { profile } = useUserProfile();
   const { toast } = useToast();
 
@@ -30,7 +31,6 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
   useEffect(() => {
     const loadOrCreateConversation = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const { data } = await supabase
             .from('coach_conversations')
@@ -51,15 +51,13 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
         console.error('Erro ao carregar conversa:', error);
       }
 
-      if (messages.length === 0) {
-        setMessages([{ role: 'assistant', content: getInitialMessage(effectiveStressLevel) }]);
-      }
+      setMessages([{ role: 'assistant', content: getInitialMessage(effectiveStressLevel) }]);
     };
 
     if (effectiveStressLevel) {
       loadOrCreateConversation();
     }
-  }, [effectiveStressLevel]);
+  }, [effectiveStressLevel, user?.id]);
 
   const sendMessage = async (text: string) => {
     const userMessage: CoachMessage = { role: 'user', content: text };
