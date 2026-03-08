@@ -161,6 +161,15 @@ export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, score
       </SidebarContent>
 
       <SidebarFooter className="p-2 space-y-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/profile')}
+          className="w-full justify-start gap-2 text-sidebar-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent"
+        >
+          <UserCircle className="h-4 w-4 flex-shrink-0" />
+          {!collapsed && <span>Meu Perfil</span>}
+        </Button>
         {isAdmin && (
           <Button
             variant="ghost"
