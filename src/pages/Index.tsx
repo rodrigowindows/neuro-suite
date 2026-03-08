@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Activity, MessageCircle, Trophy, Users, Zap, Target, Shield, ArrowRight, Star, TrendingUp, Brain, ChevronDown } from "lucide-react";
+import { Activity, MessageCircle, Trophy, Users, Zap, Target, Shield, ArrowRight, Star, TrendingUp, Brain, ChevronDown, HeartPulse, BarChart3, FileText, Bell, Sparkles, CalendarCheck } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import neuroSuiteLogo from '@/assets/neurosuite-logo.jpg';
