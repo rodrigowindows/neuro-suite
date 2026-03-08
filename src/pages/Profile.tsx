@@ -139,6 +139,9 @@ export default function Profile() {
           {/* Wellness Score */}
           <WellnessScoreCard compact />
 
+          {/* Gamification Score */}
+          <GamificationScoreCard compact />
+
           {/* Profile Info */}
           <Card>
             <CardHeader className="pb-3">

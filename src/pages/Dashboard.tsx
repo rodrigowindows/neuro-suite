@@ -113,6 +113,7 @@ export default function Dashboard() {
       case 'gamification':
         return stressLevel ? (
           <>
+            <GamificationScoreCard />
             <Gamification stressLevel={stressLevel} hrvValue={hrvValue} />
             {showMeditation && <MiniMeditation trigger={showMeditation} />}
           </>
