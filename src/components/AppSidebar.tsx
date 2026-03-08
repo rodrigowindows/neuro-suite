@@ -159,7 +159,18 @@ export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, score
         )}
       </SidebarContent>
 
-      <SidebarFooter className="p-2">
+      <SidebarFooter className="p-2 space-y-1">
+        {isAdmin && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/admin')}
+            className="w-full justify-start gap-2 text-sidebar-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent"
+          >
+            <Settings className="h-4 w-4 flex-shrink-0" />
+            {!collapsed && <span>Admin</span>}
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="sm"

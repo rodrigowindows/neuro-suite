@@ -121,6 +121,7 @@ export default function Dashboard() {
           gamificationDisabled={!stressLevel}
           scores={scores as any}
           isManager={isManager}
+          isAdmin={isAdmin}
         />
 
         <div className="flex-1 flex flex-col min-w-0">
