@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FileText, Download, Shield, AlertTriangle, CheckCircle, Sparkles, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import ExportPDFButton from './ExportPDFButton';
+import NR1ComplianceScoreCard from './NR1ComplianceScoreCard';
 
 interface ReportData {
   totalScans: number;
@@ -217,6 +218,9 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
 
   return (
     <div className="space-y-6">
+      {/* NR-1 Compliance Score */}
+      <NR1ComplianceScoreCard />
+
       <Card className="shadow-soft border-primary/20">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
