@@ -12,7 +12,12 @@ export default function MiniMeditation({ trigger }: MiniMeditationProps) {
   const [currentPhase, setCurrentPhase] = useState<'inhale' | 'hold' | 'exhale'>('inhale');
   const [countdown, setCountdown] = useState(4);
   const [timeRemaining, setTimeRemaining] = useState(180); // 3 minutos
-  const synth = window.speechSynthesis;
+  const [ttsSupported, setTtsSupported] = useState(true);
+  const synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
+
+  useEffect(() => {
+    if (!synth) setTtsSupported(false);
+  }, []);
 
   useEffect(() => {
     if (trigger && !isPlaying) {
