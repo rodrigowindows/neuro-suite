@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [communicationTone, setCommunicationTone] = useState('');
+  const abortControllerRef = useRef<AbortController | null>(null);
   const { user } = useAuth();
   const { profile } = useUserProfile();
   const { toast } = useToast();
@@ -65,6 +66,8 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
     setIsLoading(true);
 
     let assistantContent = '';
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
       const context = buildContext(effectiveStressLevel, hrvValue);
@@ -83,6 +86,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
           userName: profile?.displayName || '',
           communicationTone,
         }),
+        signal: controller.signal,
       });
 
       if (!response.ok || !response.body) {
@@ -185,11 +189,22 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
         if (newConv) setConversationId(newConv.id);
       }
     } catch (error: any) {
+      if (error.name === 'AbortError') {
+        // Cancelled by user — keep partial content
+        return;
+      }
       console.error('Erro ao enviar mensagem:', error);
       toast({ title: 'Erro', description: error.message || 'Não foi possível enviar a mensagem', variant: 'destructive' });
     } finally {
+      abortControllerRef.current = null;
       setIsLoading(false);
     }
+  };
+
+  const cancelGeneration = () => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    setIsLoading(false);
   };
 
   const handleExport = () => {
@@ -250,7 +265,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
               </div>
 
               <ChatMessages messages={messages} isLoading={isLoading} />
-              <ChatInput onSend={sendMessage} isLoading={isLoading} />
+              <ChatInput onSend={sendMessage} onCancel={cancelGeneration} isLoading={isLoading} />
 
               {messages.length > 2 && (
                 <Button onClick={handleExport} variant="outline" className="w-full">

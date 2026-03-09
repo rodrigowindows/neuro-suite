@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Shield, Send, Bot, User, Trash2 } from 'lucide-react';
+import { Shield, Send, Bot, User, Trash2, Square } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -31,6 +31,7 @@ export default function NR1ComplianceChatbot() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -47,6 +48,8 @@ export default function NR1ComplianceChatbot() {
     setIsLoading(true);
 
     let assistantContent = '';
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
       const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/nr1-chatbot`;
@@ -60,6 +63,7 @@ export default function NR1ComplianceChatbot() {
         body: JSON.stringify({
           messages: [...messages, userMsg],
         }),
+        signal: controller.signal,
       });
 
       if (!response.ok || !response.body) {
@@ -146,11 +150,19 @@ export default function NR1ComplianceChatbot() {
         }
       }
     } catch (err: any) {
+      if (err.name === 'AbortError') return;
       console.error('Erro chatbot NR-1:', err);
       toast({ title: 'Erro', description: err.message || 'Não foi possível obter resposta.', variant: 'destructive' });
     } finally {
+      abortControllerRef.current = null;
       setIsLoading(false);
     }
+  };
+
+  const cancelGeneration = () => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    setIsLoading(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -249,9 +261,15 @@ export default function NR1ComplianceChatbot() {
               onKeyDown={handleKeyDown}
               disabled={isLoading}
             />
-            <Button onClick={() => sendMessage(input)} disabled={isLoading || !input.trim()} size="icon">
-              <Send className="h-4 w-4" />
-            </Button>
+            {isLoading ? (
+              <Button onClick={cancelGeneration} variant="destructive" size="icon" title="Cancelar geração">
+                <Square className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button onClick={() => sendMessage(input)} disabled={!input.trim()} size="icon">
+                <Send className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
