@@ -66,6 +66,8 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
     setIsLoading(true);
 
     let assistantContent = '';
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
       const context = buildContext(effectiveStressLevel, hrvValue);
@@ -84,6 +86,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
           userName: profile?.displayName || '',
           communicationTone,
         }),
+        signal: controller.signal,
       });
 
       if (!response.ok || !response.body) {
