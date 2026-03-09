@@ -44,7 +44,7 @@ export function computeStressScore(scans: { stress_level: string }[]): number {
   return Math.round(points.reduce((a, b) => a + b, 0) / points.length);
 }
 
-function computeConsistencyScore(streak: number, totalScans: number): number {
+export function computeConsistencyScore(streak: number, totalScans: number): number {
   // Streak contributes up to 20 points (max at 14 days)
   const streakPart = Math.min(streak / 14, 1) * 20;
   // Total scans contribute up to 10 points (max at 30 scans)
