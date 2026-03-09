@@ -39,8 +39,8 @@ describe("computeXP", () => {
   });
   it("gives 25 XP per badge", () => {
     const badges = [
-      { id: "b1", name: "Test", icon: "🏆", unlockedAt: new Date().toISOString() },
-      { id: "b2", name: "Test2", icon: "🎯", unlockedAt: new Date().toISOString() },
+      { id: "b1", name: "Test", description: "d", icon: "🏆", earnedAt: new Date().toISOString() },
+      { id: "b2", name: "Test2", description: "d", icon: "🎯", earnedAt: new Date().toISOString() },
     ] as AchievementBadge[];
     expect(computeXP(0, 0, 0, badges)).toBe(50);
   });
