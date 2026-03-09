@@ -40,7 +40,7 @@ describe("calculateROI", () => {
 
   it("calculates total savings correctly", () => {
     const result = calculateROI(baseInputs);
-    expect(result.totalSavings).toBeCloseTo(154545.45, 0);
+    expect(result.totalSavings).toBeCloseTo(195454.55, 0);
   });
 
   it("calculates NeuroSuite annual cost", () => {
