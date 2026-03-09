@@ -24,6 +24,8 @@ const employeeItems = [
   { title: 'Gamificação', value: 'gamification', icon: Trophy, emoji: '🏆' },
   { title: 'NeuroCoach', value: 'neurocoach', icon: MessageCircle, emoji: '💬' },
   { title: 'Coaching Pro', value: 'leadership', icon: GraduationCap, emoji: '🎓' },
+  { title: 'Fadiga Cognitiva', value: 'cognitive-fatigue', icon: Eye, emoji: '👁️' },
+  { title: 'Pausas IA', value: 'smart-breaks', icon: Coffee, emoji: '☕' },
 ];
 
 const managerItems = [
