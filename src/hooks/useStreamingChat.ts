@@ -30,11 +30,15 @@ export function useStreamingChat({ endpoint, buildBody, onError }: UseStreamingC
     try {
       const body = buildBody(messages, userMessage);
 
+      // Get current session token for auth
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(body),
         signal: controller.signal,
