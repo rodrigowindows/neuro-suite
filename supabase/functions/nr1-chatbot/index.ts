@@ -82,6 +82,7 @@ ${companyContext ? `**CONTEXTO DA EMPRESA:** ${companyContext}` : ''}
           { role: "system", content: systemPrompt },
           ...conversationHistory,
         ],
+        stream: true,
       }),
     });
 
@@ -91,14 +92,16 @@ ${companyContext ? `**CONTEXTO DA EMPRESA:** ${companyContext}` : ''}
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: 'AI credits exceeded' }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       throw new Error(`AI gateway error: ${response.status}`);
     }
 
-    const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content ?? 'Erro ao processar. Tente novamente.';
-
-    return new Response(JSON.stringify({ response: reply }), {
-      status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    return new Response(response.body, {
+      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (error: any) {
     console.error("NR1 chatbot error:", error);
