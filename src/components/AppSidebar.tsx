@@ -33,6 +33,8 @@ const managerItems = [
   { title: 'Alertas RH', value: 'alerts', icon: Bell, emoji: '🔔' },
   { title: 'ROI', value: 'roi', icon: Calculator, emoji: '💰' },
   { title: 'NR-1 Compliance', value: 'nr1', icon: Shield, emoji: '📋' },
+  { title: 'Relatórios IA', value: 'narrative-reports', icon: FileText, emoji: '📄' },
+  { title: 'Chatbot NR-1', value: 'nr1-chatbot', icon: MessageSquare, emoji: '💬' },
   { title: 'Integrações', value: 'integrations', icon: Plug, emoji: '🔗' },
   { title: 'Dashboard RH', value: 'dashboard-rh', icon: BarChart, emoji: '📊' },
 ];
