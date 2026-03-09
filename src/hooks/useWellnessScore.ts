@@ -33,7 +33,7 @@ export function getColor(score: number): string {
   return 'hsl(var(--destructive))';
 }
 
-function computeStressScore(scans: { stress_level: string }[]): number {
+export function computeStressScore(scans: { stress_level: string }[]): number {
   if (scans.length === 0) return 0;
   const recent = scans.slice(0, 10); // last 10 scans
   const points = recent.map(s => {
