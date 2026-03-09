@@ -63,6 +63,7 @@ export default function NR1ComplianceChatbot() {
         body: JSON.stringify({
           messages: [...messages, userMsg],
         }),
+        signal: controller.signal,
       });
 
       if (!response.ok || !response.body) {
