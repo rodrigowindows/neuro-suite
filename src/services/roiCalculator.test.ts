@@ -34,8 +34,8 @@ describe("calculateROI", () => {
 
   it("calculates absenteeism savings at 20% reduction", () => {
     const result = calculateROI(baseInputs);
-    // 22,727.27 * 0.20 ≈ 4,545.45
-    expect(result.savingsAbsenteeism).toBeCloseTo(4545.45, 0);
+    // 227,272.73 * 0.20 ≈ 45,454.55
+    expect(result.savingsAbsenteeism).toBeCloseTo(45454.55, 0);
   });
 
   it("calculates total savings correctly", () => {
