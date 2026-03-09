@@ -36,7 +36,7 @@ export function getCompanyColor(score: number): string {
   return 'hsl(var(--destructive))';
 }
 
-function stressLevelToScore(level: string): number {
+export function stressLevelToScore(level: string): number {
   if (level === 'low') return 40;
   if (level === 'moderate') return 24;
   return 8;

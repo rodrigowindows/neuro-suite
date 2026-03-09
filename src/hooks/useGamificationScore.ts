@@ -42,7 +42,7 @@ export function getLevelForXP(xp: number): GamificationLevel {
   return LEVELS[0];
 }
 
-function computeXP(totalScans: number, streak: number, longestStreak: number, badges: AchievementBadge[]): number {
+export function computeXP(totalScans: number, streak: number, longestStreak: number, badges: AchievementBadge[]): number {
   // XP sources:
   // - Each scan: 10 XP
   // - Current streak bonus: streak * 5

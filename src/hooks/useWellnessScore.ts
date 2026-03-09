@@ -52,7 +52,7 @@ export function computeConsistencyScore(streak: number, totalScans: number): num
   return Math.round(streakPart + scansPart);
 }
 
-function computeHrvScore(scans: { hrv_value: number | null }[]): number {
+export function computeHrvScore(scans: { hrv_value: number | null }[]): number {
   const withHrv = scans.filter(s => s.hrv_value != null);
   if (withHrv.length === 0) return 15; // neutral default
   const avgHrv = withHrv.reduce((sum, s) => sum + (s.hrv_value ?? 0), 0) / withHrv.length;
