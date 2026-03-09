@@ -23,6 +23,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [communicationTone, setCommunicationTone] = useState('');
+  const abortControllerRef = useRef<AbortController | null>(null);
   const { user } = useAuth();
   const { profile } = useUserProfile();
   const { toast } = useToast();
