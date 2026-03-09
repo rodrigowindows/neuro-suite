@@ -1,4 +1,4 @@
-import { Activity, MessageCircle, Trophy, Brain, Bell, Calculator, Shield, Plug, BarChart, LogOut, Settings, GraduationCap, UserCircle, Sun } from 'lucide-react';
+import { Activity, MessageCircle, Trophy, Brain, Bell, Calculator, Shield, Plug, BarChart, LogOut, Settings, GraduationCap, UserCircle, Sun, Eye, Coffee, FileText, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import neuroSuiteLogo from '@/assets/neurosuite-logo.jpg';
@@ -24,6 +24,8 @@ const employeeItems = [
   { title: 'Gamificação', value: 'gamification', icon: Trophy, emoji: '🏆' },
   { title: 'NeuroCoach', value: 'neurocoach', icon: MessageCircle, emoji: '💬' },
   { title: 'Coaching Pro', value: 'leadership', icon: GraduationCap, emoji: '🎓' },
+  { title: 'Fadiga Cognitiva', value: 'cognitive-fatigue', icon: Eye, emoji: '👁️' },
+  { title: 'Pausas IA', value: 'smart-breaks', icon: Coffee, emoji: '☕' },
 ];
 
 const managerItems = [
@@ -31,6 +33,8 @@ const managerItems = [
   { title: 'Alertas RH', value: 'alerts', icon: Bell, emoji: '🔔' },
   { title: 'ROI', value: 'roi', icon: Calculator, emoji: '💰' },
   { title: 'NR-1 Compliance', value: 'nr1', icon: Shield, emoji: '📋' },
+  { title: 'Relatórios IA', value: 'narrative-reports', icon: FileText, emoji: '📄' },
+  { title: 'Chatbot NR-1', value: 'nr1-chatbot', icon: MessageSquare, emoji: '💬' },
   { title: 'Integrações', value: 'integrations', icon: Plug, emoji: '🔗' },
   { title: 'Dashboard RH', value: 'dashboard-rh', icon: BarChart, emoji: '📊' },
 ];

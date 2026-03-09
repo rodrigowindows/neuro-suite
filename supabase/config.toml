@@ -14,3 +14,15 @@ verify_jwt = false
 
 [functions.proactive-alerts]
 verify_jwt = false
+
+[functions.cognitive-fatigue]
+verify_jwt = false
+
+[functions.smart-breaks]
+verify_jwt = false
+
+[functions.narrative-report]
+verify_jwt = false
+
+[functions.nr1-chatbot]
+verify_jwt = false

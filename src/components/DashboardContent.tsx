@@ -18,6 +18,10 @@ const DailyCheckin = lazy(() => import('@/components/DailyCheckin'));
 const CheckinHistory = lazy(() => import('@/components/CheckinHistory'));
 const WeeklyComparison = lazy(() => import('@/components/WeeklyComparison'));
 const WellnessReportPDF = lazy(() => import('@/components/WellnessReportPDF'));
+const CognitiveFatigueAnalyzer = lazy(() => import('@/components/CognitiveFatigueAnalyzer'));
+const SmartBreakAssistant = lazy(() => import('@/components/SmartBreakAssistant'));
+const NarrativeReportGenerator = lazy(() => import('@/components/NarrativeReportGenerator'));
+const NR1ComplianceChatbot = lazy(() => import('@/components/NR1ComplianceChatbot'));
 
 function LazyFallback() {
   return (
@@ -86,6 +90,10 @@ export default function DashboardContent({
         return <NeuroCoach stressLevel={stressLevel || undefined} />;
       case 'leadership':
         return <LeadershipCoaching stressLevel={stressLevel || undefined} />;
+      case 'cognitive-fatigue':
+        return <CognitiveFatigueAnalyzer stressLevel={stressLevel || undefined} />;
+      case 'smart-breaks':
+        return <SmartBreakAssistant stressLevel={stressLevel || undefined} hrvValue={hrvValue} />;
       case 'ai-insights':
         return isManager ? <AIInsightsDashboard /> : null;
       case 'alerts':
@@ -94,6 +102,10 @@ export default function DashboardContent({
         return isManager ? <ROIDashboard /> : null;
       case 'nr1':
         return isManager ? <NR1Report /> : null;
+      case 'narrative-reports':
+        return isManager ? <NarrativeReportGenerator /> : null;
+      case 'nr1-chatbot':
+        return isManager ? <NR1ComplianceChatbot /> : null;
       case 'integrations':
         return isManager ? <IntegrationsDashboard /> : null;
       case 'dashboard-rh':
