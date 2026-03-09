@@ -35,14 +35,14 @@ const LEVELS: GamificationLevel[] = [
   { level: 10, title: 'NeuroElite', minXP: 8000, maxXP: Infinity },
 ];
 
-function getLevelForXP(xp: number): GamificationLevel {
+export function getLevelForXP(xp: number): GamificationLevel {
   for (let i = LEVELS.length - 1; i >= 0; i--) {
     if (xp >= LEVELS[i].minXP) return LEVELS[i];
   }
   return LEVELS[0];
 }
 
-function computeXP(totalScans: number, streak: number, longestStreak: number, badges: AchievementBadge[]): number {
+export function computeXP(totalScans: number, streak: number, longestStreak: number, badges: AchievementBadge[]): number {
   // XP sources:
   // - Each scan: 10 XP
   // - Current streak bonus: streak * 5

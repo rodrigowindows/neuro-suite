@@ -21,7 +21,7 @@ export interface CompanyScoreData {
   refresh: () => Promise<void>;
 }
 
-function getLabel(score: number): string {
+export function getCompanyLabel(score: number): string {
   if (score >= 80) return 'Excelente';
   if (score >= 60) return 'Bom';
   if (score >= 40) return 'Moderado';
@@ -29,14 +29,14 @@ function getLabel(score: number): string {
   return 'Crítico';
 }
 
-function getColor(score: number): string {
+export function getCompanyColor(score: number): string {
   if (score >= 80) return 'hsl(var(--success))';
   if (score >= 60) return 'hsl(185, 65%, 38%)';
   if (score >= 40) return 'hsl(var(--warning))';
   return 'hsl(var(--destructive))';
 }
 
-function stressLevelToScore(level: string): number {
+export function stressLevelToScore(level: string): number {
   if (level === 'low') return 40;
   if (level === 'moderate') return 24;
   return 8;
@@ -146,8 +146,8 @@ export function useCompanyScore(): CompanyScoreData {
 
       setData({
         overallScore,
-        label: getLabel(overallScore),
-        color: getColor(overallScore),
+        label: getCompanyLabel(overallScore),
+        color: getCompanyColor(overallScore),
         totalEmployees,
         activeEmployees,
         adoptionRate,

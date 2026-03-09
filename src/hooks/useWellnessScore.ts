@@ -18,7 +18,7 @@ export interface WellnessData {
   refresh: () => Promise<void>;
 }
 
-function getLabel(score: number): string {
+export function getLabel(score: number): string {
   if (score >= 80) return 'Excelente';
   if (score >= 60) return 'Bom';
   if (score >= 40) return 'Moderado';
@@ -26,14 +26,14 @@ function getLabel(score: number): string {
   return 'Crítico';
 }
 
-function getColor(score: number): string {
+export function getColor(score: number): string {
   if (score >= 80) return 'hsl(var(--success))';
   if (score >= 60) return 'hsl(185, 65%, 38%)';
   if (score >= 40) return 'hsl(var(--warning))';
   return 'hsl(var(--destructive))';
 }
 
-function computeStressScore(scans: { stress_level: string }[]): number {
+export function computeStressScore(scans: { stress_level: string }[]): number {
   if (scans.length === 0) return 0;
   const recent = scans.slice(0, 10); // last 10 scans
   const points = recent.map(s => {
@@ -44,7 +44,7 @@ function computeStressScore(scans: { stress_level: string }[]): number {
   return Math.round(points.reduce((a, b) => a + b, 0) / points.length);
 }
 
-function computeConsistencyScore(streak: number, totalScans: number): number {
+export function computeConsistencyScore(streak: number, totalScans: number): number {
   // Streak contributes up to 20 points (max at 14 days)
   const streakPart = Math.min(streak / 14, 1) * 20;
   // Total scans contribute up to 10 points (max at 30 scans)
@@ -52,7 +52,7 @@ function computeConsistencyScore(streak: number, totalScans: number): number {
   return Math.round(streakPart + scansPart);
 }
 
-function computeHrvScore(scans: { hrv_value: number | null }[]): number {
+export function computeHrvScore(scans: { hrv_value: number | null }[]): number {
   const withHrv = scans.filter(s => s.hrv_value != null);
   if (withHrv.length === 0) return 15; // neutral default
   const avgHrv = withHrv.reduce((sum, s) => sum + (s.hrv_value ?? 0), 0) / withHrv.length;
