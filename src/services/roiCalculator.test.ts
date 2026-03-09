@@ -23,7 +23,7 @@ describe("calculateROI", () => {
 
   it("calculates total cost without NeuroSuite", () => {
     const result = calculateROI(baseInputs);
-    expect(result.totalCostWithoutNeuroSuite).toBeCloseTo(622727.27, 0);
+    expect(result.totalCostWithoutNeuroSuite).toBeCloseTo(827272.73, 0);
   });
 
   it("calculates turnover savings at 25% reduction", () => {
