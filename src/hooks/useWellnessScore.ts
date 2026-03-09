@@ -18,7 +18,7 @@ export interface WellnessData {
   refresh: () => Promise<void>;
 }
 
-function getLabel(score: number): string {
+export function getLabel(score: number): string {
   if (score >= 80) return 'Excelente';
   if (score >= 60) return 'Bom';
   if (score >= 40) return 'Moderado';
