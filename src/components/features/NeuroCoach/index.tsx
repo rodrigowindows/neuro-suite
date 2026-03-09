@@ -189,11 +189,22 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
         if (newConv) setConversationId(newConv.id);
       }
     } catch (error: any) {
+      if (error.name === 'AbortError') {
+        // Cancelled by user — keep partial content
+        return;
+      }
       console.error('Erro ao enviar mensagem:', error);
       toast({ title: 'Erro', description: error.message || 'Não foi possível enviar a mensagem', variant: 'destructive' });
     } finally {
+      abortControllerRef.current = null;
       setIsLoading(false);
     }
+  };
+
+  const cancelGeneration = () => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    setIsLoading(false);
   };
 
   const handleExport = () => {
