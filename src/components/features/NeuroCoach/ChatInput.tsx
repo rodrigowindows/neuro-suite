@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send } from 'lucide-react';
+import { Send, Square } from 'lucide-react';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
+  onCancel?: () => void;
   isLoading: boolean;
 }
 
-export default function ChatInput({ onSend, isLoading }: ChatInputProps) {
+export default function ChatInput({ onSend, onCancel, isLoading }: ChatInputProps) {
   const [input, setInput] = useState('');
 
   const handleSend = () => {
@@ -31,9 +32,15 @@ export default function ChatInput({ onSend, isLoading }: ChatInputProps) {
         }}
         className="min-h-[50px] sm:min-h-[60px] text-xs sm:text-sm"
       />
-      <Button onClick={handleSend} disabled={isLoading || !input.trim()} size="icon" className="h-10 w-10 sm:h-12 sm:w-12">
-        <Send className="h-3 w-3 sm:h-4 sm:w-4" />
-      </Button>
+      {isLoading && onCancel ? (
+        <Button onClick={onCancel} variant="destructive" size="icon" className="h-10 w-10 sm:h-12 sm:w-12" title="Cancelar geração">
+          <Square className="h-3 w-3 sm:h-4 sm:w-4" />
+        </Button>
+      ) : (
+        <Button onClick={handleSend} disabled={isLoading || !input.trim()} size="icon" className="h-10 w-10 sm:h-12 sm:w-12">
+          <Send className="h-3 w-3 sm:h-4 sm:w-4" />
+        </Button>
+      )}
     </div>
   );
 }
