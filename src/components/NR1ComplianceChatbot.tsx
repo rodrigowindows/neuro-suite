@@ -48,6 +48,8 @@ export default function NR1ComplianceChatbot() {
     setIsLoading(true);
 
     let assistantContent = '';
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
       const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/nr1-chatbot`;
