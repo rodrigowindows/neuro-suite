@@ -17,13 +17,13 @@ describe("calculateROI", () => {
 
   it("calculates annual absenteeism cost correctly", () => {
     const result = calculateROI(baseInputs);
-    // 100 employees * 10 days * (5000 / 22 days) ≈ 22,727.27
-    expect(result.annualAbsenteeismCost).toBeCloseTo(22727.27, 0);
+    // 100 employees * 10 days * (5000 / 22 days) ≈ 227,272.73
+    expect(result.annualAbsenteeismCost).toBeCloseTo(227272.73, 0);
   });
 
   it("calculates total cost without NeuroSuite", () => {
     const result = calculateROI(baseInputs);
-    expect(result.totalCostWithoutNeuroSuite).toBeCloseTo(622727.27, 0);
+    expect(result.totalCostWithoutNeuroSuite).toBeCloseTo(827272.73, 0);
   });
 
   it("calculates turnover savings at 25% reduction", () => {
@@ -34,13 +34,13 @@ describe("calculateROI", () => {
 
   it("calculates absenteeism savings at 20% reduction", () => {
     const result = calculateROI(baseInputs);
-    // 22,727.27 * 0.20 ≈ 4,545.45
-    expect(result.savingsAbsenteeism).toBeCloseTo(4545.45, 0);
+    // 227,272.73 * 0.20 ≈ 45,454.55
+    expect(result.savingsAbsenteeism).toBeCloseTo(45454.55, 0);
   });
 
   it("calculates total savings correctly", () => {
     const result = calculateROI(baseInputs);
-    expect(result.totalSavings).toBeCloseTo(154545.45, 0);
+    expect(result.totalSavings).toBeCloseTo(195454.55, 0);
   });
 
   it("calculates NeuroSuite annual cost", () => {
@@ -51,8 +51,8 @@ describe("calculateROI", () => {
 
   it("calculates net ROI correctly", () => {
     const result = calculateROI(baseInputs);
-    // 154,545.45 - 34,800 = 119,745.45
-    expect(result.netROI).toBeCloseTo(119745.45, 0);
+    // 195,454.55 - 34,800 = 160,654.55
+    expect(result.netROI).toBeCloseTo(160654.55, 0);
   });
 
   it("calculates ROI percentage correctly", () => {
