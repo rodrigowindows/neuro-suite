@@ -61,6 +61,40 @@ export default function DailyCheckin() {
     checkToday();
   }, [user]);
 
+  // Debounced sentiment analysis
+  const analyzeSentiment = useCallback(async (text: string) => {
+    if (text.trim().length < 10) {
+      setSentimentAnalysis(null);
+      return;
+    }
+
+    setAnalyzingSentiment(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sentiment-analysis', {
+        body: { note: text, mood, energyLevel: energy[0] },
+      });
+
+      if (error) throw error;
+      if (data && data.sentiment !== null) {
+        setSentimentAnalysis(data);
+      }
+    } catch (err) {
+      console.error('Sentiment analysis error:', err);
+    } finally {
+      setAnalyzingSentiment(false);
+    }
+  }, [mood, energy]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (note.trim().length >= 10) {
+        analyzeSentiment(note);
+      }
+    }, 800); // Debounce 800ms
+
+    return () => clearTimeout(timer);
+  }, [note, analyzeSentiment]);
+
   const handleMoodSelect = (value: string) => {
     setMood(value);
     setStep('energy');
