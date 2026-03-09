@@ -18,10 +18,10 @@ export default function ChatMessages({ messages, isLoading }: ChatMessagesProps)
       {messages.map((msg, idx) => (
         <div
           key={idx}
-          className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+          className={`flex animate-fade-in ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
         >
           <div
-            className={`max-w-[85%] sm:max-w-[80%] p-2.5 sm:p-3 rounded-lg ${
+            className={`max-w-[85%] sm:max-w-[80%] p-2.5 sm:p-3 rounded-lg transition-all duration-300 ${
               msg.role === 'user'
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-card border shadow-soft'

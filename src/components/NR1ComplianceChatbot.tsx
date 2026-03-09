@@ -200,13 +200,13 @@ export default function NR1ComplianceChatbot() {
           <ScrollArea className="flex-1" ref={scrollRef}>
             <div className="space-y-4 pr-4">
               {messages.map((msg, i) => (
-                <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+                <div key={i} className={`flex gap-3 animate-fade-in ${msg.role === 'user' ? 'justify-end' : ''}`}>
                   {msg.role === 'assistant' && (
                     <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <Bot className="h-4 w-4 text-primary" />
                     </div>
                   )}
-                  <div className={`max-w-[85%] rounded-lg p-3 text-sm whitespace-pre-wrap leading-relaxed ${
+                  <div className={`max-w-[85%] rounded-lg p-3 text-sm whitespace-pre-wrap leading-relaxed transition-all duration-300 ${
                     msg.role === 'user'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted/50 border'
