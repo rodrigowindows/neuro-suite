@@ -46,7 +46,7 @@ describe("computeXP", () => {
   });
   it("sums all XP sources", () => {
     const badges = [
-      { id: "b1", name: "Test", icon: "🏆", unlockedAt: new Date().toISOString() },
+      { id: "b1", name: "Test", description: "d", icon: "🏆", earnedAt: new Date().toISOString() },
     ] as AchievementBadge[];
     // 5*10 + 3*5 + 7*3 + 1*25 = 50+15+21+25 = 111
     expect(computeXP(5, 3, 7, badges)).toBe(111);
