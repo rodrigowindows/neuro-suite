@@ -26,7 +26,7 @@ export function getLabel(score: number): string {
   return 'Crítico';
 }
 
-function getColor(score: number): string {
+export function getColor(score: number): string {
   if (score >= 80) return 'hsl(var(--success))';
   if (score >= 60) return 'hsl(185, 65%, 38%)';
   if (score >= 40) return 'hsl(var(--warning))';
