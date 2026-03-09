@@ -150,11 +150,19 @@ export default function NR1ComplianceChatbot() {
         }
       }
     } catch (err: any) {
+      if (err.name === 'AbortError') return;
       console.error('Erro chatbot NR-1:', err);
       toast({ title: 'Erro', description: err.message || 'Não foi possível obter resposta.', variant: 'destructive' });
     } finally {
+      abortControllerRef.current = null;
       setIsLoading(false);
     }
+  };
+
+  const cancelGeneration = () => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    setIsLoading(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
