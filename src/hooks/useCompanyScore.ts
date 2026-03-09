@@ -146,8 +146,8 @@ export function useCompanyScore(): CompanyScoreData {
 
       setData({
         overallScore,
-        label: getLabel(overallScore),
-        color: getColor(overallScore),
+        label: getCompanyLabel(overallScore),
+        color: getCompanyColor(overallScore),
         totalEmployees,
         activeEmployees,
         adoptionRate,
