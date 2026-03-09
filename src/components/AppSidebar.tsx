@@ -1,4 +1,4 @@
-import { Activity, MessageCircle, Trophy, Brain, Bell, Calculator, Shield, Plug, BarChart, LogOut, Settings, GraduationCap, UserCircle, Sun } from 'lucide-react';
+import { Activity, MessageCircle, Trophy, Brain, Bell, Calculator, Shield, Plug, BarChart, LogOut, Settings, GraduationCap, UserCircle, Sun, Eye, Coffee, FileText, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import neuroSuiteLogo from '@/assets/neurosuite-logo.jpg';
