@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
-import { CoachMessage, getInitialMessage, buildContext, exportConversation } from '@/services/coachService';
+import { getInitialMessage, buildContext, exportConversation } from '@/services/coachService';
+import { useStreamingChat } from '@/hooks/useStreamingChat';
 import ToneSelector from './ToneSelector';
 import ChatMessages from './ChatMessages';
 import ChatInput from './ChatInput';
@@ -18,15 +19,28 @@ interface NeuroCoachProps {
 
 export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
   const effectiveStressLevel = stressLevel || 'unknown';
-  const [messages, setMessages] = useState<CoachMessage[]>([]);
   const [hrvValue, setHrvValue] = useState('40');
-  const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [communicationTone, setCommunicationTone] = useState('');
-  const abortControllerRef = useRef<AbortController | null>(null);
   const { user } = useAuth();
   const { profile } = useUserProfile();
   const { toast } = useToast();
+
+  const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/neuro-coach`;
+
+  const buildBody = useCallback((msgs: any[], userMsg: any) => ({
+    messages: [...msgs, userMsg],
+    stressLevel: effectiveStressLevel,
+    context: buildContext(effectiveStressLevel, hrvValue),
+    userName: profile?.displayName || '',
+    communicationTone,
+  }), [effectiveStressLevel, hrvValue, profile?.displayName, communicationTone]);
+
+  const { messages, setMessages, isLoading, sendMessage: streamSend, cancelGeneration, resetMessages } = useStreamingChat({
+    endpoint: CHAT_URL,
+    buildBody,
+    onError: (error) => toast({ title: 'Erro', description: error.message || 'Não foi possível enviar a mensagem', variant: 'destructive' }),
+  });
 
   // Load last conversation or create initial message
   useEffect(() => {
@@ -43,7 +57,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
             .maybeSingle();
 
           if (data && data.messages && Array.isArray(data.messages)) {
-            setMessages(data.messages as unknown as CoachMessage[]);
+            setMessages(data.messages as any);
             setConversationId(data.id);
             return;
           }
@@ -52,159 +66,30 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
         console.error('Erro ao carregar conversa:', error);
       }
 
-      setMessages([{ role: 'assistant', content: getInitialMessage(effectiveStressLevel) }]);
+      resetMessages([{ role: 'assistant', content: getInitialMessage(effectiveStressLevel) }]);
     };
 
-    if (effectiveStressLevel) {
-      loadOrCreateConversation();
-    }
+    if (effectiveStressLevel) loadOrCreateConversation();
   }, [effectiveStressLevel, user?.id]);
 
-  const sendMessage = async (text: string) => {
-    const userMessage: CoachMessage = { role: 'user', content: text };
-    setMessages((prev) => [...prev, userMessage]);
-    setIsLoading(true);
+  const handleSend = async (text: string) => {
+    const allMessages = await streamSend(text);
+    if (!allMessages) return;
 
-    let assistantContent = '';
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-
-    try {
-      const context = buildContext(effectiveStressLevel, hrvValue);
-      const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/neuro-coach`;
-
-      const response = await fetch(CHAT_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({
-          messages: [...messages, userMessage],
-          stressLevel: effectiveStressLevel,
-          context,
-          userName: profile?.displayName || '',
-          communicationTone,
-        }),
-        signal: controller.signal,
-      });
-
-      if (!response.ok || !response.body) {
-        if (response.status === 429) {
-          throw new Error('Muitas requisições. Aguarde um momento.');
-        }
-        if (response.status === 402) {
-          throw new Error('Serviço temporariamente indisponível.');
-        }
-        throw new Error('Erro ao conectar ao NeuroCoach');
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let textBuffer = '';
-      let streamDone = false;
-
-      // Adiciona mensagem vazia do assistente
-      setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
-
-      while (!streamDone) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        textBuffer += decoder.decode(value, { stream: true });
-
-        let newlineIndex: number;
-        while ((newlineIndex = textBuffer.indexOf('\n')) !== -1) {
-          let line = textBuffer.slice(0, newlineIndex);
-          textBuffer = textBuffer.slice(newlineIndex + 1);
-
-          if (line.endsWith('\r')) line = line.slice(0, -1);
-          if (line.startsWith(':') || line.trim() === '') continue;
-          if (!line.startsWith('data: ')) continue;
-
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === '[DONE]') {
-            streamDone = true;
-            break;
-          }
-
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-            if (content) {
-              assistantContent += content;
-              setMessages((prev) => {
-                const newMessages = [...prev];
-                const lastMsg = newMessages[newMessages.length - 1];
-                if (lastMsg?.role === 'assistant') {
-                  lastMsg.content = assistantContent;
-                }
-                return newMessages;
-              });
-            }
-          } catch {
-            textBuffer = line + '\n' + textBuffer;
-            break;
-          }
-        }
-      }
-
-      // Flush final
-      if (textBuffer.trim()) {
-        for (let raw of textBuffer.split('\n')) {
-          if (!raw || raw.startsWith(':') || raw.trim() === '') continue;
-          if (!raw.startsWith('data: ')) continue;
-          const jsonStr = raw.slice(6).trim();
-          if (jsonStr === '[DONE]') continue;
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-            if (content) {
-              assistantContent += content;
-              setMessages((prev) => {
-                const newMessages = [...prev];
-                const lastMsg = newMessages[newMessages.length - 1];
-                if (lastMsg?.role === 'assistant') {
-                  lastMsg.content = assistantContent;
-                }
-                return newMessages;
-              });
-            }
-          } catch {}
-        }
-      }
-
-      // Persist conversation
-      const allMessages = [...messages, userMessage, { role: 'assistant', content: assistantContent } as CoachMessage];
-      if (conversationId) {
-        await supabase
-          .from('coach_conversations')
-          .update({ messages: allMessages as any, updated_at: new Date().toISOString() })
-          .eq('id', conversationId);
-      } else if (user) {
-        const { data: newConv } = await supabase
-          .from('coach_conversations')
-          .insert([{ user_id: user.id, stress_level: effectiveStressLevel, messages: allMessages as any }])
-          .select()
-          .single();
-        if (newConv) setConversationId(newConv.id);
-      }
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
-        // Cancelled by user — keep partial content
-        return;
-      }
-      console.error('Erro ao enviar mensagem:', error);
-      toast({ title: 'Erro', description: error.message || 'Não foi possível enviar a mensagem', variant: 'destructive' });
-    } finally {
-      abortControllerRef.current = null;
-      setIsLoading(false);
+    // Persist conversation
+    if (conversationId) {
+      await supabase
+        .from('coach_conversations')
+        .update({ messages: allMessages as any, updated_at: new Date().toISOString() })
+        .eq('id', conversationId);
+    } else if (user) {
+      const { data: newConv } = await supabase
+        .from('coach_conversations')
+        .insert([{ user_id: user.id, stress_level: effectiveStressLevel, messages: allMessages as any }])
+        .select()
+        .single();
+      if (newConv) setConversationId(newConv.id);
     }
-  };
-
-  const cancelGeneration = () => {
-    abortControllerRef.current?.abort();
-    abortControllerRef.current = null;
-    setIsLoading(false);
   };
 
   const handleExport = () => {
@@ -219,7 +104,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
 
   const resetTone = () => {
     setCommunicationTone('');
-    setMessages([]);
+    resetMessages([]);
     setConversationId(null);
   };
 
@@ -265,7 +150,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
               </div>
 
               <ChatMessages messages={messages} isLoading={isLoading} />
-              <ChatInput onSend={sendMessage} onCancel={cancelGeneration} isLoading={isLoading} />
+              <ChatInput onSend={handleSend} onCancel={cancelGeneration} isLoading={isLoading} />
 
               {messages.length > 2 && (
                 <Button onClick={handleExport} variant="outline" className="w-full">

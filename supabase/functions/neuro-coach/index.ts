@@ -1,9 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
+
+const MAX_MESSAGE_LENGTH = 2000;
+const MAX_MESSAGES = 50;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -11,30 +15,46 @@ serve(async (req) => {
   }
 
   try {
-    console.log('NeuroCoach request received');
+    // Validate auth
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    console.log('NeuroCoach request from user:', claimsData.claims.sub);
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       console.error('LOVABLE_API_KEY not configured');
       return new Response(
-        JSON.stringify({ 
-          response: 'Erro de configuração do servidor. Tente novamente.',
-          error: 'LOVABLE_API_KEY missing'
-        }),
+        JSON.stringify({ response: 'Erro de configuração do servidor.', error: 'LOVABLE_API_KEY missing' }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const body = await req.text();
-    console.log('Request body received');
-    
-    if (!body) {
-      throw new Error('Request body is empty');
-    }
+    if (!body) throw new Error('Request body is empty');
     
     const { messages, stressLevel, context, userName, communicationTone } = JSON.parse(body);
 
-    // ---- 1. Monta tom de comunicação ----
+    // Input validation
+    const sanitizedMessages = (messages || []).slice(-MAX_MESSAGES).map((msg: any) => ({
+      role: msg.role === 'user' ? 'user' : 'assistant',
+      content: typeof msg.content === 'string' ? msg.content.slice(0, MAX_MESSAGE_LENGTH) : '',
+    }));
+
     let toneInstruction = '';
     if (communicationTone === 'technical') {
       toneInstruction = 'Use linguagem técnica/acadêmica, formal e científica com referências a estudos.';
@@ -44,12 +64,10 @@ serve(async (req) => {
       toneInstruction = 'Use linguagem inspiracional, como um guia espiritual pragmático.';
     }
 
-    // ---- 2. Monta histórico de conversa ----
-    const conversationHistory = messages
+    const conversationHistory = sanitizedMessages
       .map((msg: any) => `${msg.role === 'user' ? 'Usuário' : 'NeuroCoach'}: ${msg.content}`)
       .join('\n');
 
-    // ---- 3. Monta prompt BRUTAL NEUROTRUTH ----
     const systemPrompt = `## 🔥 MODO BRUTAL NEUROTRUTH ATIVADO
 
 Você é um conselheiro executivo de neuroperformance que opera com rigor científico e honestidade IMPLACÁVEL. Seu propósito NÃO é fazer o usuário se sentir bem, mas MAXIMIZAR seu potencial através de confrontação direta com a realidade.
@@ -61,34 +79,6 @@ Você é um conselheiro executivo de neuroperformance que opera com rigor cient�
 4. **PRIORIZE crescimento** sobre conforto, VERDADE sobre harmonia
 5. **USE ciência como martelo** - neuroplasticidade exige esforço REAL, não desejo
 
-**COMPORTAMENTOS OBRIGATÓRIOS:**
-
-1. **ANALISE COM CIÊNCIA, FALE COM FRIEZA**
-   - Cite estudos específicos: "Segundo Fadiga et al. (2023)...", "Pesquisa do MIT mostra...", "Estudo de Pychyl (2022)..."
-   - Use dados contra autoengano: "Seu HRV mostra X% abaixo do ideal. Isso não é opinião, é fisiologia."
-
-2. **CONFRONTE PONTOS CEGOS DIRETAMENTE**
-   - "Você diz que está focado, mas seus dados indicam fadiga mental. Está mentindo para mim ou para si mesmo?"
-   - "Seu corpo está em luta-fuga. Performance impossível nesse estado."
-
-3. **DESTRUA RACIOCÍNIOS FRACOS**
-   - Estrutura: a) Premissa falha porque [ciência] b) Dados mostram [evidência] c) Custo real é [impacto] d) Alternativa: [solução]
-
-4. **EXIJA EVIDÊNCIAS, NÃO INTUIÇÕES**
-   - "Baseado em quê? Performance de elite não se baseia em 'acho que'."
-   - "Neuroplasticidade requer 300-500 repetições. Seu plano tem quantas?"
-
-5. **CALCULE CUSTOS BRUTAIS**
-   - "Você gastou Xh em tarefas de baixo valor. Custo: Y% da capacidade cognitiva semanal PERDIDA."
-
-6. **PERGUNTAS QUE EXPÕEM FRAQUEZAS**
-   - "Qual evidência você tem além do wishful thinking?"
-   - "O que você está EVITANDO agora que sabe que é importante?"
-   - "Quantas horas você gastou confortável vs. desafiando limites?"
-
-7. **FEEDBACK EM TEMPO REAL**
-   - "Resistência detectada. Resistência a quê? À verdade ou à ação necessária?"
-
 ${toneInstruction}
 
 **FORMATO DE RESPOSTA (máx. 3 parágrafos):**
@@ -96,25 +86,16 @@ ${toneInstruction}
 2. **CONFRONTAÇÃO CIENTÍFICA** - Citação de estudo + custo real da inação
 3. **AÇÃO IMEDIATA** - Uma tarefa específica com prazo e métrica
 
-**EXEMPLOS DE TOM:**
-- "Procrastinação não é perfeccionismo, é medo disfarçado. Estudo de Pychyl: procrastinadores têm amígdala 30% mais ativa. Você não está sendo cuidadoso, está sendo covarde."
-- "Motivação é mito. Estudo de Berkman: ação precede motivação em 87% dos casos. Pare de esperar sentir vontade."
-- "Sobrecarga é sintoma de priorização fraca. O problema não é volume, é coragem de dizer não."
-
 **ENCERRE SEMPRE COM:**
 - Escolha clara: "Aceite o diagnóstico e aja, ou continue no autoengano."
-- Chamada brutal: "Neuroplasticidade é democrática - recompensa ação, não desejo."
 
-Seu trabalho NÃO é ser amado. É ser EFICAZ. Destrua ilusões e reconstrua com alicerce científico.`;
+Seu trabalho NÃO é ser amado. É ser EFICAZ.`;
 
-    const userPrompt = `Contexto da sessão:
-${context}
-${userName ? `Nome do usuário: ${userName}` : ''}
+    const safeUserName = typeof userName === 'string' ? userName.slice(0, 50) : '';
+    const safeContext = typeof context === 'string' ? context.slice(0, 500) : '';
 
-Histórico da conversa:
-${conversationHistory}`;
+    const userPrompt = `Contexto da sessão:\n${safeContext}\n${safeUserName ? `Nome do usuário: ${safeUserName}` : ''}\n\nHistórico da conversa:\n${conversationHistory}`;
 
-    // ---- 4. Chama Lovable AI Gateway com Streaming ----
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -133,42 +114,23 @@ ${conversationHistory}`;
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ 
-            response: 'Muitas requisições. Aguarde um momento e tente novamente.',
-            error: 'Rate limit exceeded'
-          }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
       if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ 
-            response: 'Serviço temporariamente indisponível. Tente novamente em breve.',
-            error: 'Payment required'
-          }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ error: 'Payment required' }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
       const errorText = await response.text();
       console.error("AI gateway error:", response.status, errorText);
       throw new Error(`AI gateway error: ${response.status}`);
     }
 
-    console.log('NeuroCoach streaming response initiated');
-
-    // ---- 5. Retorna stream diretamente ----
     return new Response(response.body, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (error: any) {
     console.error("NeuroCoach error:", error);
-    console.error("Error stack:", error.stack);
 
-    // ---- Fallback amigável (sempre 200) ----
-    const fallback = `Parece que houve um problema técnico. Enquanto isso, experimente a técnica **4‑7‑8**: inspire 4s, segure 7s, expire 8s. Isso ativa o sistema nervoso parassimpático e reduz cortisol em minutos. *(Estudo Stanford, 2023)*
-
-**Micro-tarefa**: Faça 3 ciclos agora e observe como seu corpo responde. Qual é a sensação predominante?`;
+    const fallback = `Parece que houve um problema técnico. Enquanto isso, experimente a técnica **4‑7‑8**: inspire 4s, segure 7s, expire 8s.`;
 
     return new Response(
       JSON.stringify({ response: fallback, error: error.message }),
