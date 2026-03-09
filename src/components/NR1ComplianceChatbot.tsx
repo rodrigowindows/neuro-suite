@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Shield, Send, Loader2, Bot, User, Trash2 } from 'lucide-react';
+import { Shield, Send, Bot, User, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -226,7 +226,14 @@ export default function NR1ComplianceChatbot() {
                     <Bot className="h-4 w-4 text-primary" />
                   </div>
                   <div className="bg-muted/50 border rounded-lg p-3">
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-muted-foreground">Consultando NR-1</p>
+                      <div className="flex gap-1">
+                        <span className="w-2 h-2 bg-primary rounded-full animate-[pulse_1.4s_ease-in-out_0s_infinite]" />
+                        <span className="w-2 h-2 bg-primary rounded-full animate-[pulse_1.4s_ease-in-out_0.2s_infinite]" />
+                        <span className="w-2 h-2 bg-primary rounded-full animate-[pulse_1.4s_ease-in-out_0.4s_infinite]" />
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
