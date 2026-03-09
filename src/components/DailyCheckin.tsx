@@ -295,14 +295,64 @@ export default function DailyCheckin() {
               <p className="text-sm font-medium text-foreground/80">
                 Quer compartilhar algo? <span className="text-muted-foreground font-normal">(opcional)</span>
               </p>
-              <Textarea
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="Ex: Reunião pesada de manhã, mas café ajudou..."
-                className="resize-none text-sm"
-                rows={2}
-                maxLength={200}
-              />
+              <div className="relative">
+                <Textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Ex: Reunião pesada de manhã, mas café ajudou..."
+                  className="resize-none text-sm"
+                  rows={3}
+                  maxLength={200}
+                />
+                {analyzingSentiment && (
+                  <div className="absolute top-2 right-2">
+                    <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+                  </div>
+                )}
+              </div>
+
+              {/* Real-time Sentiment Feedback */}
+              <AnimatePresence mode="wait">
+                {sentimentAnalysis && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className={`p-3 rounded-lg border text-sm ${
+                      sentimentAnalysis.needsAttention
+                        ? 'bg-red-500/10 border-red-500/30'
+                        : sentimentAnalysis.wellbeingLevel === 'high'
+                        ? 'bg-emerald-500/10 border-emerald-500/30'
+                        : 'bg-amber-500/10 border-amber-500/30'
+                    }`}
+                  >
+                    <div className="flex items-start gap-2">
+                      {sentimentAnalysis.needsAttention ? (
+                        <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                      ) : sentimentAnalysis.wellbeingLevel === 'high' ? (
+                        <TrendingUp className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                      ) : sentimentAnalysis.wellbeingLevel === 'low' ? (
+                        <TrendingDown className="h-4 w-4 text-orange-500 mt-0.5 flex-shrink-0" />
+                      ) : (
+                        <Minus className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                      )}
+                      <div className="flex-1 space-y-2">
+                        <p className="font-medium">{sentimentAnalysis.message}</p>
+                        {sentimentAnalysis.concerns && sentimentAnalysis.concerns.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {sentimentAnalysis.concerns.map((concern, idx) => (
+                              <Badge key={idx} variant="outline" className="text-[10px] px-1.5 py-0">
+                                {concern}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <div className="flex gap-2">
                 <Button
                   variant="outline"
