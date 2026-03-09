@@ -17,8 +17,8 @@ describe("calculateROI", () => {
 
   it("calculates annual absenteeism cost correctly", () => {
     const result = calculateROI(baseInputs);
-    // 100 employees * 10 days * (5000 / 22 days) ≈ 22,727.27
-    expect(result.annualAbsenteeismCost).toBeCloseTo(22727.27, 0);
+    // 100 employees * 10 days * (5000 / 22 days) ≈ 227,272.73
+    expect(result.annualAbsenteeismCost).toBeCloseTo(227272.73, 0);
   });
 
   it("calculates total cost without NeuroSuite", () => {
