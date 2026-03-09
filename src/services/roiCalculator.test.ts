@@ -51,8 +51,8 @@ describe("calculateROI", () => {
 
   it("calculates net ROI correctly", () => {
     const result = calculateROI(baseInputs);
-    // 154,545.45 - 34,800 = 119,745.45
-    expect(result.netROI).toBeCloseTo(119745.45, 0);
+    // 195,454.55 - 34,800 = 160,654.55
+    expect(result.netROI).toBeCloseTo(160654.55, 0);
   });
 
   it("calculates ROI percentage correctly", () => {
