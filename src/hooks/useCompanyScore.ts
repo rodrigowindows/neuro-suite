@@ -21,7 +21,7 @@ export interface CompanyScoreData {
   refresh: () => Promise<void>;
 }
 
-function getLabel(score: number): string {
+export function getCompanyLabel(score: number): string {
   if (score >= 80) return 'Excelente';
   if (score >= 60) return 'Bom';
   if (score >= 40) return 'Moderado';
