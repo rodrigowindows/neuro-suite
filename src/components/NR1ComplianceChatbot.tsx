@@ -261,9 +261,15 @@ export default function NR1ComplianceChatbot() {
               onKeyDown={handleKeyDown}
               disabled={isLoading}
             />
-            <Button onClick={() => sendMessage(input)} disabled={isLoading || !input.trim()} size="icon">
-              <Send className="h-4 w-4" />
-            </Button>
+            {isLoading ? (
+              <Button onClick={cancelGeneration} variant="destructive" size="icon" title="Cancelar geração">
+                <Square className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button onClick={() => sendMessage(input)} disabled={!input.trim()} size="icon">
+                <Send className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
