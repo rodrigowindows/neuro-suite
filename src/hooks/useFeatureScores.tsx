@@ -26,6 +26,69 @@ const defaultScores: FeatureScores = {
   'dashboard-rh': null,
 };
 
+export function computeNeuroscoreLabel(stressLevel: string): { label: string; color: string } {
+  return {
+    label: stressLevel === 'low' ? '😊' : stressLevel === 'moderate' ? '😐' : '😟',
+    color: stressLevel === 'low' ? 'bg-green-500' : stressLevel === 'moderate' ? 'bg-yellow-500' : 'bg-red-500',
+  };
+}
+
+export function computeGamificationLabel(streak: number, totalScans: number): { label: string; color: string } {
+  return {
+    label: streak > 0 ? `🔥${streak}` : `${totalScans}`,
+    color: streak >= 7 ? 'bg-orange-500' : streak >= 3 ? 'bg-yellow-500' : 'bg-muted',
+  };
+}
+
+export function computeInsightsFromScans(scans: { stress_level: string; hrv_value: number | null }[]): {
+  aiInsights: { label: string; color: string };
+  alerts: { label: string; color: string };
+  roi: { label: string; color: string };
+  nr1: { label: string; color: string };
+  dashboardRh: { label: string; color: string };
+} {
+  const total = scans.length;
+  const high = scans.filter(s => s.stress_level === 'high').length;
+  const low = scans.filter(s => s.stress_level === 'low').length;
+  const highPercent = Math.round((high / total) * 100);
+  const lowPercent = Math.round((low / total) * 100);
+
+  const hrvValues = scans.filter(s => s.hrv_value).map(s => Number(s.hrv_value));
+  const avgHRV = hrvValues.length > 0 ? Math.round(hrvValues.reduce((a, b) => a + b, 0) / hrvValues.length) : 0;
+
+  const aiInsights = {
+    label: highPercent > 30 ? '⚠️' : highPercent > 15 ? '⚡' : '✅',
+    color: highPercent > 30 ? 'bg-red-500' : highPercent > 15 ? 'bg-yellow-500' : 'bg-green-500',
+  };
+
+  let alertCount = 0;
+  if (highPercent > 30) alertCount++;
+  if (avgHRV > 0 && avgHRV < 30) alertCount++;
+  const alerts = alertCount > 0 ? {
+    label: `${alertCount}`,
+    color: 'bg-red-500',
+  } : {
+    label: '✓',
+    color: 'bg-green-500',
+  };
+
+  const wellnessScore = Math.round(lowPercent * 0.6 + (100 - highPercent) * 0.4);
+  const roi = {
+    label: `${wellnessScore}`,
+    color: wellnessScore >= 70 ? 'bg-green-500' : wellnessScore >= 40 ? 'bg-yellow-500' : 'bg-red-500',
+  };
+
+  const riskLevel = highPercent > 30 ? 'high' : highPercent > 15 ? 'moderate' : 'low';
+  const nr1 = {
+    label: riskLevel === 'low' ? '✅' : riskLevel === 'moderate' ? '⚡' : '⚠️',
+    color: riskLevel === 'low' ? 'bg-green-500' : riskLevel === 'moderate' ? 'bg-yellow-500' : 'bg-red-500',
+  };
+
+  const dashboardRh = { label: `${total}`, color: 'bg-primary' };
+
+  return { aiInsights, alerts, roi, nr1, dashboardRh };
+}
+
 export function useFeatureScores() {
   const { user } = useAuth();
   const [scores, setScores] = useState<FeatureScores>(defaultScores);
@@ -66,72 +129,28 @@ export function useFeatureScores() {
       const newScores: FeatureScores = { ...defaultScores };
 
       if (scansRes.data) {
-        const level = scansRes.data.stress_level;
-        newScores.neuroscore = {
-          label: level === 'low' ? '😊' : level === 'moderate' ? '😐' : '😟',
-          color: level === 'low' ? 'bg-green-500' : level === 'moderate' ? 'bg-yellow-500' : 'bg-red-500',
-        };
+        newScores.neuroscore = computeNeuroscoreLabel(scansRes.data.stress_level);
       }
 
       if (progressRes.data) {
-        const streak = progressRes.data.current_streak;
-        newScores.gamification = {
-          label: streak > 0 ? `🔥${streak}` : `${progressRes.data.total_scans}`,
-          color: streak >= 7 ? 'bg-orange-500' : streak >= 3 ? 'bg-yellow-500' : 'bg-muted',
-        };
+        newScores.gamification = computeGamificationLabel(
+          progressRes.data.current_streak,
+          progressRes.data.total_scans
+        );
       }
 
       if (coachRes.data) {
         const count = coachRes.data.length;
-        newScores.neurocoach = count > 0 ? {
-          label: `${count}`,
-          color: 'bg-primary',
-        } : null;
+        newScores.neurocoach = count > 0 ? { label: `${count}`, color: 'bg-primary' } : null;
       }
 
       if (recentScansRes.data && recentScansRes.data.length > 0) {
-        const scans = recentScansRes.data;
-        const total = scans.length;
-        const high = scans.filter(s => s.stress_level === 'high').length;
-        const low = scans.filter(s => s.stress_level === 'low').length;
-        const highPercent = Math.round((high / total) * 100);
-        const lowPercent = Math.round((low / total) * 100);
-
-        const hrvValues = scans.filter(s => s.hrv_value).map(s => Number(s.hrv_value));
-        const avgHRV = hrvValues.length > 0 ? Math.round(hrvValues.reduce((a, b) => a + b, 0) / hrvValues.length) : 0;
-
-        newScores['ai-insights'] = {
-          label: highPercent > 30 ? '⚠️' : highPercent > 15 ? '⚡' : '✅',
-          color: highPercent > 30 ? 'bg-red-500' : highPercent > 15 ? 'bg-yellow-500' : 'bg-green-500',
-        };
-
-        let alertCount = 0;
-        if (highPercent > 30) alertCount++;
-        if (avgHRV > 0 && avgHRV < 30) alertCount++;
-        newScores.alerts = alertCount > 0 ? {
-          label: `${alertCount}`,
-          color: 'bg-red-500',
-        } : {
-          label: '✓',
-          color: 'bg-green-500',
-        };
-
-        const wellnessScore = Math.round(lowPercent * 0.6 + (100 - highPercent) * 0.4);
-        newScores.roi = {
-          label: `${wellnessScore}`,
-          color: wellnessScore >= 70 ? 'bg-green-500' : wellnessScore >= 40 ? 'bg-yellow-500' : 'bg-red-500',
-        };
-
-        const riskLevel = highPercent > 30 ? 'high' : highPercent > 15 ? 'moderate' : 'low';
-        newScores.nr1 = {
-          label: riskLevel === 'low' ? '✅' : riskLevel === 'moderate' ? '⚡' : '⚠️',
-          color: riskLevel === 'low' ? 'bg-green-500' : riskLevel === 'moderate' ? 'bg-yellow-500' : 'bg-red-500',
-        };
-
-        newScores['dashboard-rh'] = {
-          label: `${total}`,
-          color: 'bg-primary',
-        };
+        const computed = computeInsightsFromScans(recentScansRes.data);
+        newScores['ai-insights'] = computed.aiInsights;
+        newScores.alerts = computed.alerts;
+        newScores.roi = computed.roi;
+        newScores.nr1 = computed.nr1;
+        newScores['dashboard-rh'] = computed.dashboardRh;
       }
 
       setScores(newScores);
