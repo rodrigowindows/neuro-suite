@@ -114,7 +114,7 @@ ${userName ? `Nome do usuário: ${userName}` : ''}
 Histórico da conversa:
 ${conversationHistory}`;
 
-    // ---- 4. Chama Lovable AI Gateway ----
+    // ---- 4. Chama Lovable AI Gateway com Streaming ----
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -127,6 +127,7 @@ ${conversationHistory}`;
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
+        stream: true,
       }),
     });
 
@@ -154,15 +155,11 @@ ${conversationHistory}`;
       throw new Error(`AI gateway error: ${response.status}`);
     }
 
-    const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content ?? "Tente novamente em 30s.";
+    console.log('NeuroCoach streaming response initiated');
 
-    console.log('NeuroCoach response generated successfully');
-
-    // ---- 5. Resposta 200 OK ----
-    return new Response(JSON.stringify({ response: reply }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // ---- 5. Retorna stream diretamente ----
+    return new Response(response.body, {
+      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (error: any) {
     console.error("NeuroCoach error:", error);
