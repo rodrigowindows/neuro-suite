@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
+import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Zap, CheckCircle2, Sparkles, Sun, Clock } from 'lucide-react';
+import { Heart, Zap, CheckCircle2, Sparkles, Sun, Clock, AlertTriangle, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { toast } from 'sonner';
 
 const MOODS = [
