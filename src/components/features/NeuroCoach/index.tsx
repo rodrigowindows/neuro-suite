@@ -265,7 +265,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
               </div>
 
               <ChatMessages messages={messages} isLoading={isLoading} />
-              <ChatInput onSend={sendMessage} isLoading={isLoading} />
+              <ChatInput onSend={sendMessage} onCancel={cancelGeneration} isLoading={isLoading} />
 
               {messages.length > 2 && (
                 <Button onClick={handleExport} variant="outline" className="w-full">
