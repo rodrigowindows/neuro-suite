@@ -20,6 +20,14 @@ const MOODS = [
 
 type Step = 'mood' | 'energy' | 'note' | 'done';
 
+type SentimentAnalysis = {
+  sentiment: number;
+  wellbeingLevel: 'high' | 'medium' | 'low' | 'critical';
+  concerns: string[];
+  message: string;
+  needsAttention: boolean;
+};
+
 export default function DailyCheckin() {
   const { user } = useAuth();
   const [step, setStep] = useState<Step>('mood');
@@ -30,6 +38,8 @@ export default function DailyCheckin() {
   const [loading, setLoading] = useState(false);
   const [todayCheckin, setTodayCheckin] = useState<any>(null);
   const [checkingToday, setCheckingToday] = useState(true);
+  const [sentimentAnalysis, setSentimentAnalysis] = useState<SentimentAnalysis | null>(null);
+  const [analyzingSentiment, setAnalyzingSentiment] = useState(false);
 
   useEffect(() => {
     if (!user) return;
