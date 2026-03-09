@@ -18,6 +18,10 @@ const DailyCheckin = lazy(() => import('@/components/DailyCheckin'));
 const CheckinHistory = lazy(() => import('@/components/CheckinHistory'));
 const WeeklyComparison = lazy(() => import('@/components/WeeklyComparison'));
 const WellnessReportPDF = lazy(() => import('@/components/WellnessReportPDF'));
+const CognitiveFatigueAnalyzer = lazy(() => import('@/components/CognitiveFatigueAnalyzer'));
+const SmartBreakAssistant = lazy(() => import('@/components/SmartBreakAssistant'));
+const NarrativeReportGenerator = lazy(() => import('@/components/NarrativeReportGenerator'));
+const NR1ComplianceChatbot = lazy(() => import('@/components/NR1ComplianceChatbot'));
 
 function LazyFallback() {
   return (
