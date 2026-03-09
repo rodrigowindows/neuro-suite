@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
+import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Zap, CheckCircle2, Sparkles, Sun, Clock } from 'lucide-react';
+import { Heart, Zap, CheckCircle2, Sparkles, Sun, Clock, AlertTriangle, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { toast } from 'sonner';
 
 const MOODS = [
@@ -19,6 +20,14 @@ const MOODS = [
 
 type Step = 'mood' | 'energy' | 'note' | 'done';
 
+type SentimentAnalysis = {
+  sentiment: number;
+  wellbeingLevel: 'high' | 'medium' | 'low' | 'critical';
+  concerns: string[];
+  message: string;
+  needsAttention: boolean;
+};
+
 export default function DailyCheckin() {
   const { user } = useAuth();
   const [step, setStep] = useState<Step>('mood');
@@ -29,6 +38,8 @@ export default function DailyCheckin() {
   const [loading, setLoading] = useState(false);
   const [todayCheckin, setTodayCheckin] = useState<any>(null);
   const [checkingToday, setCheckingToday] = useState(true);
+  const [sentimentAnalysis, setSentimentAnalysis] = useState<SentimentAnalysis | null>(null);
+  const [analyzingSentiment, setAnalyzingSentiment] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -49,6 +60,40 @@ export default function DailyCheckin() {
     };
     checkToday();
   }, [user]);
+
+  // Debounced sentiment analysis
+  const analyzeSentiment = useCallback(async (text: string) => {
+    if (text.trim().length < 10) {
+      setSentimentAnalysis(null);
+      return;
+    }
+
+    setAnalyzingSentiment(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sentiment-analysis', {
+        body: { note: text, mood, energyLevel: energy[0] },
+      });
+
+      if (error) throw error;
+      if (data && data.sentiment !== null) {
+        setSentimentAnalysis(data);
+      }
+    } catch (err) {
+      console.error('Sentiment analysis error:', err);
+    } finally {
+      setAnalyzingSentiment(false);
+    }
+  }, [mood, energy]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (note.trim().length >= 10) {
+        analyzeSentiment(note);
+      }
+    }, 800); // Debounce 800ms
+
+    return () => clearTimeout(timer);
+  }, [note, analyzeSentiment]);
 
   const handleMoodSelect = (value: string) => {
     setMood(value);
@@ -250,14 +295,64 @@ export default function DailyCheckin() {
               <p className="text-sm font-medium text-foreground/80">
                 Quer compartilhar algo? <span className="text-muted-foreground font-normal">(opcional)</span>
               </p>
-              <Textarea
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="Ex: Reunião pesada de manhã, mas café ajudou..."
-                className="resize-none text-sm"
-                rows={2}
-                maxLength={200}
-              />
+              <div className="relative">
+                <Textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Ex: Reunião pesada de manhã, mas café ajudou..."
+                  className="resize-none text-sm"
+                  rows={3}
+                  maxLength={200}
+                />
+                {analyzingSentiment && (
+                  <div className="absolute top-2 right-2">
+                    <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+                  </div>
+                )}
+              </div>
+
+              {/* Real-time Sentiment Feedback */}
+              <AnimatePresence mode="wait">
+                {sentimentAnalysis && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className={`p-3 rounded-lg border text-sm ${
+                      sentimentAnalysis.needsAttention
+                        ? 'bg-red-500/10 border-red-500/30'
+                        : sentimentAnalysis.wellbeingLevel === 'high'
+                        ? 'bg-emerald-500/10 border-emerald-500/30'
+                        : 'bg-amber-500/10 border-amber-500/30'
+                    }`}
+                  >
+                    <div className="flex items-start gap-2">
+                      {sentimentAnalysis.needsAttention ? (
+                        <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                      ) : sentimentAnalysis.wellbeingLevel === 'high' ? (
+                        <TrendingUp className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                      ) : sentimentAnalysis.wellbeingLevel === 'low' ? (
+                        <TrendingDown className="h-4 w-4 text-orange-500 mt-0.5 flex-shrink-0" />
+                      ) : (
+                        <Minus className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                      )}
+                      <div className="flex-1 space-y-2">
+                        <p className="font-medium">{sentimentAnalysis.message}</p>
+                        {sentimentAnalysis.concerns && sentimentAnalysis.concerns.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {sentimentAnalysis.concerns.map((concern, idx) => (
+                              <Badge key={idx} variant="outline" className="text-[10px] px-1.5 py-0">
+                                {concern}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <div className="flex gap-2">
                 <Button
                   variant="outline"

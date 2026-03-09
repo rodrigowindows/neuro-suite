@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.nr1-chatbot]
 verify_jwt = false
+
+[functions.sentiment-analysis]
+verify_jwt = false
