@@ -1,91 +1,106 @@
 import { describe, it, expect } from "vitest";
-import {
-  calculateProductivityGain,
-  calculateTurnoverReduction,
-  calculateAbsenteeismReduction,
-  calculateNetBenefit,
-  calculateROI,
-} from "./roiCalculator";
-
-describe("calculateProductivityGain", () => {
-  it("calculates productivity gain correctly", () => {
-    // Base case: 100 employees, R$5000 salary, 10% stress reduction, 15% productivity impact
-    const result = calculateProductivityGain(100, 5000, 0.1, 0.15);
-    // 100 * 5000 * 12 * 0.1 * 0.15 = R$90,000/year
-    expect(result).toBe(90000);
-  });
-
-  it("returns 0 for no stress reduction", () => {
-    const result = calculateProductivityGain(100, 5000, 0, 0.15);
-    expect(result).toBe(0);
-  });
-
-  it("handles fractional employees", () => {
-    const result = calculateProductivityGain(50.5, 4000, 0.2, 0.1);
-    expect(result).toBeGreaterThan(0);
-  });
-});
-
-describe("calculateTurnoverReduction", () => {
-  it("calculates turnover savings correctly", () => {
-    // 100 employees, 20% turnover rate, 3 months salary replacement cost, 10% reduction
-    const result = calculateTurnoverReduction(100, 0.2, 5000, 3, 0.1);
-    // 100 * 0.2 * 0.1 * 5000 * 3 = R$30,000/year
-    expect(result).toBe(30000);
-  });
-
-  it("returns 0 for no stress reduction", () => {
-    const result = calculateTurnoverReduction(100, 0.2, 5000, 3, 0);
-    expect(result).toBe(0);
-  });
-});
-
-describe("calculateAbsenteeismReduction", () => {
-  it("calculates absenteeism savings correctly", () => {
-    // 100 employees, 5 days average absence, R$250 daily cost, 15% reduction
-    const result = calculateAbsenteeismReduction(100, 5, 250, 0.15);
-    // 100 * 5 * 250 * 0.15 = R$18,750/year
-    expect(result).toBe(18750);
-  });
-
-  it("returns 0 for zero absence days", () => {
-    const result = calculateAbsenteeismReduction(100, 0, 250, 0.15);
-    expect(result).toBe(0);
-  });
-});
-
-describe("calculateNetBenefit", () => {
-  it("sums all benefits correctly", () => {
-    const result = calculateNetBenefit(10000, 5000, 3000);
-    expect(result).toBe(18000);
-  });
-
-  it("handles zero values", () => {
-    const result = calculateNetBenefit(0, 0, 0);
-    expect(result).toBe(0);
-  });
-});
+import { calculateROI, formatCurrency, ROIInputs } from "./roiCalculator";
 
 describe("calculateROI", () => {
+  const baseInputs: ROIInputs = {
+    totalEmployees: 100,
+    avgSalary: 5000,
+    turnoverRate: 20,
+    absenteeismDays: 10,
+  };
+
+  it("calculates annual turnover cost correctly", () => {
+    const result = calculateROI(baseInputs);
+    // 100 employees * 20% turnover * (5000 * 6 months) = 600,000
+    expect(result.annualTurnoverCost).toBe(600000);
+  });
+
+  it("calculates annual absenteeism cost correctly", () => {
+    const result = calculateROI(baseInputs);
+    // 100 employees * 10 days * (5000 / 22 days) ≈ 22,727.27
+    expect(result.annualAbsenteeismCost).toBeCloseTo(22727.27, 0);
+  });
+
+  it("calculates total cost without NeuroSuite", () => {
+    const result = calculateROI(baseInputs);
+    expect(result.totalCostWithoutNeuroSuite).toBeCloseTo(622727.27, 0);
+  });
+
+  it("calculates turnover savings at 25% reduction", () => {
+    const result = calculateROI(baseInputs);
+    // 600,000 * 0.25 = 150,000
+    expect(result.savingsTurnover).toBe(150000);
+  });
+
+  it("calculates absenteeism savings at 20% reduction", () => {
+    const result = calculateROI(baseInputs);
+    // 22,727.27 * 0.20 ≈ 4,545.45
+    expect(result.savingsAbsenteeism).toBeCloseTo(4545.45, 0);
+  });
+
+  it("calculates total savings correctly", () => {
+    const result = calculateROI(baseInputs);
+    expect(result.totalSavings).toBeCloseTo(154545.45, 0);
+  });
+
+  it("calculates NeuroSuite annual cost", () => {
+    const result = calculateROI(baseInputs);
+    // 100 * 29 * 12 = 34,800
+    expect(result.annualNeuroSuiteCost).toBe(34800);
+  });
+
+  it("calculates net ROI correctly", () => {
+    const result = calculateROI(baseInputs);
+    // 154,545.45 - 34,800 = 119,745.45
+    expect(result.netROI).toBeCloseTo(119745.45, 0);
+  });
+
   it("calculates ROI percentage correctly", () => {
-    // Net benefit of R$100,000, investment of R$20,000
-    const result = calculateROI(100000, 20000);
-    // (100000 - 20000) / 20000 * 100 = 400%
-    expect(result).toBe(400);
+    const result = calculateROI(baseInputs);
+    // (119,745.45 / 34,800) * 100 ≈ 344%
+    expect(result.roiPercentage).toBeGreaterThan(300);
   });
 
-  it("handles break-even scenario", () => {
-    const result = calculateROI(20000, 20000);
-    expect(result).toBe(0);
+  it("handles zero employees", () => {
+    const result = calculateROI({ ...baseInputs, totalEmployees: 0 });
+    expect(result.annualTurnoverCost).toBe(0);
+    expect(result.annualAbsenteeismCost).toBe(0);
+    expect(result.annualNeuroSuiteCost).toBe(0);
+    expect(result.roiPercentage).toBe(0);
   });
 
-  it("handles negative ROI", () => {
-    const result = calculateROI(10000, 20000);
-    expect(result).toBe(-50);
+  it("handles zero turnover rate", () => {
+    const result = calculateROI({ ...baseInputs, turnoverRate: 0 });
+    expect(result.annualTurnoverCost).toBe(0);
+    expect(result.savingsTurnover).toBe(0);
   });
 
-  it("returns 0 for zero investment", () => {
-    const result = calculateROI(10000, 0);
-    expect(result).toBe(0);
+  it("handles zero absenteeism days", () => {
+    const result = calculateROI({ ...baseInputs, absenteeismDays: 0 });
+    expect(result.annualAbsenteeismCost).toBe(0);
+    expect(result.savingsAbsenteeism).toBe(0);
+  });
+});
+
+describe("formatCurrency", () => {
+  it("formats positive values correctly", () => {
+    const result = formatCurrency(1234.56);
+    expect(result).toContain("1.234,56");
+    expect(result).toContain("R$");
+  });
+
+  it("formats zero correctly", () => {
+    const result = formatCurrency(0);
+    expect(result).toContain("0,00");
+  });
+
+  it("formats large numbers correctly", () => {
+    const result = formatCurrency(1000000);
+    expect(result).toContain("1.000.000");
+  });
+
+  it("formats negative values correctly", () => {
+    const result = formatCurrency(-500);
+    expect(result).toContain("500");
   });
 });
