@@ -1,4 +1,4 @@
-import { Activity, MessageCircle, Trophy, Brain, Bell, Calculator, Shield, Plug, BarChart, LogOut, Settings, GraduationCap, UserCircle, Sun, Eye, Coffee, FileText, MessageSquare } from 'lucide-react';
+import { Activity, MessageCircle, Trophy, Brain, Bell, Calculator, Shield, Plug, BarChart, LogOut, Settings, GraduationCap, UserCircle, Sun, Eye, Coffee, FileText, MessageSquare, BookOpen } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import neuroSuiteLogo from '@/assets/neurosuite-logo.jpg';
@@ -26,6 +26,7 @@ const employeeItems = [
   { title: 'Coaching Pro', value: 'leadership', icon: GraduationCap, emoji: '🎓' },
   { title: 'Fadiga Cognitiva', value: 'cognitive-fatigue', icon: Eye, emoji: '👁️' },
   { title: 'Pausas IA', value: 'smart-breaks', icon: Coffee, emoji: '☕' },
+  { title: 'Diário de Bordo', value: 'mission-log', icon: BookOpen, emoji: '📖' },
 ];
 
 const managerItems = [
