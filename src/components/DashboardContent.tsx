@@ -22,6 +22,7 @@ const CognitiveFatigueAnalyzer = lazy(() => import('@/components/CognitiveFatigu
 const SmartBreakAssistant = lazy(() => import('@/components/SmartBreakAssistant'));
 const NarrativeReportGenerator = lazy(() => import('@/components/NarrativeReportGenerator'));
 const NR1ComplianceChatbot = lazy(() => import('@/components/NR1ComplianceChatbot'));
+const MissionLog = lazy(() => import('@/components/MissionLog'));
 
 function LazyFallback() {
   return (
@@ -94,6 +95,8 @@ export default function DashboardContent({
         return <CognitiveFatigueAnalyzer stressLevel={stressLevel || undefined} />;
       case 'smart-breaks':
         return <SmartBreakAssistant stressLevel={stressLevel || undefined} hrvValue={hrvValue} />;
+      case 'mission-log':
+        return <MissionLog />;
       case 'ai-insights':
         return isManager ? <AIInsightsDashboard /> : null;
       case 'alerts':
