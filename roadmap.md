@@ -1,4 +1,4 @@
-# CrewVitals
+# CrewVitals 
 - [ ] Update branding and mission terminology in visible interface text.
 - [ ] Remove the two requested sidebar items and add the mitigation alert navigation.
 - [ ] Format BioScore blink rates as integers and verify the updated screens.
