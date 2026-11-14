@@ -68,7 +68,7 @@ describe("exportConversation", () => {
       reader.onload = () => resolve(reader.result as string);
       reader.readAsText(blob);
     });
-    expect(text).toContain("NeuroCoach: Hello");
+    expect(text).toContain("AstroAssist: Hello");
     expect(text).toContain("Você: Hi");
   });
 
