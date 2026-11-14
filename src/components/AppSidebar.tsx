@@ -23,7 +23,7 @@ const employeeItems = [
   { title: 'BioScore', value: 'neuroscore', icon: Activity, emoji: '🧠' },
   { title: 'Disciplina de Missão', value: 'gamification', icon: Trophy, emoji: '🏆' },
   { title: 'AstroAssist', value: 'neurocoach', icon: MessageCircle, emoji: '💬' },
-  { title: 'Análise de Estresse', value: 'cognitive-fatigue', icon: Eye, emoji: '👁️' },
+  { title: 'Métricas de Fadiga Cognitiva', value: 'cognitive-fatigue', icon: Eye, emoji: '👁️' },
   { title: 'Biometric Log', value: 'mission-log', icon: BookOpen, emoji: '📖' },
 ];
 

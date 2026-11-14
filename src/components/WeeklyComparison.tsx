@@ -61,7 +61,7 @@ function DiffBadge({ current, previous, label, unit }: { current: number; previo
 }
 
 const MOOD_LABELS: Record<number, string> = {
-  1: '😩 Mal', 2: '😔 Baixo', 3: '😐 OK', 4: '😊 Bem', 5: '🤩 Ótimo',
+  1: '😩 Crítico', 2: '😔 Baixo', 3: '⚡ Nominal', 4: '😊 Bem', 5: '🤩 Ótimo',
 };
 
 function moodLabel(val: number): string {
@@ -124,7 +124,7 @@ export default function WeeklyComparison() {
             {previous.count > 0 ? (
               <>
                 <div>
-                  <p className="text-xs text-muted-foreground">Humor médio</p>
+                  <p className="text-xs text-muted-foreground">Prontidão Operacional média</p>
                   <p className="text-lg font-bold">{moodLabel(previous.avgMood)}</p>
                 </div>
                 <div>
@@ -144,7 +144,7 @@ export default function WeeklyComparison() {
             {current.count > 0 ? (
               <>
                 <div>
-                  <p className="text-xs text-muted-foreground">Humor médio</p>
+                  <p className="text-xs text-muted-foreground">Prontidão Operacional média</p>
                   <p className="text-lg font-bold">{moodLabel(current.avgMood)}</p>
                 </div>
                 <div>
@@ -162,7 +162,7 @@ export default function WeeklyComparison() {
         {/* Diff badges */}
         {current.count > 0 && previous.count > 0 && (
           <div className="flex flex-wrap gap-4 justify-center p-2 bg-muted/20 rounded-lg">
-            <DiffBadge current={current.avgMood} previous={previous.avgMood} label="humor" unit="pts" />
+            <DiffBadge current={current.avgMood} previous={previous.avgMood} label="prontidão" unit="pts" />
             <DiffBadge current={current.avgEnergy} previous={previous.avgEnergy} label="energia" unit="pts" />
           </div>
         )}

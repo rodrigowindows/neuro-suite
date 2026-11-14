@@ -96,13 +96,13 @@ export default function SmartBreakAssistant({ stressLevel, hrvValue }: SmartBrea
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="text-sm font-medium">Humor atual</label>
+              <label className="text-sm font-medium">Carga cognitiva atual</label>
               <Select value={mood} onValueChange={setMood}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="otimo">😊 Ótimo</SelectItem>
                   <SelectItem value="bem">🙂 Bem</SelectItem>
-                  <SelectItem value="neutro">😐 Neutro</SelectItem>
+                  <SelectItem value="neutro">⚡ Nominal</SelectItem>
                   <SelectItem value="cansado">😴 Cansado</SelectItem>
                   <SelectItem value="estressado">😤 Estressado</SelectItem>
                 </SelectContent>

@@ -12,8 +12,8 @@ interface GamificationProps {
 }
 
 const BADGE_DEFINITIONS = [
-  { id: 'first_scan', name: '🎯 Primeira Missão', description: 'Completou primeiro scan!', icon: '🎯', condition: (scans: number) => scans === 1 },
-  { id: 'warrior', name: '⚡ Guerreiro da Performance', description: '10 scans completos!', icon: '⚡', condition: (scans: number) => scans >= 10 },
+  { id: 'first_scan', name: '🎯 Check-in Inicial', description: 'Completou primeiro scan!', icon: '🎯', condition: (scans: number) => scans === 1 },
+  { id: 'warrior', name: '⚡ Monitoramento Constante', description: '10 scans completos!', icon: '⚡', condition: (scans: number) => scans >= 10 },
 ] as const;
 
 function getStreakEmoji(streak: number): string {
@@ -101,10 +101,10 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
         }
       };
 
-      if (newStreak >= 7) addBadge('zen_master', '🧘 Zen Master', '7 dias consecutivos!', '🧘');
+      if (newStreak >= 7) addBadge('zen_master', '🧘 Protocolo de Resiliência', '7 dias consecutivos!', '🧘');
       if (hrvValue && hrvValue > 50) addBadge('hrv_hero', '💗 HRV Hero', 'HRV > 50ms', '💗');
-      if (newTotalScans === 1) addBadge('first_scan', '🎯 Primeira Missão', 'Completou primeiro scan!', '🎯');
-      if (newTotalScans >= 10) addBadge('warrior', '⚡ Guerreiro da Performance', '10 scans completos!', '⚡');
+      if (newTotalScans === 1) addBadge('first_scan', '🎯 Check-in Inicial', 'Completou primeiro scan!', '🎯');
+      if (newTotalScans >= 10) addBadge('warrior', '⚡ Monitoramento Constante', '10 scans completos!', '⚡');
 
       if (stressLevel === 'low' && newTotalScans >= 3) {
         const recentScans = await supabase
@@ -115,7 +115,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
           .limit(3);
 
         if (recentScans.data?.every(s => s.stress_level === 'low')) {
-          addBadge('low_stress_keeper', '😊 Guardião do Zen', '3 scans low consecutivos!', '😊');
+          addBadge('low_stress_keeper', '😊 Estabilidade Fisiológica', '3 scans low consecutivos!', '😊');
         }
       }
 
@@ -241,7 +241,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
         <div className="p-3 bg-secondary/5 rounded-lg border border-secondary/20">
           <p className="text-xs font-semibold text-secondary mb-1">🎯 Próximo objetivo:</p>
           <p className="text-xs text-muted-foreground">
-            {currentStreak < 7 && `Faça scan por mais ${7 - currentStreak} dias para 🧘 Zen Master`}
+            {currentStreak < 7 && `Faça scan por mais ${7 - currentStreak} dias para 🧘 Protocolo de Resiliência`}
             {currentStreak >= 7 && currentStreak < 30 && 'Continue até 30 dias para Triple Fire! 🔥🔥🔥'}
             {currentStreak >= 30 && 'Você é uma lenda! Continue assim! 🏆'}
           </p>

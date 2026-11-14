@@ -7,7 +7,7 @@ export interface StressResult {
 }
 
 export function getStressDisplay(level: string): { emoji: string; message: string } {
-  if (level === 'moderate') return { emoji: '😐', message: 'Atenção normal, sugira pausas para evitar burnout' };
+  if (level === 'moderate') return { emoji: '⚡', message: 'Atenção normal, sugira pausas para evitar burnout' };
   if (level === 'high') return { emoji: '😟', message: 'Fadiga detectada. Risco de erro operacional' };
   return { emoji: '😊', message: 'Foco otimizado, produtividade alta' };
 }

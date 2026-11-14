@@ -11,9 +11,9 @@ describe("computeNeuroscoreLabel", () => {
     expect(result.label).toBe("😊");
     expect(result.color).toContain("green");
   });
-  it("returns 😐 and yellow for moderate stress", () => {
+  it("returns ⚡ and yellow for moderate stress", () => {
     const result = computeNeuroscoreLabel("moderate");
-    expect(result.label).toBe("😐");
+    expect(result.label).toBe("⚡");
     expect(result.color).toContain("yellow");
   });
   it("returns 😟 and red for high stress", () => {

@@ -16,7 +16,6 @@ const AIInsightsDashboard = lazy(() => import('@/components/AIInsightsDashboard'
 const LeadershipCoaching = lazy(() => import('@/components/LeadershipCoaching'));
 const DailyCheckin = lazy(() => import('@/components/DailyCheckin'));
 const CheckinHistory = lazy(() => import('@/components/CheckinHistory'));
-const WeeklyComparison = lazy(() => import('@/components/WeeklyComparison'));
 const WellnessReportPDF = lazy(() => import('@/components/WellnessReportPDF'));
 const CognitiveFatigueAnalyzer = lazy(() => import('@/components/CognitiveFatigueAnalyzer'));
 const SmartBreakAssistant = lazy(() => import('@/components/SmartBreakAssistant'));
@@ -60,7 +59,7 @@ export default function DashboardContent({
           <>
             <DailyCheckin />
             <CheckinHistory />
-            <WeeklyComparison />
+
             <div className="flex justify-center">
               <WellnessReportPDF />
             </div>

@@ -1,73 +1,65 @@
-# Welcome to your Lovable project
+# CrewVitals — Plataforma de Telemetria Fisiológica e Suporte à Decisão Operacional (Padrão NASA)
 
-## Project info
+> **Aviso Ético e Regulatório:**  
+> Ferramenta de apoio operacional à tripulação. Não substitui avaliação médica profissional.
 
-**URL**: https://lovable.dev/projects/3697ce5a-b896-43eb-8364-713a0c4a0f58
+---
 
-## How can I edit this code?
+## 🛰️ Visão Geral
 
-There are several ways of editing your application.
+O **CrewVitals** é uma plataforma de telemetria fisiológica e suporte à decisão operacional (DSS) desenhada para monitoramento contínuo, prontidão de missão e mitigação proativa de fadiga cognitiva em tripulações operacionais e missões críticas aeroespaciais.
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/3697ce5a-b896-43eb-8364-713a0c4a0f58) and start prompting.
+## 🧩 Módulos Ativos
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Avaliação de Turno:** Registro e acompanhamento periódico da prontidão física e cognitiva operacional da tripulação, com foco em prontidão operacional e carga de trabalho.
+- **BioScore:** Monitoramento biométrico com preservação da precisão dos limiares de classificação fisiológica e formatação precisa de taxas de piscamento (*blink rate*) na camada de visualização.
+- **Disciplina de Missão:** Sistema de engajamento operacional e adesão aos protocolos de resiliência e estabilidade fisiológica da missão (Check-in Inicial, Monitoramento Constante, Protocolo de Resiliência e Estabilidade Fisiológica).
+- **AstroAssist DSS:** Sistema de Suporte à Decisão para mitigação e prescrição de contramedidas operacionais imediatas com barra de progresso e verificação:
+  - *Contramedida 4-7-8:* Ciclo de respiração guiada de 3 minutos para estabilização vagal.
+  - *Hidratação:* Ingestão operacional de 500ml de água.
+  - *Sono 90min:* Agendamento e cumprimento de bloco de descanso/sono ultradiano de 90 minutos.
+- **Métricas de Fadiga Cognitiva:** Painel analítico de carga cognitiva, registro de observações do turno e modal de base científica fundamentado em referências da NASA HRP (Human Research Program) e análise de piscamento.
+- **Relatório de Telemetria de Saúde da Tripulação:** Exportação de relatórios técnicos consolidados, com dados de prontidão, registros de sono, log de treino ARED e disclaimers éticos obrigatórios.
 
-**Use your preferred IDE**
+---
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🛠️ Tecnologias Utilizadas
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- **Frontend:** React 18, TypeScript, Vite
+- **Estilização & Componentes:** Tailwind CSS, shadcn/ui, Radix UI, Lucide Icons
+- **Gerenciamento de Estado & Requisições:** TanStack Query (React Query)
+- **Visão Computacional & Biometria:** MediaPipe Tasks Vision
+- **Backend / Persistência:** Supabase, Drizzle ORM
+- **Testes:** Vitest, Testing Library
 
-Follow these steps:
+---
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## 🚀 Como Executar Localmente
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+1. **Instale as dependências:**
+   ```sh
+   npm install
+   ```
 
-# Step 3: Install the necessary dependencies.
-npm i
+2. **Inicie o servidor de desenvolvimento:**
+   ```sh
+   npm run dev
+   ```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+3. **Execute a suíte de testes:**
+   ```sh
+   npm test
+   ```
 
-**Edit a file directly in GitHub**
+4. **Valide a compilação de produção:**
+   ```sh
+   npm run build
+   ```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+---
 
-**Use GitHub Codespaces**
+## 🛡️ Diretrizes Éticas e de Governança
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/3697ce5a-b896-43eb-8364-713a0c4a0f58) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- **Suporte Operacional, Não Diagnóstico:** O CrewVitals foi concebido como uma ferramenta de apoio à decisão para a tripulação e equipes de solo. Todos os alertas preditivos e métricas são instrumentos de suporte preventivo e demonstrações rotuladas, não constituindo diagnóstico ou parecer clínico.

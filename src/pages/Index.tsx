@@ -5,7 +5,7 @@ import { Activity, MessageCircle, Trophy, Rocket, Zap, Target, Shield, ArrowRigh
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import neuroSuiteLogo from '@/assets/neurosuite-logo.jpg';
-import { FEEDBACK_FORM_URL, APP_CONFIG } from '@/lib/constants';
+import { APP_CONFIG } from '@/lib/constants';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -15,7 +15,7 @@ const fadeUp = {
 const features = [
   { icon: Eye, title: 'Análise de Fadiga', desc: 'Câmeras da nave detectam sinais de fadiga e micro-expressões. Monitoramento contínuo do estado cognitivo da tripulação em tempo real.', stat: '60s', statLabel: 'análise rápida' },
   { icon: MessageCircle, title: 'AstroAssist Espacial', desc: 'Coach de IA com suporte psicológico adaptativo — essencial quando a comunicação com a Terra leva minutos para chegar.', stat: '24/7', statLabel: 'disponível' },
-  { icon: Trophy, title: 'Disciplina de Missão de Missão', desc: 'Ciclos concluídos, protocolos em dia e sequência de monitoramento. Transforme o cuidado com a saúde em um hábito recompensador durante a missão.', stat: '12+', statLabel: 'conquistas' },
+  { icon: Trophy, title: 'Disciplina de Missão', desc: 'Ciclos concluídos, protocolos em dia e sequência de monitoramento. Transforme o cuidado com a saúde em um hábito recompensador durante a missão.', stat: '12+', statLabel: 'conquistas' },
   { icon: Rocket, title: 'Painel de Comando', desc: 'Visão consolidada da saúde da tripulação, métricas de fadiga e insights acionáveis para o controle da missão.', stat: '100%', statLabel: 'visibilidade' },
 ];
 
@@ -33,7 +33,7 @@ const stats = [
 ];
 
 const modules = [
-  { icon: CalendarCheck, title: 'Avaliação de Turno', desc: 'Triagem emocional de 30s com IA que gera micro-coaching personalizado baseado no humor e energia do astronauta.', tag: 'Tripulação' },
+  { icon: CalendarCheck, title: 'Avaliação de Turno', desc: 'Triagem operacional de 30s com IA que gera recomendações personalizadas baseadas na prontidão e carga cognitiva do astronauta.', tag: 'Tripulação' },
   { icon: Activity, title: 'BioScore', desc: 'Análise facial via câmeras da nave detecta fadiga e estima variabilidade cardíaca para calcular o estado cognitivo.', tag: 'Tripulação' },
   { icon: MessageCircle, title: 'AstroAssist IA', desc: 'Coach de prontidão operacional com suporte psicológico adaptado ao nível de estresse e isolamento da missão.', tag: 'Tripulação' },
   { icon: Trophy, title: 'Disciplina de Missão', desc: 'Ciclos concluídos, protocolos em dia e sequência de monitoramento que transformam o cuidado com a saúde em hábito motivador durante a missão.', tag: 'Tripulação' },
@@ -313,7 +313,7 @@ export default function Index() {
 
       <footer className="border-t bg-card/50 backdrop-blur-sm" role="contentinfo">
         <div className="container mx-auto px-4 py-12 max-w-5xl">
-          <div className="grid md:grid-cols-3 gap-8 mb-8">
+          <div className="grid md:grid-cols-2 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <img src={neuroSuiteLogo} alt="" className="h-8 w-8 rounded-md" />
@@ -322,13 +322,6 @@ export default function Index() {
               <p className="text-sm text-muted-foreground">
                 Zero-Trust Privacy 🔒
               </p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-3">Feedback</h3>
-              <p className="text-sm text-muted-foreground mb-3">Sua opinião é valiosa!</p>
-              <Button variant="outline" size="sm" onClick={() => window.open(FEEDBACK_FORM_URL, '_blank')}>
-                Enviar Feedback
-              </Button>
             </div>
             <div>
               <h3 className="font-semibold mb-3">Contato</h3>

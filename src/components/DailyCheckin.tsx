@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 const MOODS = [
   { value: 'great', emoji: '🤩', label: 'Ótimo', color: 'bg-emerald-500/20 border-emerald-500/40 hover:bg-emerald-500/30' },
   { value: 'good', emoji: '😊', label: 'Bem', color: 'bg-teal-500/20 border-teal-500/40 hover:bg-teal-500/30' },
-  { value: 'okay', emoji: '😐', label: 'OK', color: 'bg-amber-500/20 border-amber-500/40 hover:bg-amber-500/30' },
+  { value: 'okay', emoji: '⚡', label: 'Nominal', color: 'bg-amber-500/20 border-amber-500/40 hover:bg-amber-500/30' },
   { value: 'low', emoji: '😔', label: 'Baixo', color: 'bg-orange-500/20 border-orange-500/40 hover:bg-orange-500/30' },
   { value: 'bad', emoji: '😩', label: 'Mal', color: 'bg-red-500/20 border-red-500/40 hover:bg-red-500/30' },
 ];

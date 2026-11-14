@@ -13,7 +13,7 @@ describe("getStressDisplay", () => {
   });
 
   it("returns moderate stress display", () => {
-    expect(getStressDisplay("moderate")).toEqual({ emoji: "😐", message: "Atenção normal, sugira pausas para evitar burnout" });
+    expect(getStressDisplay("moderate")).toEqual({ emoji: "⚡", message: "Atenção normal, sugira pausas para evitar burnout" });
   });
 
   it("returns high stress display", () => {

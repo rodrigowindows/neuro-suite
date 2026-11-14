@@ -8,7 +8,7 @@ export function getInitialMessage(stressLevel: string): string {
     return 'Ótimo foco! 😊 Qual expectativa de performance você quer elevar? Sugestão PNL: Ancore uma memória de sucesso para manter alta produtividade.';
   }
   if (stressLevel === 'moderate') {
-    return 'Para reduzir turnover, o que drena sua energia? 😐 Reframe como oportunidade (PNL) para equilibrar bem-estar e performance.';
+    return 'Para reduzir turnover, o que drena sua energia? ⚡ Reframe como oportunidade (PNL) para equilibrar bem-estar e performance.';
   }
   if (stressLevel === 'high') {
     return 'Alerta burnout (Segurança de Missão). 😟 Qual pausa sensorial (respiração 4-7-8) te recarrega? Vamos criar um plano de reequilíbrio imediato.';

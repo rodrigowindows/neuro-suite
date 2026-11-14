@@ -7,7 +7,7 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
-import FeedbackButton from '@/components/FeedbackButton';
+
 import DashboardSkeleton from '@/components/DashboardSkeleton';
 import StressAlertBanner from '@/components/StressAlertBanner';
 import DashboardContent from '@/components/DashboardContent';
@@ -21,7 +21,7 @@ const PAGE_TITLES: Record<string, string> = {
   gamification: 'Disciplina de Missão',
   neurocoach: 'AstroAssist IA',
   leadership: 'Coaching Liderança',
-  'cognitive-fatigue': 'Análise de Estresse',
+  'cognitive-fatigue': 'Métricas de Fadiga Cognitiva',
   'smart-breaks': 'Pausas Inteligentes',
   'mission-log': 'Biometric Log',
   'ai-insights': 'IA Insights',
@@ -40,7 +40,7 @@ const PAGE_DESCRIPTIONS: Record<string, string> = {
   gamification: 'Ciclos concluídos, protocolos em dia e sequência de monitoramento',
   neurocoach: 'Assistente de recuperação e suporte à tripulação',
   leadership: 'Módulos premium de desenvolvimento de liderança com IA',
-  'cognitive-fatigue': 'Análise de estresse e carga cognitiva para a missão',
+  'cognitive-fatigue': 'Métricas de fadiga cognitiva e monitoramento de carga operacional (apoio)',
   'smart-breaks': 'Micro-pausas personalizadas baseadas em cronobiologia e biometria',
   'mission-log': 'Registro diário de sono e exercícios da tripulação',
   'ai-insights': 'Análises preditivas de burnout e sentimento',
@@ -171,7 +171,7 @@ export default function Dashboard() {
           </footer>
         </div>
 
-        <FeedbackButton />
+
       </div>
     </SidebarProvider>
   );

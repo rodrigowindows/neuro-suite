@@ -5,7 +5,7 @@ import SectorBenchmark from '@/components/SectorBenchmark';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BarChart, Download, TrendingUp, Users } from 'lucide-react';
-import { FEEDBACK_FORM_URL } from '@/lib/constants';
+
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -164,28 +164,6 @@ Predição,"${prediction}"`;
                 <div>
                   <p className="font-semibold text-sm mb-1">🤖 Análise Preditiva (IA):</p>
                   <p className="text-sm text-muted-foreground">{prediction}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Feedback Survey */}
-          <Card className="bg-gradient-to-r from-green-500/10 to-teal-500/10 border-green-500/30">
-            <CardContent className="p-3 sm:p-4 space-y-2 sm:space-y-3">
-              <div className="flex items-start gap-2 sm:gap-3">
-                <Users className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 mt-0.5" />
-                <div className="flex-1">
-                  <p className="font-semibold text-xs sm:text-sm mb-1">📋 Experiência do Usuário:</p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground mb-2">
-                    Compartilhe sua experiência aqui para melhorarmos nossa plataforma
-                  </p>
-                  <Button
-                    size="sm"
-                    className="w-full sm:w-auto font-semibold shadow-lg hover:scale-105 transition-transform text-xs sm:text-sm"
-                    onClick={() => window.open(FEEDBACK_FORM_URL, '_blank')}
-                  >
-                    Seu Feedback Aqui
-                  </Button>
                 </div>
               </div>
             </CardContent>

@@ -16,7 +16,7 @@ import {
 const MOOD_MAP: Record<string, { emoji: string; label: string; value: number; color: string }> = {
   great: { emoji: '🤩', label: 'Ótimo', value: 5, color: 'hsl(160, 84%, 39%)' },
   good:  { emoji: '😊', label: 'Bem', value: 4, color: 'hsl(168, 76%, 42%)' },
-  okay:  { emoji: '😐', label: 'OK', value: 3, color: 'hsl(38, 92%, 50%)' },
+  okay:  { emoji: '⚡', label: 'Nominal', value: 3, color: 'hsl(38, 92%, 50%)' },
   low:   { emoji: '😔', label: 'Baixo', value: 2, color: 'hsl(25, 95%, 53%)' },
   bad:   { emoji: '😩', label: 'Mal', value: 1, color: 'hsl(0, 84%, 60%)' },
 };
@@ -142,7 +142,7 @@ export default function CheckinHistory() {
         </div>
 
         <p className="text-[10px] text-muted-foreground text-center">
-          Barras = energia • Emoji = humor do dia
+          Barras = prontidão/energia • Indicador = carga cognitiva do dia
         </p>
       </CardContent>
     </Card>

@@ -28,7 +28,7 @@ const defaultScores: FeatureScores = {
 
 export function computeNeuroscoreLabel(stressLevel: string): { label: string; color: string } {
   return {
-    label: stressLevel === 'low' ? '😊' : stressLevel === 'moderate' ? '😐' : '😟',
+    label: stressLevel === 'low' ? '😊' : stressLevel === 'moderate' ? '⚡' : '😟',
     color: stressLevel === 'low' ? 'bg-green-500' : stressLevel === 'moderate' ? 'bg-yellow-500' : 'bg-red-500',
   };
 }

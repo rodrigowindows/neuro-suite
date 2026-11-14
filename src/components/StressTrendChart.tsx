@@ -149,7 +149,7 @@ export default function StressTrendChart() {
                   <YAxis domain={[0.5, 3.5]} tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
                   <Tooltip
                     contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }}
-                    formatter={(val: number) => [val <= 1.5 ? '😊 Baixo' : val <= 2.3 ? '😐 Moderado' : '😟 Alto', 'Estresse']}
+                    formatter={(val: number) => [val <= 1.5 ? '🟢 Baixo' : val <= 2.3 ? '🟡 Moderado' : '🔴 Alto', 'Estresse']}
                   />
                   <Area type="monotone" dataKey="stressScore" stroke="hsl(var(--primary))" fill="url(#stressGrad)" strokeWidth={2} />
                 </AreaChart>

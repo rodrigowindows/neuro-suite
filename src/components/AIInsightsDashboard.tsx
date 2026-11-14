@@ -343,7 +343,7 @@ export default function AIInsightsDashboard() {
               </div>
               <div>
                 <p className={`font-bold ${getSentimentColor(sentiment.overallSentiment)}`}>
-                  {sentiment.overallSentiment === 'positive' ? '😊 Positivo' : sentiment.overallSentiment === 'negative' ? '😟 Negativo' : sentiment.overallSentiment === 'mixed' ? '🤔 Misto' : '😐 Neutro'}
+                  {sentiment.overallSentiment === 'positive' ? '😊 Positivo' : sentiment.overallSentiment === 'negative' ? '😟 Negativo' : sentiment.overallSentiment === 'mixed' ? '🤔 Misto' : '⚖️ Neutro'}
                 </p>
                 <p className="text-xs text-muted-foreground">Engajamento: {sentiment.engagementLevel === 'high' ? 'Alto' : sentiment.engagementLevel === 'medium' ? 'Médio' : 'Baixo'}</p>
               </div>

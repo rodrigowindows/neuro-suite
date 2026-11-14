@@ -12,13 +12,13 @@ const mockResult: StressResult = {
   blinkRate: 20,
   stressLevel: "moderate",
   message: "Atenção normal",
-  emoji: "😐",
+  emoji: "⚡",
 };
 
 describe("ScanResult", () => {
   it("renders emoji", () => {
     const { getByText } = render(<ScanResult result={mockResult} userName="" />);
-    expect(getByText("😐")).toBeInTheDocument();
+    expect(getByText("⚡")).toBeInTheDocument();
   });
 
   it("displays stress level label", () => {
