@@ -1,4 +1,4 @@
-import { Activity, MessageCircle, Trophy, Brain, Bell, Calculator, Shield, Plug, BarChart, LogOut, Settings, GraduationCap, UserCircle, Sun, Eye, Coffee, FileText, MessageSquare, BookOpen } from 'lucide-react';
+import { Activity, MessageCircle, Trophy, Brain, Bell, Calculator, Shield, Plug, BarChart, LogOut, Settings, UserCircle, Sun, Eye, FileText, MessageSquare, BookOpen } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import neuroSuiteLogo from '@/assets/neurosuite-logo.jpg';
@@ -19,25 +19,23 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
 const employeeItems = [
-  { title: 'Check-in', value: 'checkin', icon: Sun, emoji: '☀️' },
-  { title: 'NeuroScore', value: 'neuroscore', icon: Activity, emoji: '🧠' },
-  { title: 'Gamificação', value: 'gamification', icon: Trophy, emoji: '🏆' },
-  { title: 'NeuroCoach', value: 'neurocoach', icon: MessageCircle, emoji: '💬' },
-  { title: 'Coaching Pro', value: 'leadership', icon: GraduationCap, emoji: '🎓' },
-  { title: 'Fadiga Cognitiva', value: 'cognitive-fatigue', icon: Eye, emoji: '👁️' },
-  { title: 'Pausas IA', value: 'smart-breaks', icon: Coffee, emoji: '☕' },
-  { title: 'Diário de Bordo', value: 'mission-log', icon: BookOpen, emoji: '📖' },
+  { title: 'Avaliação de Turno', value: 'checkin', icon: Sun, emoji: '☀️' },
+  { title: 'BioScore', value: 'neuroscore', icon: Activity, emoji: '🧠' },
+  { title: 'Disciplina de Missão', value: 'gamification', icon: Trophy, emoji: '🏆' },
+  { title: 'AstroAssist', value: 'neurocoach', icon: MessageCircle, emoji: '💬' },
+  { title: 'Análise de Estresse', value: 'cognitive-fatigue', icon: Eye, emoji: '👁️' },
+  { title: 'Biometric Log', value: 'mission-log', icon: BookOpen, emoji: '📖' },
 ];
 
 const managerItems = [
   { title: 'IA Insights', value: 'ai-insights', icon: Brain, emoji: '🤖' },
-  { title: 'Alertas RH', value: 'alerts', icon: Bell, emoji: '🔔' },
+  { title: 'Alertas Comando', value: 'alerts', icon: Bell, emoji: '🔔' },
   { title: 'ROI', value: 'roi', icon: Calculator, emoji: '💰' },
-  { title: 'NR-1 Compliance', value: 'nr1', icon: Shield, emoji: '📋' },
+  { title: 'Segurança de Missão', value: 'nr1', icon: Shield, emoji: '📋' },
   { title: 'Relatórios IA', value: 'narrative-reports', icon: FileText, emoji: '📄' },
-  { title: 'Chatbot NR-1', value: 'nr1-chatbot', icon: MessageSquare, emoji: '💬' },
+  { title: 'Chatbot Segurança de Missão', value: 'nr1-chatbot', icon: MessageSquare, emoji: '💬' },
   { title: 'Integrações', value: 'integrations', icon: Plug, emoji: '🔗' },
-  { title: 'Dashboard RH', value: 'dashboard-rh', icon: BarChart, emoji: '📊' },
+  { title: 'Painel de Comando', value: 'dashboard-rh', icon: BarChart, emoji: '📊' },
 ];
 
 interface FeatureScore {
@@ -71,13 +69,13 @@ export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, score
         <div className="flex items-center gap-2.5 px-1">
           <img
             src={neuroSuiteLogo}
-            alt="NeuroSuite Logo"
+            alt="CrewVitals Logo"
             className="h-8 w-8 rounded-md object-cover flex-shrink-0"
           />
           {!collapsed && (
             <div className="flex flex-col min-w-0">
               <span className="font-display font-bold text-sm text-sidebar-primary-foreground truncate">
-                NeuroSuite
+                CrewVitals
               </span>
               <span className="text-[10px] text-sidebar-muted-foreground">
                 Beta v1.0
@@ -90,7 +88,7 @@ export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, score
       <SidebarContent className="px-2">
         <SidebarGroup>
           <SidebarGroupLabel className="text-sidebar-muted-foreground text-[10px] uppercase tracking-wider font-semibold">
-            {!collapsed ? 'Colaborador' : '👤'}
+            {!collapsed ? 'Tripulação' : '👤'}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -114,7 +112,7 @@ export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, score
                       <span className="truncate flex-1">{item.title}</span>
                     )}
                     {scores[item.value] && (
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white leading-none ${scores[item.value]!.color} ${collapsed ? 'absolute -top-1 -right-1 scale-75' : ''}`}>
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white leading-none ${scores[item.value]?.color} ${collapsed ? 'absolute -top-1 -right-1 scale-75' : ''}`}>
                         {scores[item.value]!.label}
                       </span>
                     )}
@@ -131,7 +129,7 @@ export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, score
 
             <SidebarGroup>
               <SidebarGroupLabel className="text-sidebar-muted-foreground text-[10px] uppercase tracking-wider font-semibold">
-                {!collapsed ? 'Gestor / RH' : '📊'}
+                {!collapsed ? 'Comando' : '📊'}
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>

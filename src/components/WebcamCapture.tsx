@@ -378,7 +378,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
             </div>
             <div className="p-3 bg-secondary/10 rounded-lg">
               <p className="text-xs text-muted-foreground mb-1">Taxa atual</p>
-              <p className="text-2xl font-bold text-secondary">{currentBlinkRate}/min</p>
+              <p className="text-2xl font-bold text-foreground">{Math.round(currentBlinkRate)} piscadas/min</p>
             </div>
           </div>
           

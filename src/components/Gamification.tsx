@@ -159,7 +159,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Trophy className="h-5 w-5 text-yellow-500" />
-          Gamificação & Conquistas
+          Disciplina de Missão
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -168,7 +168,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
           <div className="p-4 bg-gradient-to-br from-orange-500/10 to-red-500/10 rounded-lg border border-orange-500/20">
             <div className="flex items-center gap-2 mb-2">
               <Flame className="h-5 w-5 text-orange-500" />
-              <span className="text-sm font-medium">Streak Atual</span>
+              <span className="text-sm font-medium">Sequência de Monitoramento</span>
             </div>
             <p className="text-3xl font-bold text-orange-500">
               {currentStreak} {getStreakEmoji(currentStreak)}
@@ -184,7 +184,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
               <span className="text-sm font-medium">Recorde</span>
             </div>
             <p className="text-3xl font-bold text-yellow-500">{longestStreak}</p>
-            <p className="text-xs text-muted-foreground mt-1">Melhor streak</p>
+            <p className="text-xs text-muted-foreground mt-1">Maior sequência de monitoramento</p>
           </div>
         </div>
 
@@ -192,7 +192,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
         <div className="p-3 bg-primary/5 rounded-lg border border-primary/20 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Target className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium">Total de Scans</span>
+            <span className="text-sm font-medium">Ciclos Concluídos</span>
           </div>
           <span className="text-2xl font-bold text-primary">{totalScans}</span>
         </div>
@@ -202,7 +202,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
           <div className="space-y-2">
             <h4 className="text-sm font-semibold flex items-center gap-2">
               <Award className="h-4 w-4 text-yellow-500" />
-              Conquistas ({badges.length})
+              Protocolos em Dia ({badges.length})
             </h4>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {badges.map((badge) => (
@@ -230,7 +230,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
                 <Zap className="h-8 w-8 text-yellow-500" />
                 <div>
                   <p className="font-bold text-yellow-900 dark:text-yellow-200">🎉 Nova Conquista!</p>
-                  <p className="text-sm text-yellow-700 dark:text-yellow-400">Confira seus badges!</p>
+                  <p className="text-sm text-yellow-700 dark:text-yellow-400">Confira seus protocolos em dia!</p>
                 </div>
               </CardContent>
             </Card>

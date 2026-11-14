@@ -28,7 +28,7 @@ export function useStressNotifications(options: UseStressNotificationsOptions = 
 
     // Browser notification (if permitted)
     if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('NeuroSuite — Alerta de Estresse', {
+      new Notification('CrewVitals — Alerta de Estresse', {
         body: `Você está com estresse alto há ${consecutiveHighDays} dias consecutivos. Cuide-se!`,
         icon: '/favicon.ico',
       });

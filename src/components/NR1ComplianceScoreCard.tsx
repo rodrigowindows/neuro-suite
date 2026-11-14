@@ -112,7 +112,7 @@ export default function NR1ComplianceScoreCard() {
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-base">
           <Shield className="h-5 w-5 text-primary" />
-          Score de Conformidade NR-1
+          Score de Conformidade Segurança de Missão
         </CardTitle>
         <CardDescription className="text-xs">
           Aderência à Portaria MTE 1.419/2024 — Riscos psicossociais no PGR

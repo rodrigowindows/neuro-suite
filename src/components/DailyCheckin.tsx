@@ -127,9 +127,9 @@ export default function DailyCheckin() {
 
       if (error) throw error;
 
-      setAiResponse(aiMsg || '✨ Check-in registrado! Continue cuidando de você.');
+      setAiResponse(aiMsg || '✨ Avaliação de Turno registrado! Continue cuidando de você.');
       setStep('done');
-      toast.success('Check-in do dia registrado!');
+      toast.success('Avaliação de Turno do dia registrado!');
     } catch (err: any) {
       console.error(err);
       // Save without AI response
@@ -139,9 +139,9 @@ export default function DailyCheckin() {
         energy_level: energy[0],
         note: note.trim() || null,
       });
-      setAiResponse('✨ Check-in registrado! Continue cuidando de você.');
+      setAiResponse('✨ Avaliação de Turno registrado! Continue cuidando de você.');
       setStep('done');
-      toast.success('Check-in registrado!');
+      toast.success('Avaliação de Turno registrado!');
     } finally {
       setLoading(false);
     }
@@ -175,7 +175,7 @@ export default function DailyCheckin() {
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-            Check-in de Hoje Completo
+            Avaliação de Turno
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -192,7 +192,7 @@ export default function DailyCheckin() {
             </div>
           )}
           <Button variant="outline" size="sm" onClick={handleNewCheckin} className="w-full">
-            Fazer novo check-in
+            Fazer novo Avaliação de Turno
           </Button>
         </CardContent>
       </Card>
@@ -207,11 +207,11 @@ export default function DailyCheckin() {
           <div>
             <CardTitle className="flex items-center gap-2 text-base">
               <Sun className="h-5 w-5 text-amber-500" />
-              Check-in Diário
+              Avaliação de Turno
             </CardTitle>
             <CardDescription className="text-xs mt-0.5">
               <Clock className="inline h-3 w-3 mr-1" />
-              ~30 segundos • Como você está agora?
+              Avaliação de prontidão para o turno
             </CardDescription>
           </div>
           {step !== 'mood' && step !== 'done' && (
@@ -233,7 +233,7 @@ export default function DailyCheckin() {
               exit={{ opacity: 0, x: -20 }}
               className="space-y-3"
             >
-              <p className="text-sm font-medium text-foreground/80">Como você se sente agora?</p>
+              <p className="text-sm font-medium text-foreground/80">Avaliação de prontidão para o turno</p>
               <div className="grid grid-cols-5 gap-2">
                 {MOODS.map((m) => (
                   <button
@@ -396,7 +396,7 @@ export default function DailyCheckin() {
               <div className="space-y-1">
                 <p className="font-semibold text-sm flex items-center justify-center gap-1">
                   <Heart className="h-4 w-4 text-red-400" />
-                  Check-in registrado!
+                  Avaliação de Turno registrado!
                 </p>
                 <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
                   <span>{MOODS.find(m => m.value === mood)?.label}</span>
@@ -407,7 +407,7 @@ export default function DailyCheckin() {
               {aiResponse && (
                 <div className="p-3 bg-primary/5 rounded-lg border border-primary/10 text-left">
                   <p className="text-xs font-medium text-primary mb-1 flex items-center gap-1">
-                    <Sparkles className="h-3 w-3" /> NeuroCoach diz:
+                    <Sparkles className="h-3 w-3" /> AstroAssist diz:
                   </p>
                   <p className="text-sm text-foreground/80">{aiResponse}</p>
                 </div>

@@ -77,8 +77,8 @@ export default function NR1Report() {
         if (avgHRV < 30) recommendations.push('Avaliação médica recomendada para colaboradores com HRV baixo');
         if (moderatePercent > 40) recommendations.push('Workshop de técnicas de regulação emocional');
         if (highPercent > 30) recommendations.push('Revisão de carga de trabalho e redistribuição de tarefas');
-        recommendations.push('Manter monitoramento contínuo via NeuroSuite');
-        recommendations.push('Documentar ações para compliance NR-1 (gestão de riscos psicossociais)');
+        recommendations.push('Manter monitoramento contínuo via CrewVitals');
+        recommendations.push('Documentar ações para Segurança de Missão Segurança de Missão (gestão de riscos psicossociais)');
 
         setReportData({
           totalScans: total,
@@ -102,9 +102,9 @@ export default function NR1Report() {
     if (!reportData) return '';
     const now = new Date().toLocaleDateString('pt-BR');
     return `
-RELATÓRIO DE GESTÃO DE RISCOS PSICOSSOCIAIS — NR-1
+RELATÓRIO DE GESTÃO DE RISCOS PSICOSSOCIAIS — Segurança de Missão
 ====================================================
-Gerado por NeuroSuite | Data: ${now}
+Gerado por CrewVitals | Data: ${now}
 Período de Análise: ${reportData.period}
 
 1. RESUMO EXECUTIVO
@@ -123,7 +123,7 @@ Nível de Risco Geral: ${reportData.riskLevel === 'high' ? 'ALTO ⚠️' : repor
 • HRV Médio: ${reportData.avgHRV}ms
 • Status HRV: ${reportData.avgHRV > 50 ? 'Boa resiliência autonômica' : reportData.avgHRV > 30 ? 'Normal — monitorar' : 'Atenção — possível sobrecarga'}
 
-4. ANÁLISE DE RISCO (NR-1, Art. 157)
+4. ANÁLISE DE RISCO (Segurança de Missão, Art. 157)
 ---------------------------------------
 ${reportData.riskLevel === 'high' ? 'AÇÃO URGENTE: Mais de 30% dos colaboradores apresentam estresse alto. Risco de adoecimento ocupacional e passivo trabalhista.' : reportData.riskLevel === 'moderate' ? 'ATENÇÃO: Níveis moderados de estresse detectados. Intervenções preventivas recomendadas.' : 'SITUAÇÃO CONTROLADA: Níveis de estresse dentro dos parâmetros aceitáveis.'}
 
@@ -133,20 +133,20 @@ ${reportData.recommendations.map((r, i) => `${i + 1}. ${r}`).join('\n')}
 
 6. BASE LEGAL
 ---------------
-• NR-1 (Portaria MTP 4.219/2022) — Gerenciamento de Riscos Ocupacionais
+• Segurança de Missão (Portaria MTP 4.219/2022) — Gerenciamento de Riscos Ocupacionais
 • Lei 14.457/2022 — Programa Emprega + Mulheres (saúde mental)
 • Portaria MTE 1.419/2024 — Riscos psicossociais no PGR
 • OIT C155 — Convenção sobre Segurança e Saúde dos Trabalhadores
 
 7. DECLARAÇÃO
 ---------------
-Este relatório foi gerado automaticamente pelo sistema NeuroSuite com base em dados biométricos coletados de forma anônima e em conformidade com a LGPD (Lei 13.709/2018).
+Este relatório foi gerado automaticamente pelo sistema CrewVitals com base em dados biométricos coletados de forma anônima e em conformidade com a Zero-Trust Privacy (Lei 13.709/2018).
 
 Os dados são agregados e não permitem identificação individual dos colaboradores.
 
 ____________________________________
 Responsável Técnico
-NeuroSuite — Plataforma de Neuroperformance Corporativa
+CrewVitals — Plataforma de Neuroperformance Corporativa
     `.trim();
   };
 
@@ -192,7 +192,7 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
       <Card>
         <CardContent className="p-12 text-center">
           <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-muted-foreground">Gerando relatório NR-1...</p>
+          <p className="text-muted-foreground">Gerando relatório Segurança de Missão...</p>
         </CardContent>
       </Card>
     );
@@ -229,10 +229,10 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            Relatório NR-1 — Riscos Psicossociais
+            Relatório Segurança de Missão — Riscos Psicossociais
           </CardTitle>
           <CardDescription>
-            Relatório de compliance para gestão de riscos psicossociais conforme NR-1 e Portaria MTE 1.419/2024
+            Relatório de Segurança de Missão para gestão de riscos psicossociais conforme Segurança de Missão e Portaria MTE 1.419/2024
           </CardDescription>
           <div className="flex gap-2 mt-3 flex-wrap">
             <Button onClick={exportReport} variant="default" size="sm" disabled={generating}>
@@ -244,7 +244,7 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
               Exportar CSV
             </Button>
             <ExportPDFButton
-              reportTitle="Relatório NR-1 — Riscos Psicossociais"
+              reportTitle="Relatório Segurança de Missão — Riscos Psicossociais"
               stats={[
                 { label: 'Total Scans', value: String(reportData.totalScans) },
                 { label: 'Estresse Baixo', value: `${reportData.lowPercent}%` },
@@ -257,12 +257,12 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
                 { title: '2. Distribuição de Estresse', content: `Baixo: ${reportData.lowPercent}%\nModerado: ${reportData.moderatePercent}%\nAlto: ${reportData.highPercent}%` },
                 { title: '3. Recomendações', content: reportData.recommendations.map((r, i) => `${i + 1}. ${r}`).join('\n') },
                 ...(aiInsights ? [
-                  { title: '4. Análise IA (NR-1)', content: aiInsights.legalAnalysis },
+                  { title: '4. Análise IA (Segurança de Missão)', content: aiInsights.legalAnalysis },
                   { title: '5. Texto para PGR', content: aiInsights.executiveText },
                 ] : []),
-                { title: 'Base Legal', content: 'NR-1 (Portaria MTP 4.219/2022)\nLei 14.457/2022\nPortaria MTE 1.419/2024\nOIT C155' },
+                { title: 'Base Legal', content: 'Segurança de Missão (Portaria MTP 4.219/2022)\nLei 14.457/2022\nPortaria MTE 1.419/2024\nOIT C155' },
               ]}
-              footer="Gerado automaticamente por NeuroSuite · Dados protegidos por LGPD"
+              footer="Gerado automaticamente por CrewVitals · Dados protegidos por Zero-Trust Privacy"
             />
           </div>
         </CardHeader>
@@ -315,7 +315,7 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
 
           {/* Recommendations */}
           <div className="space-y-3">
-            <p className="text-sm font-semibold">📋 Recomendações para Compliance NR-1:</p>
+            <p className="text-sm font-semibold">📋 Recomendações para Segurança de Missão Segurança de Missão:</p>
             <div className="space-y-2">
               {reportData.recommendations.map((rec, i) => (
                 <div key={i} className="flex items-start gap-2 p-2 bg-muted/30 rounded-lg">
@@ -349,7 +349,7 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
                 if (data?.error) throw new Error(data.error);
                 setAiInsights(data.result);
               } catch (e: any) {
-                console.error('Erro AI NR-1:', e);
+                console.error('Erro AI Segurança de Missão:', e);
               } finally {
                 setLoadingAI(false);
               }
@@ -359,7 +359,7 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
             className="w-full gap-2"
           >
             {loadingAI ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4 text-accent" />}
-            {loadingAI ? 'Gerando análise jurídica...' : '✨ Gerar Insights NR-1 com IA'}
+            {loadingAI ? 'Gerando análise jurídica...' : '✨ Gerar Insights Segurança de Missão com IA'}
           </Button>
 
           {aiInsights && (
@@ -382,7 +382,7 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
 
                 {aiInsights.complianceGaps?.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-semibold text-yellow-600 uppercase mb-1">Lacunas de Compliance:</p>
+                    <p className="text-[10px] font-semibold text-yellow-600 uppercase mb-1">Lacunas de Segurança de Missão:</p>
                     {aiInsights.complianceGaps.map((g, i) => (
                       <p key={i} className="text-xs text-muted-foreground pl-2">• {g}</p>
                     ))}
@@ -400,9 +400,9 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
           {/* Legal Reference */}
           <div className="p-3 bg-muted/20 rounded-lg text-[10px] text-muted-foreground space-y-1">
             <p className="font-semibold">⚖️ Base Legal:</p>
-            <p>• NR-1 (Portaria MTP 4.219/2022) — Gerenciamento de Riscos Ocupacionais</p>
+            <p>• Segurança de Missão (Portaria MTP 4.219/2022) — Gerenciamento de Riscos Ocupacionais</p>
             <p>• Portaria MTE 1.419/2024 — Inclusão de riscos psicossociais no PGR</p>
-            <p>• LGPD (Lei 13.709/2018) — Dados anonimizados e agregados</p>
+            <p>• Zero-Trust Privacy (Lei 13.709/2018) — Dados anonimizados e agregados</p>
           </div>
         </CardContent>
       </Card>

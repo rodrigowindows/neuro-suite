@@ -113,7 +113,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
-            NeuroScore — Detecção de Estresse
+            BioScore — Detecção de Estresse
           </CardTitle>
           <CardDescription>
             Análise de taxa de piscadas + HRV via webcam para estimar estresse (baseado em neurociência)

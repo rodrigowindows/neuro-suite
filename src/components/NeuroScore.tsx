@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import WebcamCapture from './WebcamCapture';
 import PostScanActionPlan from './PostScanActionPlan';
 import StressTrendChart from './StressTrendChart';
+import { roundBlinkRate } from '@/lib/biometricDisplay';
 
 interface NeuroScoreProps {
   onScoreComplete: (stressLevel: string, hrvValue?: number) => void;
@@ -73,7 +74,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
 
   const getStressDisplay = (level: string) => {
     if (level === 'moderate') return { emoji: '😐', message: 'Atenção normal, sugira pausas para evitar burnout' };
-    if (level === 'high') return { emoji: '😟', message: 'Alerta estresse, priorize reequilíbrio (NR-1)' };
+    if (level === 'high') return { emoji: '😟', message: 'Fadiga detectada. Risco de erro operacional' };
     return { emoji: '😊', message: 'Foco otimizado, produtividade alta' };
   };
 
@@ -154,7 +155,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
-            NeuroScore — Detecção de Estresse
+            BioScore — Detecção de Estresse
           </CardTitle>
           <CardDescription>
             Análise de taxa de piscadas + HRV via webcam para estimar estresse (baseado em neurociência)
@@ -209,7 +210,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
               <div className={`grid ${result.hrvValue ? 'grid-cols-3' : 'grid-cols-2'} gap-4 pt-4 border-t`}>
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground">Taxa de piscadas</p>
-                  <p className="text-2xl font-bold text-primary">{result.blinkRate}/min</p>
+                  <p className="text-2xl font-bold text-primary">{roundBlinkRate(result.blinkRate)} piscadas/min</p>
                 </div>
                 {result.hrvValue && (
                   <div className="text-center">
@@ -230,7 +231,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
               <div className="p-4 bg-primary/5 rounded-lg">
                 <p className="text-sm font-medium mb-2">💡 Dica PNL:</p>
                 <p className="text-sm text-muted-foreground">
-                  {result.stressLevel === 'low' && 'Ancore uma memória de sucesso para manter alta performance.'}
+                  {result.stressLevel === 'low' && 'Ancore uma memória de sucesso para manter prontidão operacional.'}
                   {result.stressLevel === 'moderate' && 'Pratique respiração 4-7-8 para reequilíbrio rápido.'}
                   {result.stressLevel === 'high' && 'Pause agora: 2min de respiração profunda + reframe mental (PNL).'}
                 </p>

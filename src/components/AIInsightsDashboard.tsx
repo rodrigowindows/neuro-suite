@@ -153,7 +153,7 @@ export default function AIInsightsDashboard() {
         .order('updated_at', { ascending: false })
         .limit(5);
 
-      if (!conversations || conversations.length === 0) throw new Error('Sem conversas para analisar. Use o NeuroCoach primeiro.');
+      if (!conversations || conversations.length === 0) throw new Error('Sem conversas para analisar. Use o AstroAssist primeiro.');
 
       const allUserMessages = conversations.flatMap(c => 
         (c.messages as any[]).filter((m: any) => m.role === 'user')
@@ -283,9 +283,9 @@ export default function AIInsightsDashboard() {
               </div>
               <div className="text-center p-3 bg-primary/10 rounded-lg">
                 <p className={`text-sm font-bold ${summary.complianceStatus === 'compliant' ? 'text-green-500' : summary.complianceStatus === 'attention' ? 'text-yellow-500' : 'text-red-500'}`}>
-                  {summary.complianceStatus === 'compliant' ? '✅ Compliance' : summary.complianceStatus === 'attention' ? '⚡ Atenção' : '❌ Não-Compliance'}
+                  {summary.complianceStatus === 'compliant' ? '✅ Segurança de Missão' : summary.complianceStatus === 'attention' ? '⚡ Atenção' : '❌ Atenção à Segurança de Missão'}
                 </p>
-                <p className="text-[10px] text-muted-foreground">Status NR-1</p>
+                <p className="text-[10px] text-muted-foreground">Status Segurança de Missão</p>
               </div>
             </div>
 

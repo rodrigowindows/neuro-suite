@@ -51,7 +51,7 @@ export default function ExportPDFButton({ reportTitle, sections, stats, footer, 
   <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #1a7a7a;padding-bottom:12px;margin-bottom:20px;">
     <div>
       <h1 style="margin:0;font-size:20px;color:#1a3a4a;">${reportTitle}</h1>
-      <p style="margin:4px 0 0;font-size:11px;color:#888;">Gerado por NeuroSuite · ${now}</p>
+      <p style="margin:4px 0 0;font-size:11px;color:#888;">Gerado por CrewVitals · ${now}</p>
     </div>
     <div style="font-size:24px;font-weight:800;color:#1a7a7a;">NS</div>
   </div>

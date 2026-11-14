@@ -31,11 +31,11 @@ export default function GamificationScoreCard({ compact = false }: GamificationS
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-base">
             <Trophy className="h-5 w-5 text-accent" />
-            Gamification Score
+            Disciplina de Missão
           </CardTitle>
         </CardHeader>
         <CardContent className="text-center py-8">
-          <p className="text-muted-foreground text-sm">Complete seu primeiro scan para começar a ganhar XP!</p>
+          <p className="text-muted-foreground text-sm">Complete sua primeira avaliação para iniciar os ciclos de missão.</p>
         </CardContent>
       </Card>
     );
@@ -46,14 +46,14 @@ export default function GamificationScoreCard({ compact = false }: GamificationS
   return (
     <Card className="shadow-soft border-accent/20 bg-gradient-card overflow-hidden">
       <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap gap-2 items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base">
             <Trophy className="h-5 w-5 text-accent" />
-            Gamification Score
+            Disciplina de Missão
           </CardTitle>
           <div className="flex items-center gap-1.5">
             <Sparkles className="h-3.5 w-3.5 text-accent" />
-            <span className="text-xs font-bold text-accent">{xp} XP</span>
+            <span className="text-xs font-bold text-accent">{totalScans} Ciclos Concluídos</span>
           </div>
         </div>
       </CardHeader>
@@ -71,11 +71,11 @@ export default function GamificationScoreCard({ compact = false }: GamificationS
               <span className={compact ? 'text-2xl' : 'text-3xl'}>{emoji}</span>
             </motion.div>
             <div className={compact ? '' : 'flex-1'}>
-              <div className="flex items-baseline gap-2">
+              <div className="flex flex-wrap items-baseline gap-2">
                 <span className="font-display font-bold text-lg text-foreground">
-                  Nível {level.level}
+                  Etapa {level.level}
                 </span>
-                <span className="text-xs text-muted-foreground">— {level.title}</span>
+                <span className="text-xs text-muted-foreground">— Disciplina de Missão</span>
               </div>
               {/* XP Progress bar */}
               <div className="mt-1.5 space-y-1">
@@ -89,8 +89,8 @@ export default function GamificationScoreCard({ compact = false }: GamificationS
                 </div>
                 <p className="text-[10px] text-muted-foreground">
                   {nextLevel
-                    ? `${xp - level.minXP} / ${nextLevel.minXP - level.minXP} XP para Nível ${nextLevel.level}`
-                    : 'Nível máximo alcançado! 🏆'}
+                    ? `Progresso de missão: ${Math.round(progressToNext)}% para etapa ${nextLevel.level}`
+                    : 'Todas as etapas concluídas! 🏆'}
                 </p>
               </div>
             </div>
@@ -101,15 +101,15 @@ export default function GamificationScoreCard({ compact = false }: GamificationS
             <div className="grid grid-cols-3 gap-2">
               <div className="text-center p-2.5 bg-muted/50 rounded-lg">
                 <p className="text-lg font-bold text-foreground">{totalScans}</p>
-                <p className="text-[10px] text-muted-foreground">Scans</p>
+                <p className="text-[10px] text-muted-foreground">Ciclos Concluídos</p>
               </div>
               <div className="text-center p-2.5 bg-muted/50 rounded-lg">
                 <p className="text-lg font-bold text-foreground">{streak} 🔥</p>
-                <p className="text-[10px] text-muted-foreground">Streak</p>
+                <p className="text-[10px] text-muted-foreground">Sequência de Monitoramento</p>
               </div>
               <div className="text-center p-2.5 bg-muted/50 rounded-lg">
                 <p className="text-lg font-bold text-foreground">{badges.length}</p>
-                <p className="text-[10px] text-muted-foreground">Badges</p>
+                <p className="text-[10px] text-muted-foreground">Protocolos em Dia</p>
               </div>
             </div>
           )}

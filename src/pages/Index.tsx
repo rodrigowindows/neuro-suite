@@ -14,8 +14,8 @@ const fadeUp = {
 
 const features = [
   { icon: Eye, title: 'Análise de Fadiga', desc: 'Câmeras da nave detectam sinais de fadiga e micro-expressões. Monitoramento contínuo do estado cognitivo da tripulação em tempo real.', stat: '60s', statLabel: 'análise rápida' },
-  { icon: MessageCircle, title: 'NeuroCoach Espacial', desc: 'Coach de IA com suporte psicológico adaptativo — essencial quando a comunicação com a Terra leva minutos para chegar.', stat: '24/7', statLabel: 'disponível' },
-  { icon: Trophy, title: 'Gamificação de Missão', desc: 'Badges, streaks 🔥 e rankings da tripulação. Transforme o cuidado com a saúde em um hábito recompensador durante a missão.', stat: '12+', statLabel: 'conquistas' },
+  { icon: MessageCircle, title: 'AstroAssist Espacial', desc: 'Coach de IA com suporte psicológico adaptativo — essencial quando a comunicação com a Terra leva minutos para chegar.', stat: '24/7', statLabel: 'disponível' },
+  { icon: Trophy, title: 'Disciplina de Missão de Missão', desc: 'Ciclos concluídos, protocolos em dia e sequência de monitoramento. Transforme o cuidado com a saúde em um hábito recompensador durante a missão.', stat: '12+', statLabel: 'conquistas' },
   { icon: Rocket, title: 'Painel de Comando', desc: 'Visão consolidada da saúde da tripulação, métricas de fadiga e insights acionáveis para o controle da missão.', stat: '100%', statLabel: 'visibilidade' },
 ];
 
@@ -33,10 +33,10 @@ const stats = [
 ];
 
 const modules = [
-  { icon: CalendarCheck, title: 'Check-in Diário', desc: 'Triagem emocional de 30s com IA que gera micro-coaching personalizado baseado no humor e energia do astronauta.', tag: 'Tripulação' },
-  { icon: Activity, title: 'NeuroScore', desc: 'Análise facial via câmeras da nave detecta fadiga e estima variabilidade cardíaca para calcular o estado cognitivo.', tag: 'Tripulação' },
-  { icon: MessageCircle, title: 'NeuroCoach IA', desc: 'Coach de alta performance com suporte psicológico adaptado ao nível de estresse e isolamento da missão.', tag: 'Tripulação' },
-  { icon: Trophy, title: 'Gamificação', desc: 'Streaks, badges e rankings que transformam o cuidado com a saúde em hábito motivador durante a missão.', tag: 'Tripulação' },
+  { icon: CalendarCheck, title: 'Avaliação de Turno', desc: 'Triagem emocional de 30s com IA que gera micro-coaching personalizado baseado no humor e energia do astronauta.', tag: 'Tripulação' },
+  { icon: Activity, title: 'BioScore', desc: 'Análise facial via câmeras da nave detecta fadiga e estima variabilidade cardíaca para calcular o estado cognitivo.', tag: 'Tripulação' },
+  { icon: MessageCircle, title: 'AstroAssist IA', desc: 'Coach de prontidão operacional com suporte psicológico adaptado ao nível de estresse e isolamento da missão.', tag: 'Tripulação' },
+  { icon: Trophy, title: 'Disciplina de Missão', desc: 'Ciclos concluídos, protocolos em dia e sequência de monitoramento que transformam o cuidado com a saúde em hábito motivador durante a missão.', tag: 'Tripulação' },
   { icon: Moon, title: 'Registro de Sono', desc: 'Registro de horas dormidas e qualidade do sono — crítico para o ritmo circadiano em ambiente sem ciclo dia/noite.', tag: 'Tripulação' },
   { icon: Dumbbell, title: 'Log de Exercícios', desc: 'Registro de treinos diários para mitigar perda óssea e muscular em microgravidade.', tag: 'Tripulação' },
   { icon: Brain, title: 'IA Insights', desc: 'Predição de fadiga cognitiva, análise de sentimento e relatórios automáticos para o controle da missão.', tag: 'Comando' },
@@ -57,8 +57,8 @@ export default function Index() {
       <header className="border-b bg-card/80 backdrop-blur-lg sticky top-0 z-50">
         <nav className="container mx-auto px-4 py-3 flex items-center justify-between max-w-6xl" aria-label="Navegação principal">
           <div className="flex items-center gap-3">
-            <img src={neuroSuiteLogo} alt="NeuroSuite" className="h-10 sm:h-12 w-auto object-contain rounded-lg" loading="eager" width={48} height={48} />
-            <span className="font-display font-bold text-lg hidden sm:block">NeuroSuite</span>
+            <img src={neuroSuiteLogo} alt="CrewVitals" className="h-10 sm:h-12 w-auto object-contain rounded-lg" loading="eager" width={48} height={48} />
+            <span className="font-display font-bold text-lg">CrewVitals</span>
           </div>
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => document.getElementById('beneficios')?.scrollIntoView({ behavior: 'smooth' })} className="hidden md:flex">
@@ -204,7 +204,7 @@ export default function Index() {
                           <m.icon className="h-4 w-4 text-primary" />
                         </div>
                         <div className="min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex flex-wrap items-center gap-2 mb-1">
                             <h3 className="font-semibold text-sm">{m.title}</h3>
                             <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${tagColors[m.tag] || 'bg-muted text-muted-foreground'}`}>
                               {m.tag}
@@ -320,7 +320,7 @@ export default function Index() {
                 <span className="font-display font-bold">{APP_CONFIG.name}</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Dados de saúde processados localmente (Edge Computing) — Privacidade Garantida 🔒
+                Zero-Trust Privacy 🔒
               </p>
             </div>
             <div>

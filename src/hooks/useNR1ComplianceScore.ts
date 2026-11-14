@@ -58,7 +58,7 @@ function buildChecklist(data: {
     id: 'pgr_risk_id',
     category: 'Identificação de Riscos',
     requirement: 'Levantamento de riscos psicossociais no ambiente de trabalho',
-    legalRef: 'NR-1 §1.5.3.2 / Portaria 1.419/2024 Art. 1°',
+    legalRef: 'Segurança de Missão §1.5.3.2 / Portaria 1.419/2024 Art. 1°',
     status: data.totalScans >= 10 ? 'compliant' : data.totalScans >= 3 ? 'partial' : 'non_compliant',
     weight: 3,
     autoDetected: true,
@@ -70,7 +70,7 @@ function buildChecklist(data: {
     id: 'continuous_monitoring',
     category: 'Monitoramento',
     requirement: 'Monitoramento contínuo de indicadores de saúde mental',
-    legalRef: 'NR-1 §1.5.4.4 / Portaria 1.419/2024',
+    legalRef: 'Segurança de Missão §1.5.4.4 / Portaria 1.419/2024',
     status: data.hasRecentScans ? 'compliant' : 'non_compliant',
     weight: 3,
     autoDetected: true,
@@ -83,7 +83,7 @@ function buildChecklist(data: {
     id: 'coverage',
     category: 'Abrangência',
     requirement: 'Avaliação deve abranger todos os colaboradores expostos a riscos',
-    legalRef: 'NR-1 §1.5.3.1',
+    legalRef: 'Segurança de Missão §1.5.3.1',
     status: adoptionRate >= 70 ? 'compliant' : adoptionRate >= 30 ? 'partial' : 'non_compliant',
     weight: 2,
     autoDetected: true,
@@ -107,7 +107,7 @@ function buildChecklist(data: {
     id: 'risk_classification',
     category: 'Classificação',
     requirement: 'Classificação dos riscos por nível de gravidade',
-    legalRef: 'NR-1 §1.5.4.2',
+    legalRef: 'Segurança de Missão §1.5.4.2',
     status: data.totalScans >= 5 ? 'compliant' : 'non_compliant',
     weight: 2,
     autoDetected: true,
@@ -119,7 +119,7 @@ function buildChecklist(data: {
     id: 'critical_intervention',
     category: 'Intervenção',
     requirement: 'Ações imediatas para colaboradores em risco alto',
-    legalRef: 'NR-1 §1.5.5.2 / Portaria 1.419/2024',
+    legalRef: 'Segurança de Missão §1.5.5.2 / Portaria 1.419/2024',
     status: data.hasAlerts ? 'compliant' : data.highPercent > 20 ? 'non_compliant' : 'partial',
     weight: 3,
     autoDetected: true,
@@ -131,11 +131,11 @@ function buildChecklist(data: {
     id: 'documentation',
     category: 'Documentação',
     requirement: 'Registro documentado das avaliações e ações no PGR',
-    legalRef: 'NR-1 §1.5.7 / Portaria 1.419/2024 Art. 2°',
+    legalRef: 'Segurança de Missão §1.5.7 / Portaria 1.419/2024 Art. 2°',
     status: data.totalScans >= 10 ? 'compliant' : data.totalScans > 0 ? 'partial' : 'non_compliant',
     weight: 2,
     autoDetected: true,
-    detail: 'Relatórios NR-1 disponíveis para exportação',
+    detail: 'Relatórios Segurança de Missão disponíveis para exportação',
   });
 
   // 8. Feedback e comunicação
@@ -143,7 +143,7 @@ function buildChecklist(data: {
     id: 'feedback',
     category: 'Comunicação',
     requirement: 'Canal de comunicação e feedback com colaboradores',
-    legalRef: 'NR-1 §1.5.3.3',
+    legalRef: 'Segurança de Missão §1.5.3.3',
     status: data.hasFeedback ? 'compliant' : 'partial',
     weight: 1,
     autoDetected: true,
@@ -154,8 +154,8 @@ function buildChecklist(data: {
   items.push({
     id: 'lgpd',
     category: 'Privacidade',
-    requirement: 'Dados coletados em conformidade com LGPD (anonimização)',
-    legalRef: 'LGPD Lei 13.709/2018 Art. 7°',
+    requirement: 'Dados coletados em conformidade com Zero-Trust Privacy (anonimização)',
+    legalRef: 'Zero-Trust Privacy Lei 13.709/2018 Art. 7°',
     status: 'compliant',
     weight: 2,
     autoDetected: true,
@@ -167,7 +167,7 @@ function buildChecklist(data: {
     id: 'training',
     category: 'Capacitação',
     requirement: 'Capacitação de gestores sobre riscos psicossociais',
-    legalRef: 'NR-1 §1.5.5.1 / Portaria 1.419/2024',
+    legalRef: 'Segurança de Missão §1.5.5.1 / Portaria 1.419/2024',
     status: 'partial',
     weight: 1,
     autoDetected: false,
@@ -264,7 +264,7 @@ export function useNR1ComplianceScore(): NR1ComplianceData {
         loading: false,
       });
     } catch (err) {
-      console.error('useNR1ComplianceScore error:', err);
+      console.error('useNR1Segurança de MissãoScore error:', err);
       setData(prev => ({ ...prev, loading: false }));
     }
   }, []);

@@ -129,7 +129,7 @@ export default function WellnessReportPDF() {
   <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #1a7a7a;padding-bottom:12px;margin-bottom:20px;">
     <div>
       <h1>Relatório de Bem-Estar</h1>
-      <p style="margin:4px 0 0;font-size:11px;color:#888;">${userName} · Gerado em ${now} · NeuroSuite v1.0</p>
+      <p style="margin:4px 0 0;font-size:11px;color:#888;">${userName} · Gerado em ${now} · CrewVitals v1.0</p>
     </div>
     <div style="font-size:28px;font-weight:800;color:#1a7a7a;">NS</div>
   </div>
@@ -159,15 +159,15 @@ export default function WellnessReportPDF() {
 
   ${consecutiveHighDays > 0 ? `<p style="background:#fef2f2;padding:8px 12px;border-radius:6px;border-left:3px solid #ef4444;font-size:11px;">⚠️ <b>${consecutiveHighDays} dia(s) consecutivo(s)</b> com maioria de estresse alto.</p>` : ''}
 
-  <h2>😊 Histórico de Check-ins (últimos 15)</h2>
+  <h2>😊 Histórico de Avaliação de Turnos (últimos 15)</h2>
   ${checkinRows ? `
     <table>
       <thead><tr><th>Data</th><th>Humor</th><th>Energia</th></tr></thead>
       <tbody>${checkinRows}</tbody>
     </table>
-  ` : '<p style="color:#999;">Nenhum check-in registrado no período.</p>'}
+  ` : '<p style="color:#999;">Nenhum Avaliação de Turno registrado no período.</p>'}
 
-  <h2>🏆 Gamificação</h2>
+  <h2>🏆 Disciplina de Missão</h2>
   <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
     <div class="stat-card"><div class="stat-value">${progress?.total_scans || 0}</div><div class="stat-label">Total Scans</div></div>
     <div class="stat-card"><div class="stat-value">${progress?.current_streak || 0}🔥</div><div class="stat-label">Streak Atual</div></div>
@@ -175,7 +175,7 @@ export default function WellnessReportPDF() {
   </div>
 
   <div style="margin-top:32px;padding-top:16px;border-top:1px solid #ddd;font-size:10px;color:#999;text-align:center;">
-    Relatório confidencial gerado automaticamente por NeuroSuite · Lincolnectd Neurobusiness · LGPD Compliance<br>
+    Relatório confidencial gerado automaticamente por CrewVitals · CrewVitals by Dark Sector · Zero-Trust Privacy Segurança de Missão<br>
     Período: últimos 30 dias · Dados anonimizados conforme política de privacidade
   </div>
 

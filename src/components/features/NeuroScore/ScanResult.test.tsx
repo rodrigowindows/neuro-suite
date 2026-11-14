@@ -28,7 +28,7 @@ describe("ScanResult", () => {
 
   it("shows blink rate", () => {
     const { getByText } = render(<ScanResult result={mockResult} userName="" />);
-    expect(getByText("20/min")).toBeInTheDocument();
+    expect(getByText("20 piscadas/min")).toBeInTheDocument();
   });
 
   it("displays user name when provided", () => {

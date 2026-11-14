@@ -160,7 +160,7 @@ export default function PGRReportGenerator() {
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
     <div>
       <h1 style="margin:0;border:none;padding:0;">${report.titulo}</h1>
-      <p style="color:#888;font-size:11px;margin:4px 0 0;">${report.versao} · Gerado por NeuroSuite · ${now}</p>
+      <p style="color:#888;font-size:11px;margin:4px 0 0;">${report.versao} · Gerado por CrewVitals · ${now}</p>
     </div>
     <div style="font-size:28px;font-weight:800;color:#1a7a7a;">NS</div>
   </div>
@@ -215,7 +215,7 @@ export default function PGRReportGenerator() {
   <p><strong>Indicadores:</strong></p>
   <ul>${report.monitoramento?.indicadores?.map(i => `<li>${i}</li>`).join('') || ''}</ul>
 
-  <h2>8. PROTEÇÃO DE DADOS (LGPD)</h2>
+  <h2>8. PROTEÇÃO DE DADOS (Zero-Trust Privacy)</h2>
   <p>${report.declaracaoLGPD || ''}</p>
 
   <h2>9. CONCLUSÃO</h2>
@@ -223,8 +223,8 @@ export default function PGRReportGenerator() {
 
   <div style="margin-top:40px;padding-top:16px;border-top:2px solid #1a7a7a;">
     <p style="font-size:10px;color:#999;text-align:center;">
-      Documento gerado automaticamente pelo sistema NeuroSuite — Plataforma de Neuroperformance Corporativa<br>
-      Dados agregados e anonimizados em conformidade com a LGPD (Lei 13.709/2018)
+      Documento gerado automaticamente pelo sistema CrewVitals — Plataforma de Neuroperformance Corporativa<br>
+      Dados agregados e anonimizados em conformidade com a Zero-Trust Privacy (Lei 13.709/2018)
     </p>
     <div style="display:flex;justify-content:space-between;margin-top:24px;">
       <div style="text-align:center;flex:1;">
@@ -277,7 +277,7 @@ export default function PGRReportGenerator() {
             Relatório PGR — Riscos Psicossociais
           </CardTitle>
           <CardDescription>
-            Documento técnico do Programa de Gerenciamento de Riscos conforme NR-1 e Portaria MTE 1.419/2024, gerado automaticamente com IA
+            Documento técnico do Programa de Gerenciamento de Riscos conforme Segurança de Missão e Portaria MTE 1.419/2024, gerado automaticamente com IA
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -459,7 +459,7 @@ export default function PGRReportGenerator() {
                 </div>
               </div>
               <div>
-                <p className="text-xs font-semibold mb-1">🔒 LGPD</p>
+                <p className="text-xs font-semibold mb-1">🔒 Zero-Trust Privacy</p>
                 <p className="text-[10px] text-muted-foreground">{report.declaracaoLGPD}</p>
               </div>
               <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">

@@ -111,14 +111,14 @@ export default function Auth() {
             <div className="flex justify-center">
               <img
                 src={neuroSuiteLogo}
-                alt="NeuroSuite - Plataforma de Detecção de Estresse"
+                alt="CrewVitals - Plataforma de Detecção de Estresse"
                 className="h-24 sm:h-28 w-auto rounded-xl shadow-medium"
               />
             </div>
             <div>
-              <h1 className="font-display font-bold text-xl text-foreground">NeuroSuite</h1>
+              <h1 className="font-display font-bold text-xl text-foreground">CrewVitals</h1>
               <CardDescription className="text-xs mt-1">
-                Detecção de estresse e coaching de alta performance
+                Detecção de estresse e coaching de prontidão operacional
               </CardDescription>
             </div>
           </CardHeader>
@@ -223,7 +223,7 @@ export default function Auth() {
                     <div className="space-y-1.5">
                       <label htmlFor="signup-preferred-name" className="text-xs font-medium">Como prefere ser chamado(a)?</label>
                       <Input id="signup-preferred-name" type="text" placeholder="Ex: João, Maria..." value={signupPreferredName} onChange={(e) => setSignupPreferredName(e.target.value)} />
-                      <p className="text-[10px] text-muted-foreground">O NeuroCoach usará este nome</p>
+                      <p className="text-[10px] text-muted-foreground">O AstroAssist usará este nome</p>
                     </div>
                     <div className="space-y-1.5">
                       <label htmlFor="signup-email" className="text-xs font-medium">Email</label>

@@ -71,7 +71,7 @@ export default function NarrativeReportGenerator() {
             Relatórios Narrativos com IA
           </CardTitle>
           <CardDescription>
-            Converta métricas em relatórios executivos profissionais para RH e C-Level
+            Converta métricas em relatórios executivos profissionais para Comando e C-Level
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
