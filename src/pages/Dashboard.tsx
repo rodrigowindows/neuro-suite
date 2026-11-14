@@ -11,6 +11,7 @@ import FeedbackButton from '@/components/FeedbackButton';
 import DashboardSkeleton from '@/components/DashboardSkeleton';
 import StressAlertBanner from '@/components/StressAlertBanner';
 import DashboardContent from '@/components/DashboardContent';
+import PredictiveAlert from '@/components/PredictiveAlert';
 import { useStressNotifications } from '@/hooks/useStressNotifications';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -132,6 +133,7 @@ export default function Dashboard() {
           </header>
 
           <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-6xl w-full mx-auto space-y-4">
+            {activeTab === 'checkin' && <PredictiveAlert onMitigate={() => setActiveTab('neurocoach')} />}
             {stressNotif.isCritical && (
               <StressAlertBanner
                 consecutiveHighDays={stressNotif.consecutiveHighDays}

@@ -1,5 +1,6 @@
 import { StressResult, getStressLabel, getDiagnosticLabel, getPnlTip } from '@/services/stressCalculator';
 import PostScanActionPlan from '@/components/PostScanActionPlan';
+import { roundBlinkRate } from '@/lib/biometricDisplay';
 
 interface ScanResultProps {
   result: StressResult;
@@ -22,7 +23,7 @@ export default function ScanResult({ result, userName, lastHrvValue }: ScanResul
       <div className={`grid ${result.hrvValue ? 'grid-cols-3' : 'grid-cols-2'} gap-4 pt-4 border-t`}>
         <div className="text-center">
           <p className="text-sm text-muted-foreground">Taxa de piscadas</p>
-          <p className="text-2xl font-bold text-primary">{result.blinkRate}/min</p>
+          <p className="text-2xl font-bold text-primary">{roundBlinkRate(result.blinkRate)} piscadas/min</p>
         </div>
         {result.hrvValue && (
           <div className="text-center">

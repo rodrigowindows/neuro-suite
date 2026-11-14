@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import WebcamCapture from './WebcamCapture';
 import PostScanActionPlan from './PostScanActionPlan';
 import StressTrendChart from './StressTrendChart';
+import { roundBlinkRate } from '@/lib/biometricDisplay';
 
 interface NeuroScoreProps {
   onScoreComplete: (stressLevel: string, hrvValue?: number) => void;
@@ -209,7 +210,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
               <div className={`grid ${result.hrvValue ? 'grid-cols-3' : 'grid-cols-2'} gap-4 pt-4 border-t`}>
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground">Taxa de piscadas</p>
-                  <p className="text-2xl font-bold text-primary">{result.blinkRate}/min</p>
+                  <p className="text-2xl font-bold text-primary">{roundBlinkRate(result.blinkRate)} piscadas/min</p>
                 </div>
                 {result.hrvValue && (
                   <div className="text-center">
