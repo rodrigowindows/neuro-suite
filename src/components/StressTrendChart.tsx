@@ -84,8 +84,8 @@ export default function StressTrendChart() {
     const second = data.slice(Math.ceil(data.length / 2));
     const avgFirst = first.reduce((s, d) => s + d.stressScore, 0) / first.length;
     const avgSecond = second.reduce((s, d) => s + d.stressScore, 0) / second.length;
-    if (avgSecond < avgFirst - 0.2) return { icon: TrendingDown, text: 'Estresse diminuindo ✅', color: 'text-success' };
-    if (avgSecond > avgFirst + 0.2) return { icon: TrendingUp, text: 'Estresse aumentando ⚠️', color: 'text-destructive' };
+    if (avgSecond < avgFirst - 0.2) return { icon: TrendingDown, text: 'Estresse diminuindo', color: 'text-success' };
+    if (avgSecond > avgFirst + 0.2) return { icon: TrendingUp, text: 'Estresse aumentando', color: 'text-destructive' };
     return { icon: Minus, text: 'Estável', color: 'text-muted-foreground' };
   };
 
@@ -149,7 +149,7 @@ export default function StressTrendChart() {
                   <YAxis domain={[0.5, 3.5]} tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
                   <Tooltip
                     contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }}
-                    formatter={(val: number) => [val <= 1.5 ? '🟢 Baixo' : val <= 2.3 ? '🟡 Moderado' : '🔴 Alto', 'Estresse']}
+                    formatter={(val: number) => [val <= 1.5 ? 'Baixo' : val <= 2.3 ? 'Moderado' : 'Alto', 'Estresse']}
                   />
                   <Area type="monotone" dataKey="stressScore" stroke="hsl(var(--primary))" fill="url(#stressGrad)" strokeWidth={2} />
                 </AreaChart>

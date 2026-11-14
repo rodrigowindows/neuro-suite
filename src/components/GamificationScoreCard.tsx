@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Trophy, Sparkles } from 'lucide-react';
+import { Trophy, Sparkles, Target, Activity, Zap, Shield, Award, Flame, Compass, Radio, Crown } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useGamificationScore } from '@/hooks/useGamificationScore';
 
@@ -7,9 +7,17 @@ interface GamificationScoreCardProps {
   compact?: boolean;
 }
 
-const LEVEL_EMOJIS: Record<number, string> = {
-  1: '🌱', 2: '👁️', 3: '🧠', 4: '🎯', 5: '⚡',
-  6: '🏅', 7: '🧘', 8: '👑', 9: '🌟', 10: '💎',
+const LEVEL_ICONS: Record<number, React.ComponentType<{ className?: string }>> = {
+  1: Target,
+  2: Activity,
+  3: Zap,
+  4: Shield,
+  5: Award,
+  6: Flame,
+  7: Compass,
+  8: Radio,
+  9: Trophy,
+  10: Crown,
 };
 
 export default function GamificationScoreCard({ compact = false }: GamificationScoreCardProps) {
@@ -41,7 +49,7 @@ export default function GamificationScoreCard({ compact = false }: GamificationS
     );
   }
 
-  const emoji = LEVEL_EMOJIS[level.level] || '🌱';
+  const LevelIcon = LEVEL_ICONS[level.level] || Target;
 
   return (
     <Card className="shadow-soft border-accent/20 bg-gradient-card overflow-hidden">
@@ -68,7 +76,7 @@ export default function GamificationScoreCard({ compact = false }: GamificationS
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: 'spring', stiffness: 200 }}
             >
-              <span className={compact ? 'text-2xl' : 'text-3xl'}>{emoji}</span>
+              <LevelIcon className={compact ? 'h-6 w-6 text-accent' : 'h-8 w-8 text-accent'} />
             </motion.div>
             <div className={compact ? '' : 'flex-1'}>
               <div className="flex flex-wrap items-baseline gap-2">
@@ -90,7 +98,7 @@ export default function GamificationScoreCard({ compact = false }: GamificationS
                 <p className="text-[10px] text-muted-foreground">
                   {nextLevel
                     ? `Progresso de missão: ${Math.round(progressToNext)}% para etapa ${nextLevel.level}`
-                    : 'Todas as etapas concluídas! 🏆'}
+                    : 'Todas as etapas concluídas!'}
                 </p>
               </div>
             </div>
@@ -104,7 +112,10 @@ export default function GamificationScoreCard({ compact = false }: GamificationS
                 <p className="text-[10px] text-muted-foreground">Ciclos Concluídos</p>
               </div>
               <div className="text-center p-2.5 bg-muted/50 rounded-lg">
-                <p className="text-lg font-bold text-foreground">{streak} 🔥</p>
+                <p className="text-lg font-bold text-foreground flex items-center justify-center gap-1">
+                  <span>{streak}</span>
+                  <Flame className="h-4 w-4 text-orange-500 inline" />
+                </p>
                 <p className="text-[10px] text-muted-foreground">Sequência de Monitoramento</p>
               </div>
               <div className="text-center p-2.5 bg-muted/50 rounded-lg">

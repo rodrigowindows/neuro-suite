@@ -7,16 +7,44 @@ import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Zap, CheckCircle2, Sparkles, Sun, Clock, AlertTriangle, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { CheckCircle2, Sun, Clock, AlertTriangle, TrendingUp, TrendingDown, Minus, Activity } from 'lucide-react';
 import { toast } from 'sonner';
 
 const MOODS = [
-  { value: 'great', emoji: '🤩', label: 'Ótimo', color: 'bg-emerald-500/20 border-emerald-500/40 hover:bg-emerald-500/30' },
-  { value: 'good', emoji: '😊', label: 'Bem', color: 'bg-teal-500/20 border-teal-500/40 hover:bg-teal-500/30' },
-  { value: 'okay', emoji: '⚡', label: 'Nominal', color: 'bg-amber-500/20 border-amber-500/40 hover:bg-amber-500/30' },
-  { value: 'low', emoji: '😔', label: 'Baixo', color: 'bg-orange-500/20 border-orange-500/40 hover:bg-orange-500/30' },
-  { value: 'bad', emoji: '😩', label: 'Mal', color: 'bg-red-500/20 border-red-500/40 hover:bg-red-500/30' },
+  {
+    value: 'bad',
+    level: 1,
+    label: 'Crítico',
+    color: 'border-border hover:border-destructive/60 hover:bg-destructive/10',
+  },
+  {
+    value: 'low',
+    level: 2,
+    label: 'Baixo',
+    color: 'border-border hover:border-amber-500/60 hover:bg-amber-500/10',
+  },
+  {
+    value: 'okay',
+    level: 3,
+    label: 'Nominal',
+    color: 'border-border hover:border-muted-foreground/60 hover:bg-muted',
+  },
+  {
+    value: 'good',
+    level: 4,
+    label: 'Bom',
+    color: 'border-border hover:border-teal-500/60 hover:bg-teal-500/10',
+  },
+  {
+    value: 'great',
+    level: 5,
+    label: 'Ótimo',
+    color: 'border-border hover:border-emerald-500/60 hover:bg-emerald-500/10',
+  },
 ];
+
+const getMoodInfo = (value?: string) =>
+  MOODS.find((m) => m.value === value || String(m.level) === String(value));
 
 type Step = 'mood' | 'energy' | 'note' | 'done';
 
@@ -127,9 +155,9 @@ export default function DailyCheckin() {
 
       if (error) throw error;
 
-      setAiResponse(aiMsg || '✨ Avaliação de Turno registrado! Continue cuidando de você.');
+      setAiResponse(aiMsg || 'Avaliação de turno registrada. Continue com foco na operação.');
       setStep('done');
-      toast.success('Avaliação de Turno do dia registrado!');
+      toast.success('Avaliação de turno registrada!');
     } catch (err: any) {
       console.error(err);
       // Save without AI response
@@ -139,9 +167,9 @@ export default function DailyCheckin() {
         energy_level: energy[0],
         note: note.trim() || null,
       });
-      setAiResponse('✨ Avaliação de Turno registrado! Continue cuidando de você.');
+      setAiResponse('Avaliação de turno registrada. Continue com foco na operação.');
       setStep('done');
-      toast.success('Avaliação de Turno registrado!');
+      toast.success('Avaliação de turno registrada!');
     } finally {
       setLoading(false);
     }
@@ -168,7 +196,7 @@ export default function DailyCheckin() {
 
   // Already checked in today
   if (todayCheckin && step !== 'done') {
-    const moodInfo = MOODS.find(m => m.value === todayCheckin.mood);
+    const moodInfo = getMoodInfo(todayCheckin.mood);
     return (
       <Card className="shadow-soft border-primary/20 overflow-hidden">
         <div className="h-1 bg-gradient-to-r from-primary via-accent to-primary" />
@@ -180,24 +208,28 @@ export default function DailyCheckin() {
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center gap-3 p-3 bg-muted/40 rounded-lg">
-            <span className="text-3xl">{moodInfo?.emoji || '😊'}</span>
+            <span className="text-xl font-bold font-mono px-2.5 py-1 rounded bg-background border text-foreground">
+              {moodInfo?.level ?? '—'}
+            </span>
             <div>
               <p className="font-medium text-sm">{moodInfo?.label || todayCheckin.mood}</p>
               <p className="text-xs text-muted-foreground">Energia: {todayCheckin.energy_level}/5 • {new Date(todayCheckin.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
             </div>
           </div>
           {todayCheckin.ai_response && (
-            <div className="p-3 bg-primary/5 rounded-lg border border-primary/10">
+            <div className="p-3 bg-muted/40 rounded-lg border border-border">
               <p className="text-sm text-foreground/80">{todayCheckin.ai_response}</p>
             </div>
           )}
           <Button variant="outline" size="sm" onClick={handleNewCheckin} className="w-full">
-            Fazer novo Avaliação de Turno
+            Nova avaliação de turno
           </Button>
         </CardContent>
       </Card>
     );
   }
+
+  const selectedMood = getMoodInfo(mood);
 
   return (
     <Card className="shadow-soft border-primary/20 overflow-hidden">
@@ -238,11 +270,12 @@ export default function DailyCheckin() {
                 {MOODS.map((m) => (
                   <button
                     key={m.value}
+                    type="button"
                     onClick={() => handleMoodSelect(m.value)}
-                    className={`flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition-all duration-200 ${m.color} active:scale-95`}
+                    className={`flex flex-col items-center justify-center p-3 rounded-lg border bg-card transition-all duration-200 ${m.color} active:scale-95`}
                   >
-                    <span className="text-2xl sm:text-3xl">{m.emoji}</span>
-                    <span className="text-[10px] font-medium">{m.label}</span>
+                    <span className="text-xl font-bold font-mono text-foreground">{m.level}</span>
+                    <span className="text-[11px] font-medium text-muted-foreground mt-1">{m.label}</span>
                   </button>
                 ))}
               </div>
@@ -259,7 +292,9 @@ export default function DailyCheckin() {
               className="space-y-4"
             >
               <div className="flex items-center gap-2">
-                <span className="text-2xl">{MOODS.find(m => m.value === mood)?.emoji}</span>
+                <span className="text-xs font-semibold px-2 py-0.5 rounded border bg-muted font-mono text-foreground">
+                  {selectedMood?.level} · {selectedMood?.label}
+                </span>
                 <p className="text-sm font-medium text-foreground/80">Nível de energia?</p>
               </div>
               <div className="space-y-2 px-1">
@@ -271,10 +306,12 @@ export default function DailyCheckin() {
                   step={1}
                   className="w-full"
                 />
-                <div className="flex justify-between text-[10px] text-muted-foreground">
-                  <span>🔋 Esgotado</span>
-                  <span className="font-bold text-sm text-foreground">{energy[0]}/5</span>
-                  <span>⚡ Energizado</span>
+                <div className="flex justify-between items-center text-xs text-muted-foreground">
+                  <span>1 (Mínimo)</span>
+                  <span className="font-bold text-sm font-mono text-foreground px-2 py-0.5 bg-muted rounded">
+                    {energy[0]} / 5
+                  </span>
+                  <span>5 (Máximo)</span>
                 </div>
               </div>
               <Button onClick={handleEnergyNext} className="w-full" size="sm">
@@ -306,7 +343,7 @@ export default function DailyCheckin() {
                 />
                 {analyzingSentiment && (
                   <div className="absolute top-2 right-2">
-                    <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+                    <Activity className="h-4 w-4 text-primary animate-pulse" />
                   </div>
                 )}
               </div>
@@ -371,7 +408,7 @@ export default function DailyCheckin() {
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 animate-pulse" />
+                      <span className="animate-spin h-3.5 w-3.5 border-2 border-primary-foreground border-t-transparent rounded-full inline-block" />
                       Analisando...
                     </span>
                   ) : (
@@ -390,24 +427,25 @@ export default function DailyCheckin() {
               animate={{ opacity: 1, scale: 1 }}
               className="space-y-3 text-center py-2"
             >
-              <div className="text-4xl">
-                {MOODS.find(m => m.value === mood)?.emoji || '✨'}
+              <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-emerald-500/10 text-emerald-500 mx-auto">
+                <CheckCircle2 className="h-6 w-6" />
               </div>
               <div className="space-y-1">
-                <p className="font-semibold text-sm flex items-center justify-center gap-1">
-                  <Heart className="h-4 w-4 text-red-400" />
-                  Avaliação de Turno registrado!
+                <p className="font-semibold text-sm">
+                  Avaliação de turno registrada!
                 </p>
                 <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                  <span>{MOODS.find(m => m.value === mood)?.label}</span>
+                  <span className="font-medium text-foreground">
+                    {selectedMood ? `${selectedMood.level}: ${selectedMood.label}` : ''}
+                  </span>
                   <span>•</span>
-                  <span className="flex items-center gap-0.5"><Zap className="h-3 w-3" />{energy[0]}/5</span>
+                  <span className="font-mono">Energia: {energy[0]}/5</span>
                 </div>
               </div>
               {aiResponse && (
-                <div className="p-3 bg-primary/5 rounded-lg border border-primary/10 text-left">
-                  <p className="text-xs font-medium text-primary mb-1 flex items-center gap-1">
-                    <Sparkles className="h-3 w-3" /> AstroAssist diz:
+                <div className="p-3 bg-muted/40 rounded-lg border border-border text-left">
+                  <p className="text-xs font-semibold text-foreground mb-1">
+                    AstroAssist:
                   </p>
                   <p className="text-sm text-foreground/80">{aiResponse}</p>
                 </div>

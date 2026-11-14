@@ -12,7 +12,7 @@ export default function WelcomeBanner({ displayName }: WelcomeBannerProps) {
 
   if (dismissed) return null;
 
-  const greeting = displayName ? `Olá, ${displayName}! 👋` : 'Bem-vindo ao CrewVitals! 👋';
+  const greeting = displayName ? `Olá, ${displayName}!` : 'Bem-vindo ao CrewVitals!';
 
   return (
     <AnimatePresence>

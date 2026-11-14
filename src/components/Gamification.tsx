@@ -12,16 +12,29 @@ interface GamificationProps {
 }
 
 const BADGE_DEFINITIONS = [
-  { id: 'first_scan', name: '🎯 Check-in Inicial', description: 'Completou primeiro scan!', icon: '🎯', condition: (scans: number) => scans === 1 },
-  { id: 'warrior', name: '⚡ Monitoramento Constante', description: '10 scans completos!', icon: '⚡', condition: (scans: number) => scans >= 10 },
+  { id: 'first_scan', name: 'Check-in Inicial', description: 'Completou primeiro scan!', icon: 'Target', condition: (scans: number) => scans === 1 },
+  { id: 'warrior', name: 'Monitoramento Constante', description: '10 scans completos!', icon: 'Zap', condition: (scans: number) => scans >= 10 },
 ] as const;
 
-function getStreakEmoji(streak: number): string {
-  if (streak >= 30) return '🔥🔥🔥';
-  if (streak >= 14) return '🔥🔥';
-  if (streak >= 7) return '🔥';
-  if (streak >= 3) return '⚡';
-  return '✨';
+function renderBadgeIcon(icon: string, id: string) {
+  switch (id) {
+    case 'first_scan':
+      return <Target className="h-4 w-4 text-primary" data-testid="icon-target" />;
+    case 'warrior':
+      return <Zap className="h-4 w-4 text-amber-500" data-testid="icon-zap" />;
+    case 'zen_master':
+      return <Award className="h-4 w-4 text-cyan-500" data-testid="icon-award" />;
+    case 'hrv_hero':
+      return <Zap className="h-4 w-4 text-rose-500" data-testid="icon-zap" />;
+    case 'low_stress_keeper':
+      return <Trophy className="h-4 w-4 text-emerald-500" data-testid="icon-trophy" />;
+    default:
+      if (icon === 'Target') return <Target className="h-4 w-4 text-primary" data-testid="icon-target" />;
+      if (icon === 'Zap') return <Zap className="h-4 w-4 text-amber-500" data-testid="icon-zap" />;
+      if (icon === 'Award') return <Award className="h-4 w-4 text-cyan-500" data-testid="icon-award" />;
+      if (icon === 'Flame') return <Flame className="h-4 w-4 text-orange-500" data-testid="icon-flame" />;
+      return <Trophy className="h-4 w-4 text-yellow-500" data-testid="icon-trophy" />;
+  }
 }
 
 export default function Gamification({ stressLevel, hrvValue }: GamificationProps) {
@@ -101,10 +114,10 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
         }
       };
 
-      if (newStreak >= 7) addBadge('zen_master', '🧘 Protocolo de Resiliência', '7 dias consecutivos!', '🧘');
-      if (hrvValue && hrvValue > 50) addBadge('hrv_hero', '💗 HRV Hero', 'HRV > 50ms', '💗');
-      if (newTotalScans === 1) addBadge('first_scan', '🎯 Check-in Inicial', 'Completou primeiro scan!', '🎯');
-      if (newTotalScans >= 10) addBadge('warrior', '⚡ Monitoramento Constante', '10 scans completos!', '⚡');
+      if (newStreak >= 7) addBadge('zen_master', 'Protocolo de Resiliência', '7 dias consecutivos!', 'Award');
+      if (hrvValue && hrvValue > 50) addBadge('hrv_hero', 'HRV Hero', 'HRV > 50ms', 'Zap');
+      if (newTotalScans === 1) addBadge('first_scan', 'Check-in Inicial', 'Completou primeiro scan!', 'Target');
+      if (newTotalScans >= 10) addBadge('warrior', 'Monitoramento Constante', '10 scans completos!', 'Zap');
 
       if (stressLevel === 'low' && newTotalScans >= 3) {
         const recentScans = await supabase
@@ -115,7 +128,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
           .limit(3);
 
         if (recentScans.data?.every(s => s.stress_level === 'low')) {
-          addBadge('low_stress_keeper', '😊 Estabilidade Fisiológica', '3 scans low consecutivos!', '😊');
+          addBadge('low_stress_keeper', 'Estabilidade Fisiológica', '3 scans low consecutivos!', 'Trophy');
         }
       }
 
@@ -170,11 +183,12 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
               <Flame className="h-5 w-5 text-orange-500" />
               <span className="text-sm font-medium">Sequência de Monitoramento</span>
             </div>
-            <p className="text-3xl font-bold text-orange-500">
-              {currentStreak} {getStreakEmoji(currentStreak)}
-            </p>
+            <div className="flex items-center gap-2">
+              <span className="text-3xl font-bold text-orange-500">{currentStreak}</span>
+              {currentStreak > 0 && <Flame className="h-6 w-6 text-orange-500" />}
+            </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {currentStreak > 0 ? 'Você tá ON FIRE! 🔥' : 'Comece sua jornada!'}
+              {currentStreak > 0 ? 'Sequência de monitoramento ativa' : 'Inicie seus ciclos diários'}
             </p>
           </div>
 
@@ -211,7 +225,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
                   variant="secondary"
                   className="p-2 sm:p-3 justify-start gap-1.5 sm:gap-2 text-xs"
                 >
-                  <span className="text-base sm:text-lg">{badge.icon}</span>
+                  <div className="flex-shrink-0">{renderBadgeIcon(badge.icon, badge.id)}</div>
                   <div className="text-left">
                     <p className="font-semibold text-[10px] sm:text-xs leading-tight">{badge.name}</p>
                     <p className="text-[9px] sm:text-xs text-muted-foreground">{badge.description}</p>
@@ -229,8 +243,8 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
               <CardContent className="p-4 flex items-center gap-3">
                 <Zap className="h-8 w-8 text-yellow-500" />
                 <div>
-                  <p className="font-bold text-yellow-900 dark:text-yellow-200">🎉 Nova Conquista!</p>
-                  <p className="text-sm text-yellow-700 dark:text-yellow-400">Confira seus protocolos em dia!</p>
+                  <p className="font-bold text-yellow-900 dark:text-yellow-200">Protocolo Desbloqueado</p>
+                  <p className="text-sm text-yellow-700 dark:text-yellow-400">Confira seus protocolos em dia.</p>
                 </div>
               </CardContent>
             </Card>
@@ -239,11 +253,14 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
 
         {/* Próximo objetivo */}
         <div className="p-3 bg-secondary/5 rounded-lg border border-secondary/20">
-          <p className="text-xs font-semibold text-secondary mb-1">🎯 Próximo objetivo:</p>
+          <p className="text-xs font-semibold text-secondary mb-1 flex items-center gap-1.5">
+            <Target className="h-3.5 w-3.5" />
+            Próximo objetivo:
+          </p>
           <p className="text-xs text-muted-foreground">
-            {currentStreak < 7 && `Faça scan por mais ${7 - currentStreak} dias para 🧘 Protocolo de Resiliência`}
-            {currentStreak >= 7 && currentStreak < 30 && 'Continue até 30 dias para Triple Fire! 🔥🔥🔥'}
-            {currentStreak >= 30 && 'Você é uma lenda! Continue assim! 🏆'}
+            {currentStreak < 7 && `Faça scan por mais ${7 - currentStreak} dias para Protocolo de Resiliência`}
+            {currentStreak >= 7 && currentStreak < 30 && 'Continue até 30 dias para completar o ciclo estendido de monitoramento'}
+            {currentStreak >= 30 && 'Sequência máxima atingida. Mantenha os padrões operacionais.'}
           </p>
         </div>
       </CardContent>

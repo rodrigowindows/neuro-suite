@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Play, Pause, Volume2 } from 'lucide-react';
+import { Play, Pause, Volume2, Timer, Wind } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -21,7 +21,7 @@ export default function MiniMeditation({ trigger }: MiniMeditationProps) {
 
   useEffect(() => {
     if (trigger && !isPlaying) {
-      speak('Ei, seu HRV tá baixo. Vamos respirar juntos agora pra resetar seu sistema nervoso e voltar ao pico de energia!');
+      speak('Atenção, telemetria de HRV reduzida. Inicie o protocolo de respiração para reequilíbrio autonômico.');
     }
   }, [trigger]);
 
@@ -54,7 +54,7 @@ export default function MiniMeditation({ trigger }: MiniMeditationProps) {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
           setIsPlaying(false);
-          speak('Parabéns! Você reequilibrou seu sistema nervoso. Agora é hora de alta performance!');
+          speak('Protocolo concluído. Vitals estabilizados.');
           return 180;
         }
         return prev - 1;
@@ -91,9 +91,17 @@ export default function MiniMeditation({ trigger }: MiniMeditationProps) {
 
   const getPhaseText = () => {
     switch (currentPhase) {
-      case 'inhale': return 'Inspire fundo pelo nariz 👃';
-      case 'hold': return 'Segure o ar 🫁';
-      case 'exhale': return 'Solte pela boca devagar 😮‍💨';
+      case 'inhale': return 'Inspire fundo pelo nariz';
+      case 'hold': return 'Segure o ar';
+      case 'exhale': return 'Solte pela boca devagar';
+    }
+  };
+
+  const getPhaseStep = () => {
+    switch (currentPhase) {
+      case 'inhale': return 'Fase 1/3: Inalação (4s)';
+      case 'hold': return 'Fase 2/3: Retenção (4s)';
+      case 'exhale': return 'Fase 3/3: Expiração (6s)';
     }
   };
 
@@ -111,33 +119,41 @@ export default function MiniMeditation({ trigger }: MiniMeditationProps) {
     <Card className="shadow-soft border-orange-500/30 bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-950/20 dark:to-yellow-950/20">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
-          <Volume2 className="h-5 w-5" />
-          🧘 Mini-Meditação (3min)
+          <Wind className="h-5 w-5" />
+          Protocolo de Respiração Guiada (3min)
         </CardTitle>
         <CardDescription className="text-orange-700 dark:text-orange-300">
-          Seu HRV tá baixo! Vamos reequilibrar com respiração guiada por voz
+          Seu HRV está reduzido. Reequilibre com respiração controlada guiada por voz.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {isPlaying ? (
           <div className={`p-6 rounded-lg bg-gradient-to-br ${getPhaseColor()} border-2 transition-all duration-1000`}>
             <div className="text-center space-y-4">
-              <p className="text-xl font-bold">{getPhaseText()}</p>
+              <div className="flex items-center justify-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <Timer className="h-3.5 w-3.5" />
+                <span>{getPhaseStep()}</span>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <Wind className="h-5 w-5 text-primary" />
+                <p className="text-xl font-bold">{getPhaseText()}</p>
+              </div>
               <div className="text-6xl font-bold text-primary animate-pulse">
                 {countdown}
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground flex items-center justify-center gap-1">
+                <Timer className="h-3.5 w-3.5" />
                 Tempo restante: {Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}
               </p>
             </div>
           </div>
         ) : (
           <div className="text-center space-y-3 p-6">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm font-medium text-foreground">
               Técnica 4-4-6: Inspire 4s, segure 4s, expire 6s
             </p>
             <p className="text-xs text-muted-foreground">
-              💡 Baseado em Dr. Andrew Huberman (Stanford) - Regulação do sistema nervoso via respiração controlada
+              Baseado em Dr. Andrew Huberman (Stanford) - Regulação do sistema nervoso via respiração controlada
             </p>
           </div>
         )}
@@ -151,20 +167,20 @@ export default function MiniMeditation({ trigger }: MiniMeditationProps) {
           {isPlaying ? (
             <>
               <Pause className="mr-2 h-5 w-5" />
-              Pausar Meditação
+              Pausar Protocolo
             </>
           ) : (
             <>
               <Play className="mr-2 h-5 w-5" />
-              Iniciar Meditação (com voz)
+              Iniciar Protocolo (com áudio)
             </>
           )}
         </Button>
 
         <p className="text-xs text-center text-muted-foreground">
           {ttsSupported 
-            ? 'A voz guiada usa Text-to-Speech nativo do browser (gratuito)' 
-            : '⚠️ Voz não suportada neste navegador. Siga as instruções visuais na tela.'}
+            ? 'A orientação de áudio utiliza sintetizador nativo do sistema.' 
+            : 'Sintetizador de áudio não disponível. Siga a telemetria visual na tela.'}
         </p>
       </CardContent>
     </Card>

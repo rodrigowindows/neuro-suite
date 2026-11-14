@@ -47,7 +47,7 @@ export default function StressAlertBanner({
           />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold">
-              {isSevere ? '🚨 Alerta Crítico de Estresse' : '⚠️ Atenção: Estresse Prolongado'}
+              {isSevere ? 'Alerta Crítico de Estresse' : 'Atenção: Estresse Prolongado'}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
               Você está com estresse alto há{' '}
@@ -61,13 +61,13 @@ export default function StressAlertBanner({
             </p>
             <div className="mt-2 flex flex-wrap gap-2">
               <span className="inline-block text-[10px] px-2 py-1 rounded-full bg-background/50 border border-border">
-                💆 Faça uma pausa de 5 min
+                Faça uma pausa de 5 min
               </span>
               <span className="inline-block text-[10px] px-2 py-1 rounded-full bg-background/50 border border-border">
-                🧘 Tente a Mini Meditação
+                Tente a Mini Meditação
               </span>
               <span className="inline-block text-[10px] px-2 py-1 rounded-full bg-background/50 border border-border">
-                💬 Converse com o AstroAssist
+                Converse com o AstroAssist
               </span>
             </div>
           </div>

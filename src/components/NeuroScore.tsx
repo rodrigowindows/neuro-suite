@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Scan, Activity } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Scan, Activity, CheckCircle, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import WebcamCapture from './WebcamCapture';
@@ -24,7 +25,6 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
     stressLevel: string;
     hrvValue?: number;
     message: string;
-    emoji: string;
   } | null>(null);
   const [userName, setUserName] = useState<string>('');
   const { toast } = useToast();
@@ -53,13 +53,12 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
             .maybeSingle();
 
           if (data) {
-            const { emoji, message } = getStressDisplay(data.stress_level);
+            const { message } = getStressDisplay(data.stress_level);
             setResult({
               blinkRate: data.blink_rate,
               stressLevel: data.stress_level,
               hrvValue: data.hrv_value ?? undefined,
               message,
-              emoji,
             });
             if (data.hrv_value) setLastHrvValue(data.hrv_value);
           }
@@ -73,9 +72,9 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
   }, []);
 
   const getStressDisplay = (level: string) => {
-    if (level === 'moderate') return { emoji: '⚡', message: 'Atenção normal, sugira pausas para evitar burnout' };
-    if (level === 'high') return { emoji: '😟', message: 'Fadiga detectada. Risco de erro operacional' };
-    return { emoji: '😊', message: 'Foco otimizado, produtividade alta' };
+    if (level === 'moderate') return { message: 'Atenção normal, sugira pausas para evitar burnout' };
+    if (level === 'high') return { message: 'Fadiga detectada. Risco de erro operacional' };
+    return { message: 'Foco otimizado, produtividade alta' };
   };
 
   const startScan = () => {
@@ -95,21 +94,20 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
 
   const handleBlinkDetected = async (blinkRate: number, hrvValue?: number) => {
     let stressLevel = 'low';
-    let { emoji, message } = getStressDisplay('low');
+    let { message } = getStressDisplay('low');
 
     if (blinkRate >= 15 && blinkRate <= 25) {
       stressLevel = 'moderate';
-      ({ emoji, message } = getStressDisplay('moderate'));
+      ({ message } = getStressDisplay('moderate'));
     } else if (blinkRate > 25) {
       stressLevel = 'high';
-      ({ emoji, message } = getStressDisplay('high'));
+      ({ message } = getStressDisplay('high'));
     }
 
     // Validação cruzada: HRV<30ms + piscadas>25/min = alerta alto
     if (hrvValue && hrvValue < 30 && blinkRate > 25) {
       stressLevel = 'high';
       message = 'Alerta estresse: HRV baixo + piscadas altas (validação cruzada)';
-      emoji = '🚨';
     }
 
     setResult({
@@ -117,7 +115,6 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
       stressLevel,
       hrvValue,
       message,
-      emoji,
     });
     setLastHrvValue(hrvValue);
 
@@ -139,7 +136,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
     onScoreComplete(stressLevel, hrvValue);
 
     toast({
-      title: 'Scan completo! 🎯',
+      title: 'Scan completo!',
       description: `Nível de estresse: ${stressLevel === 'low' ? 'Baixo' : stressLevel === 'moderate' ? 'Moderado' : 'Alto'}${hrvValue ? ` • HRV: ${hrvValue}ms` : ''}`,
     });
   };
@@ -197,7 +194,35 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
           {result && (
             <div className="p-6 bg-gradient-card rounded-lg space-y-4 border border-primary/20">
               <div className="text-center space-y-2">
-                <div className="text-6xl">{result.emoji}</div>
+                <div className="flex justify-center">
+                  <div className="rounded-full bg-background/60 p-4 border border-border shadow-sm">
+                    {result.stressLevel === 'high' ? (
+                      <AlertTriangle className="h-10 w-10 text-rose-500" />
+                    ) : result.stressLevel === 'moderate' ? (
+                      <Activity className="h-10 w-10 text-amber-500" />
+                    ) : (
+                      <CheckCircle className="h-10 w-10 text-emerald-500" />
+                    )}
+                  </div>
+                </div>
+                <div className="flex justify-center">
+                  <Badge
+                    variant={
+                      result.stressLevel === 'high'
+                        ? 'destructive'
+                        : result.stressLevel === 'moderate'
+                        ? 'secondary'
+                        : 'default'
+                    }
+                    className="text-xs uppercase tracking-wider"
+                  >
+                    {result.stressLevel === 'high'
+                      ? 'Alerta'
+                      : result.stressLevel === 'moderate'
+                      ? 'Atenção'
+                      : 'Estável'}
+                  </Badge>
+                </div>
                 <h3 className="text-2xl font-bold">
                   {userName && <span>{userName}, </span>}
                   {result.stressLevel === 'low' && 'Nível Baixo'}
@@ -229,7 +254,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
               </div>
 
               <div className="p-4 bg-primary/5 rounded-lg">
-                <p className="text-sm font-medium mb-2">💡 Dica PNL:</p>
+                <p className="text-sm font-medium mb-2">Dica PNL:</p>
                 <p className="text-sm text-muted-foreground">
                   {result.stressLevel === 'low' && 'Ancore uma memória de sucesso para manter prontidão operacional.'}
                   {result.stressLevel === 'moderate' && 'Pratique respiração 4-7-8 para reequilíbrio rápido.'}

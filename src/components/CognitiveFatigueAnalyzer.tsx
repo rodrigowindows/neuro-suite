@@ -3,10 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Brain, AlertTriangle, CheckCircle, Loader2, Eye, Zap, Database, Heart, BookOpen, ExternalLink, ShieldCheck } from 'lucide-react';
+import { Brain, AlertTriangle, CheckCircle, Loader2, Eye, Zap, Database, Heart } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import ResearchValidationModal from '@/components/ResearchValidationModal';
 
 interface FatigueAnalysis {
   fatigueLevel: string;
@@ -56,7 +56,7 @@ export default function CognitiveFatigueAnalyzer({ stressLevel }: CognitiveFatig
       setAnalysis(data);
 
       if (data.alert) {
-        toast({ title: '⚠️ Alerta de Fadiga', description: data.alertMessage || 'Fadiga cognitiva detectada.', variant: 'destructive' });
+        toast({ title: 'Alerta de Fadiga', description: data.alertMessage || 'Fadiga cognitiva detectada.', variant: 'destructive' });
       }
     } catch (err: any) {
       console.error('Erro análise:', err);
@@ -84,64 +84,7 @@ export default function CognitiveFatigueAnalyzer({ stressLevel }: CognitiveFatig
             </div>
 
             {/* Scientific Basis Modal Button */}
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2 text-xs">
-                  <BookOpen className="h-3.5 w-3.5 text-primary" />
-                  Base Científica
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2 text-lg font-display">
-                    <ShieldCheck className="h-5 w-5 text-primary" />
-                    Base Científica e Evidências Operacionais
-                  </DialogTitle>
-                  <DialogDescription className="text-xs">
-                    Fundamentos técnicos e protocolos aeroespaciais aplicados no CrewVitals.
-                  </DialogDescription>
-                </DialogHeader>
-
-                <div className="space-y-4 pt-2 text-sm text-foreground/90">
-                  {/* Item 1 */}
-                  <div className="p-3.5 rounded-lg border bg-muted/40 space-y-1.5">
-                    <h4 className="font-semibold text-primary flex items-center gap-1.5 text-sm">
-                      <span className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary font-mono">1</span>
-                      NASA Human Research Program — Cognitive Fatigue
-                    </h4>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      O Human Research Program (HRP) da NASA, no elemento Behavioral Health & Performance (BHP), estuda a fadiga cognitiva gerada por confinamento prolongado, perturbações do ritmo circadiano e alta densidade de tarefas. A detecção precoce de lapsos de atenção protege a tripulação antes que erros operacionais críticos ocorram.
-                    </p>
-                  </div>
-
-                  {/* Item 2 */}
-                  <div className="p-3.5 rounded-lg border bg-muted/40 space-y-1.5">
-                    <h4 className="font-semibold text-primary flex items-center gap-1.5 text-sm">
-                      <span className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary font-mono">2</span>
-                      Estudos sobre Blink Rate (Taxa de Piscadas) e Carga Cognitiva (NASA Technical Reports)
-                    </h4>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      Relatórios técnicos e publicações da NASA (como NASA/TM—2020 e estudos no Ames Research Center) documentam que a frequência de piscadas espontâneas (esp. acima de 25 piscadas/minuto ou padrões erráticos) correlaciona-se fortemente com privação de sono, sobrecarga de trabalho mental e degradação da prontidão psicomotora.
-                    </p>
-                  </div>
-
-                  {/* Item 3 */}
-                  <div className="p-3.5 rounded-lg border bg-muted/40 space-y-1.5">
-                    <h4 className="font-semibold text-primary flex items-center gap-1.5 text-sm">
-                      <span className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary font-mono">3</span>
-                      Protocolo de Respiração 4-7-8 (Harvard Medical School)
-                    </h4>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      Baseado na regulação do nervo vago e ativação imediata do sistema nervoso parassimpático: 4 segundos de inalação nasal, 7 segundos de retenção pulmonar e 8 segundos de exalação oral suave. Esse ciclo atenua a descarga simpática e estabiliza a Variabilidade da Frequência Cardíaca (HRV) em períodos curtos de descanso.
-                    </p>
-                  </div>
-
-                  <p className="text-[11px] text-muted-foreground italic border-t pt-2">
-                    * Nota ética: O CrewVitals atua como ferramenta de apoio à decisão operacional da tripulação e não substitui diagnósticos ou condutas médicas profissionais.
-                  </p>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <ResearchValidationModal />
           </div>
         </CardHeader>
 
@@ -211,7 +154,7 @@ export default function CognitiveFatigueAnalyzer({ stressLevel }: CognitiveFatig
             )}
 
             <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-              <h4 className="text-sm font-semibold mb-1">💡 Recomendação Operacional</h4>
+              <h4 className="text-sm font-semibold mb-1">Recomendação Operacional</h4>
               <p className="text-sm">{analysis.recommendation}</p>
             </div>
           </CardContent>

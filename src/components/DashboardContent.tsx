@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
-import WelcomeBanner from '@/components/WelcomeBanner';
 
+const BridgeConsole = lazy(() => import('@/components/BridgeConsole'));
 const NeuroScore = lazy(() => import('@/components/features/NeuroScore'));
 const WellnessScoreCard = lazy(() => import('@/components/WellnessScoreCard'));
 const NeuroCoach = lazy(() => import('@/components/features/NeuroCoach'));
@@ -40,6 +40,9 @@ interface DashboardContentProps {
   isManager: boolean;
   displayName: string;
   onScoreComplete: (level: string, hrv?: number) => void;
+  onTabChange?: (tab: string) => void;
+  onStartProtocol?: () => void;
+  autoStartBreathing?: boolean;
 }
 
 export default function DashboardContent({
@@ -51,9 +54,21 @@ export default function DashboardContent({
   isManager,
   displayName,
   onScoreComplete,
+  onTabChange,
+  onStartProtocol,
+  autoStartBreathing,
 }: DashboardContentProps) {
   const renderContent = () => {
     switch (activeTab) {
+      case 'bridge-console':
+        return (
+          <BridgeConsole
+            onNavigateTab={onTabChange}
+            onStartProtocol={onStartProtocol}
+            stressLevel={stressLevel}
+            hrvValue={hrvValue}
+          />
+        );
       case 'checkin':
         return (
           <>
@@ -68,7 +83,6 @@ export default function DashboardContent({
       case 'neuroscore':
         return (
           <>
-            {isFirstVisit && <WelcomeBanner displayName={displayName} />}
             <WellnessScoreCard />
             <NeuroScore onScoreComplete={onScoreComplete} />
           </>
@@ -87,7 +101,12 @@ export default function DashboardContent({
           </div>
         );
       case 'neurocoach':
-        return <NeuroCoach stressLevel={stressLevel || undefined} />;
+        return (
+          <NeuroCoach
+            stressLevel={stressLevel || undefined}
+            autoStartBreathing={autoStartBreathing}
+          />
+        );
       case 'leadership':
         return <LeadershipCoaching stressLevel={stressLevel || undefined} />;
       case 'cognitive-fatigue':

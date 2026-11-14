@@ -72,60 +72,44 @@ export default function PostScanActionPlan({ stressLevel, blinkRate, hrvValue }:
     high: 'bg-red-500/10 border-red-500/20',
   };
 
+  if (!plan) return null;
+
   return (
     <div className="space-y-3">
-      {!plan && (
-        <Button
-          onClick={generatePlan}
-          disabled={loading}
-          variant="outline"
-          className="w-full gap-2"
-        >
-          {loading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Sparkles className="h-4 w-4 text-accent" />
+      <Card className={`border ${urgencyColors[plan.urgency as keyof typeof urgencyColors] || urgencyColors.medium}`}>
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="font-bold text-sm flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-accent" />
+              {plan.title}
+            </p>
+            <Button variant="ghost" size="sm" className="text-[10px] h-6" onClick={() => setPlan(null)}>
+              Fechar
+            </Button>
+          </div>
+
+          {plan.tasks?.map((task, i) => (
+            <div key={i} className="flex items-start gap-2 p-2 bg-background/50 rounded-lg">
+              <div className="shrink-0 w-16 text-[10px] font-semibold text-primary uppercase">{task.time}</div>
+              <div className="flex-1">
+                <p className="text-xs font-medium">{task.action}</p>
+                <p className="text-[10px] text-muted-foreground">Duração: {task.duration} • Base: {task.science}</p>
+              </div>
+            </div>
+          ))}
+
+          {plan.avoidList?.length > 0 && (
+            <div className="text-[10px] text-muted-foreground">
+              <span className="font-semibold">Evite: </span>
+              {plan.avoidList.join(' • ')}
+            </div>
           )}
-          {loading ? 'Gerando plano personalizado...' : '✨ Gerar Plano de Ação 24h com IA'}
-        </Button>
-      )}
 
-      {plan && (
-        <Card className={`border ${urgencyColors[plan.urgency as keyof typeof urgencyColors] || urgencyColors.medium}`}>
-          <CardContent className="p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="font-bold text-sm flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-accent" />
-                {plan.title}
-              </p>
-              <Button variant="ghost" size="sm" className="text-[10px] h-6" onClick={() => setPlan(null)}>
-                Refazer
-              </Button>
-            </div>
-
-            {plan.tasks?.map((task, i) => (
-              <div key={i} className="flex items-start gap-2 p-2 bg-background/50 rounded-lg">
-                <div className="shrink-0 w-16 text-[10px] font-semibold text-primary uppercase">{task.time}</div>
-                <div className="flex-1">
-                  <p className="text-xs font-medium">{task.action}</p>
-                  <p className="text-[10px] text-muted-foreground">⏱️ {task.duration} • 🔬 {task.science}</p>
-                </div>
-              </div>
-            ))}
-
-            {plan.avoidList?.length > 0 && (
-              <div className="text-[10px] text-muted-foreground">
-                <span className="font-semibold">🚫 Evite: </span>
-                {plan.avoidList.join(' • ')}
-              </div>
-            )}
-
-            <div className="p-2 bg-accent/10 rounded-lg text-center">
-              <p className="text-xs font-medium italic text-accent">"{plan.mantra}"</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+          <div className="p-2 bg-accent/10 rounded-lg text-center">
+            <p className="text-xs font-medium italic text-accent">"{plan.mantra}"</p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -177,7 +177,7 @@ export default function WellnessReportPDF() {
     <div class="stat-card" style="background:#fee2e220;"><div class="stat-value" style="color:#ef4444;">${stats.highPercent}%</div><div class="stat-label">Fadiga Elevada</div></div>
   </div>
 
-  ${consecutiveHighDays > 0 ? `<p style="background:#fef2f2;padding:8px 12px;border-radius:6px;border-left:3px solid #ef4444;font-size:11px;">⚠️ <b>${consecutiveHighDays} ciclo(s) consecutivo(s)</b> com indicadores de fadiga elevada.</p>` : ''}
+  ${consecutiveHighDays > 0 ? `<p style="background:#fef2f2;padding:8px 12px;border-radius:6px;border-left:3px solid #ef4444;font-size:11px;"><b>ALERTA OPERACIONAL:</b> <b>${consecutiveHighDays} ciclo(s) consecutivo(s)</b> com indicadores de fadiga elevada.</p>` : ''}
 
   <h2>Histórico de Avaliações de Turno (últimas 15)</h2>
   ${checkinRows ? `

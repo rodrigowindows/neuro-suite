@@ -26,9 +26,10 @@ describe("ToneSelector", () => {
     expect(getByRole("combobox")).toBeInTheDocument();
   });
 
-  it("has correct emoji in header", () => {
-    const { getByText } = render(<ToneSelector value="" onChange={() => {}} />);
-    expect(getByText(/🎯/)).toBeInTheDocument();
+  it("renders header text without emoji", () => {
+    const { getByText, queryByText } = render(<ToneSelector value="" onChange={() => {}} />);
+    expect(getByText("Escolha teu tom de comunicação:")).toBeInTheDocument();
+    expect(queryByText(/🎯/)).not.toBeInTheDocument();
   });
 
   it("applies accent styling classes", () => {

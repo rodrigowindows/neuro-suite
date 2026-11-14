@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Building2, Users, TrendingUp, TrendingDown, Minus, Activity, UserCheck } from 'lucide-react';
+import { Building2, Users, TrendingUp, TrendingDown, Minus, Activity, UserCheck, Heart } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useCompanyScore } from '@/hooks/useCompanyScore';
 
@@ -166,7 +166,7 @@ export default function CompanyScoreCard() {
               <p className="text-[10px] text-muted-foreground">Adesão</p>
             </div>
             <div className="p-2.5 bg-muted/50 rounded-lg text-center">
-              <span className="text-sm">💗</span>
+              <Heart className="h-4 w-4 mx-auto text-muted-foreground mb-1" />
               <p className="text-lg font-bold text-foreground">{avgHrvScore}<span className="text-xs">ms</span></p>
               <p className="text-[10px] text-muted-foreground">HRV Médio</p>
             </div>

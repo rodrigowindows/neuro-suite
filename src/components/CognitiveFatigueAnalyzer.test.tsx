@@ -20,18 +20,19 @@ describe('CognitiveFatigueAnalyzer Component', () => {
     expect(textarea).toBeInTheDocument();
   });
 
-  it('abre o modal do Radix Dialog ao clicar em "Base Científica" exibindo as evidências', () => {
+  it('abre o modal do Radix Dialog ao clicar em "Research & Validation (NASA / Harvard)" exibindo as evidências e disclaimer', () => {
     render(<CognitiveFatigueAnalyzer />);
 
-    const button = screen.getByRole('button', { name: /Base Científica/i });
+    const button = screen.getByRole('button', { name: /Research & Validation \(NASA \/ Harvard\)/i });
     expect(button).toBeInTheDocument();
 
     fireEvent.click(button);
 
     // Modal aberto
-    expect(screen.getByText('Base Científica e Evidências Operacionais')).toBeInTheDocument();
-    expect(screen.getByText(/NASA Human Research Program — Cognitive Fatigue/i)).toBeInTheDocument();
-    expect(screen.getByText(/Estudos sobre Blink Rate \(Taxa de Piscadas\) e Carga Cognitiva/i)).toBeInTheDocument();
-    expect(screen.getByText(/Protocolo de Respiração 4-7-8 \(Harvard Medical School\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Base Científica e Evidências Operacionais/i)).toBeInTheDocument();
+    expect(screen.getByText(/NASA Human Research Program — Behavioral Health & Performance: Cognitive Fatigue in Extreme Environments\./i)).toBeInTheDocument();
+    expect(screen.getByText(/Blink Rate as a Physiological Measure of Fatigue — NASA Technical Reports & FAA Flight Standards\./i)).toBeInTheDocument();
+    expect(screen.getByText(/Protocolo Parassimpático 4-7-8 — Harvard Medical School \/ Integrative Medicine\./i)).toBeInTheDocument();
+    expect(screen.getByText(/O CrewVitals atua como Sistema de Suporte à Decisão \(DSS\) operacional e não substitui diagnóstico médico\./i)).toBeInTheDocument();
   });
 });

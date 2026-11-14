@@ -97,7 +97,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
     onScoreComplete(stressResult.stressLevel, hrvValue);
 
     toast({
-      title: 'Scan completo! 🎯',
+      title: 'Scan completo!',
       description: `Nível de estresse: ${getStressLabel(stressResult.stressLevel)}${hrvValue ? ` • HRV: ${hrvValue}ms` : ''}`,
     });
   };

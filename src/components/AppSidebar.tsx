@@ -1,4 +1,20 @@
-import { Activity, MessageCircle, Trophy, Brain, Bell, Calculator, Shield, Plug, BarChart, LogOut, Settings, UserCircle, Sun, Eye, FileText, MessageSquare, BookOpen } from 'lucide-react';
+import {
+  Rocket,
+  Zap,
+  BookOpen,
+  Brain,
+  Bell,
+  Calculator,
+  Shield,
+  FileText,
+  MessageSquare,
+  Plug,
+  BarChart,
+  LogOut,
+  Settings,
+  UserCircle,
+  ChevronDown,
+} from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import neuroSuiteLogo from '@/assets/neurosuite-logo.jpg';
@@ -15,27 +31,29 @@ import {
   SidebarHeader,
   useSidebar,
 } from '@/components/ui/sidebar';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
 const employeeItems = [
-  { title: 'Avaliação de Turno', value: 'checkin', icon: Sun, emoji: '☀️' },
-  { title: 'BioScore', value: 'neuroscore', icon: Activity, emoji: '🧠' },
-  { title: 'Disciplina de Missão', value: 'gamification', icon: Trophy, emoji: '🏆' },
-  { title: 'AstroAssist', value: 'neurocoach', icon: MessageCircle, emoji: '💬' },
-  { title: 'Métricas de Fadiga Cognitiva', value: 'cognitive-fatigue', icon: Eye, emoji: '👁️' },
-  { title: 'Biometric Log', value: 'mission-log', icon: BookOpen, emoji: '📖' },
+  { title: 'Cockpit', value: 'bridge-console', icon: Rocket },
+  { title: 'Contramedidas', value: 'neurocoach', icon: Zap },
+  { title: 'Histórico de Voo', value: 'mission-log', icon: BookOpen },
 ];
 
 const managerItems = [
-  { title: 'IA Insights', value: 'ai-insights', icon: Brain, emoji: '🤖' },
-  { title: 'Alertas Comando', value: 'alerts', icon: Bell, emoji: '🔔' },
-  { title: 'ROI', value: 'roi', icon: Calculator, emoji: '💰' },
-  { title: 'Segurança de Missão', value: 'nr1', icon: Shield, emoji: '📋' },
-  { title: 'Relatórios IA', value: 'narrative-reports', icon: FileText, emoji: '📄' },
-  { title: 'Chatbot Segurança de Missão', value: 'nr1-chatbot', icon: MessageSquare, emoji: '💬' },
-  { title: 'Integrações', value: 'integrations', icon: Plug, emoji: '🔗' },
-  { title: 'Painel de Comando', value: 'dashboard-rh', icon: BarChart, emoji: '📊' },
+  { title: 'IA Insights', value: 'ai-insights', icon: Brain },
+  { title: 'Alertas Comando', value: 'alerts', icon: Bell },
+  { title: 'ROI', value: 'roi', icon: Calculator },
+  { title: 'Segurança de Missão', value: 'nr1', icon: Shield },
+  { title: 'Relatórios IA', value: 'narrative-reports', icon: FileText },
+  { title: 'Chatbot Segurança de Missão', value: 'nr1-chatbot', icon: MessageSquare },
+  { title: 'Integrações', value: 'integrations', icon: Plug },
+  { title: 'Painel de Comando', value: 'dashboard-rh', icon: BarChart },
 ];
 
 interface FeatureScore {
@@ -52,7 +70,12 @@ interface AppSidebarProps {
   isAdmin?: boolean;
 }
 
-export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, scores = {}, isManager = false, isAdmin = false }: AppSidebarProps) {
+export function AppSidebar({
+  activeTab,
+  onTabChange,
+  isManager = false,
+  isAdmin = false,
+}: AppSidebarProps) {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const { state } = useSidebar();
@@ -61,6 +84,13 @@ export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, score
   const handleLogout = async () => {
     await signOut();
     navigate('/auth');
+  };
+
+  const isEmployeeItemActive = (value: string) => {
+    if (value === 'bridge-console') return ['bridge-console', 'checkin', 'neuroscore'].includes(activeTab);
+    if (value === 'neurocoach') return ['neurocoach', 'gamification', 'cognitive-fatigue'].includes(activeTab);
+    if (value === 'mission-log') return activeTab === 'mission-log';
+    return activeTab === value;
   };
 
   return (
@@ -88,32 +118,26 @@ export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, score
       <SidebarContent className="px-2">
         <SidebarGroup>
           <SidebarGroupLabel className="text-sidebar-muted-foreground text-[10px] uppercase tracking-wider font-semibold">
-            {!collapsed ? 'Tripulação' : '👤'}
+            {!collapsed ? 'Sistemas de Cabine' : 'Cabine'}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {employeeItems.map((item) => (
                 <SidebarMenuItem key={item.value} className="relative">
                   <SidebarMenuButton
-                    onClick={() => {
-                      if (item.value === 'gamification' && gamificationDisabled) return;
-                      onTabChange(item.value);
-                    }}
-                    isActive={activeTab === item.value}
+                    onClick={() => onTabChange(item.value)}
+                    isActive={isEmployeeItemActive(item.value)}
                     tooltip={item.title}
-                    className={`transition-all duration-200 ${
-                      activeTab === item.value
+                    className={`h-auto py-2 transition-all duration-200 ${
+                      isEmployeeItemActive(item.value)
                         ? 'bg-sidebar-primary/15 text-sidebar-primary font-medium'
                         : 'text-sidebar-foreground hover:bg-sidebar-accent'
-                    } ${item.value === 'gamification' && gamificationDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+                    }`}
                   >
                     <item.icon className="h-4 w-4 flex-shrink-0" />
                     {!collapsed && (
-                      <span className="truncate flex-1">{item.title}</span>
-                    )}
-                    {scores[item.value] && (
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white leading-none ${scores[item.value]?.color} ${collapsed ? 'absolute -top-1 -right-1 scale-75' : ''}`}>
-                        {scores[item.value]!.label}
+                      <span className="truncate text-xs font-medium leading-none flex-1 text-left">
+                        {item.title}
                       </span>
                     )}
                   </SidebarMenuButton>
@@ -127,39 +151,43 @@ export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, score
           <>
             <Separator className="my-1 bg-sidebar-border" />
 
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-sidebar-muted-foreground text-[10px] uppercase tracking-wider font-semibold">
-                {!collapsed ? 'Comando' : '📊'}
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {managerItems.map((item) => (
-                    <SidebarMenuItem key={item.value} className="relative">
-                      <SidebarMenuButton
-                        onClick={() => onTabChange(item.value)}
-                        isActive={activeTab === item.value}
-                        tooltip={item.title}
-                        className={`transition-all duration-200 ${
-                          activeTab === item.value
-                            ? 'bg-sidebar-primary/15 text-sidebar-primary font-medium'
-                            : 'text-sidebar-foreground hover:bg-sidebar-accent'
-                        }`}
-                      >
-                        <item.icon className="h-4 w-4 flex-shrink-0" />
-                        {!collapsed && (
-                          <span className="truncate flex-1">{item.title}</span>
-                        )}
-                        {scores[item.value] && (
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white leading-none ${scores[item.value]!.color} ${collapsed ? 'absolute -top-1 -right-1 scale-75' : ''}`}>
-                            {scores[item.value]!.label}
-                          </span>
-                        )}
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+            <Collapsible defaultOpen={false} className="group/collapsible">
+              <SidebarGroup>
+                <SidebarGroupLabel asChild className="text-sidebar-muted-foreground text-[10px] uppercase tracking-wider font-semibold cursor-pointer">
+                  <CollapsibleTrigger className="flex w-full items-center justify-between hover:text-sidebar-foreground">
+                    <span>Comando</span>
+                    {!collapsed && (
+                      <ChevronDown className="h-3.5 w-3.5 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
+                    )}
+                  </CollapsibleTrigger>
+                </SidebarGroupLabel>
+                <CollapsibleContent>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {managerItems.map((item) => (
+                        <SidebarMenuItem key={item.value} className="relative">
+                          <SidebarMenuButton
+                            onClick={() => onTabChange(item.value)}
+                            isActive={activeTab === item.value}
+                            tooltip={item.title}
+                            className={`transition-all duration-200 ${
+                              activeTab === item.value
+                                ? 'bg-sidebar-primary/15 text-sidebar-primary font-medium'
+                                : 'text-sidebar-foreground hover:bg-sidebar-accent'
+                            }`}
+                          >
+                            <item.icon className="h-4 w-4 flex-shrink-0" />
+                            {!collapsed && (
+                              <span className="truncate flex-1 text-xs">{item.title}</span>
+                            )}
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </CollapsibleContent>
+              </SidebarGroup>
+            </Collapsible>
           </>
         )}
       </SidebarContent>
@@ -169,7 +197,7 @@ export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, score
           variant="ghost"
           size="sm"
           onClick={() => navigate('/profile')}
-          className="w-full justify-start gap-2 text-sidebar-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent"
+          className="w-full justify-start gap-2 text-sidebar-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
         >
           <UserCircle className="h-4 w-4 flex-shrink-0" />
           {!collapsed && <span>Meu Perfil</span>}
@@ -179,7 +207,7 @@ export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, score
             variant="ghost"
             size="sm"
             onClick={() => navigate('/admin')}
-            className="w-full justify-start gap-2 text-sidebar-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent"
+            className="w-full justify-start gap-2 text-sidebar-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
           >
             <Settings className="h-4 w-4 flex-shrink-0" />
             {!collapsed && <span>Admin</span>}
@@ -189,7 +217,7 @@ export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, score
           variant="ghost"
           size="sm"
           onClick={handleLogout}
-          className="w-full justify-start gap-2 text-sidebar-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent"
+          className="w-full justify-start gap-2 text-sidebar-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
         >
           <LogOut className="h-4 w-4 flex-shrink-0" />
           {!collapsed && <span>Sair</span>}
@@ -198,3 +226,5 @@ export function AppSidebar({ activeTab, onTabChange, gamificationDisabled, score
     </Sidebar>
   );
 }
+
+export default AppSidebar;

@@ -11,46 +11,30 @@ import { AppSidebar } from '@/components/AppSidebar';
 import DashboardSkeleton from '@/components/DashboardSkeleton';
 import StressAlertBanner from '@/components/StressAlertBanner';
 import DashboardContent from '@/components/DashboardContent';
-import PredictiveAlert from '@/components/PredictiveAlert';
+import ResearchValidationModal from '@/components/ResearchValidationModal';
+import ConnectionStatusWidget from '@/components/ConnectionStatusWidget';
+import { SectionTabs } from '@/components/SectionTabs';
 import { useStressNotifications } from '@/hooks/useStressNotifications';
 import { supabase } from '@/integrations/supabase/client';
 
 const PAGE_TITLES: Record<string, string> = {
+  'bridge-console': 'Cockpit',
   checkin: 'Avaliação de Turno',
   neuroscore: 'BioScore',
-  gamification: 'Disciplina de Missão',
-  neurocoach: 'AstroAssist IA',
-  leadership: 'Coaching Liderança',
-  'cognitive-fatigue': 'Métricas de Fadiga Cognitiva',
-  'smart-breaks': 'Pausas Inteligentes',
-  'mission-log': 'Biometric Log',
+  gamification: 'Disciplina',
+  neurocoach: 'Contramedidas',
+  leadership: 'Liderança',
+  'cognitive-fatigue': 'Métricas de Carga',
+  'smart-breaks': 'Pausas',
+  'mission-log': 'Histórico de Voo',
   'ai-insights': 'IA Insights',
   alerts: 'Alertas Comando',
-  roi: 'ROI & Economia',
-  nr1: 'Segurança de Missão',
-  'narrative-reports': 'Relatórios Narrativos IA',
-  'nr1-chatbot': 'Chatbot Segurança de Missão',
+  roi: 'ROI',
+  nr1: 'Segurança',
+  'narrative-reports': 'Relatórios IA',
+  'nr1-chatbot': 'Chatbot Segurança',
   integrations: 'Integrações',
   'dashboard-rh': 'Painel de Comando',
-};
-
-const PAGE_DESCRIPTIONS: Record<string, string> = {
-  checkin: 'Avaliação de prontidão para o turno',
-  neuroscore: 'Scan facial via webcam para estimar nível de estresse com neurociência',
-  gamification: 'Ciclos concluídos, protocolos em dia e sequência de monitoramento',
-  neurocoach: 'Assistente de recuperação e suporte à tripulação',
-  leadership: 'Módulos premium de desenvolvimento de liderança com IA',
-  'cognitive-fatigue': 'Métricas de fadiga cognitiva e monitoramento de carga operacional (apoio)',
-  'smart-breaks': 'Micro-pausas personalizadas baseadas em cronobiologia e biometria',
-  'mission-log': 'Registro diário de sono e exercícios da tripulação',
-  'ai-insights': 'Análises preditivas de burnout e sentimento',
-  alerts: 'Alertas inteligentes para gestão de equipes',
-  roi: 'Retorno sobre investimento em saúde ocupacional',
-  nr1: 'Segurança de Missão e relatórios Segurança de Missão automatizados',
-  'narrative-reports': 'Converta métricas em relatórios executivos com IA',
-  'nr1-chatbot': 'Tire dúvidas sobre regulamentação Segurança de Missão e PGR',
-  integrations: 'Conecte com suas ferramentas de Comando',
-  'dashboard-rh': 'Visão consolidada dos indicadores de bem-estar',
 };
 
 export default function Dashboard() {
@@ -61,10 +45,17 @@ export default function Dashboard() {
   const { profile } = useUserProfile();
   const [stressLevel, setStressLevel] = useState('');
   const [hrvValue, setHRVValue] = useState<number | undefined>(undefined);
-  const [activeTab, setActiveTab] = useState('checkin');
+  const [activeTab, setActiveTab] = useState('bridge-console');
+  const [autoStartBreathing, setAutoStartBreathing] = useState(false);
   const [showMeditation, setShowMeditation] = useState(false);
   const [isFirstVisit, setIsFirstVisit] = useState(false);
   const stressNotif = useStressNotifications();
+
+  useEffect(() => {
+    if (activeTab !== 'neurocoach') {
+      setAutoStartBreathing(false);
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -99,8 +90,13 @@ export default function Dashboard() {
     setHRVValue(hrv);
     setIsFirstVisit(false);
     if (hrv && hrv < 30) setShowMeditation(true);
-    setActiveTab('gamification');
+    setActiveTab('bridge-console');
     refreshScores();
+  };
+
+  const handleStartProtocol = () => {
+    setAutoStartBreathing(true);
+    setActiveTab('neurocoach');
   };
 
   if (loading || rolesLoading) {
@@ -120,20 +116,22 @@ export default function Dashboard() {
         />
 
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 flex items-center gap-3 border-b bg-card/60 backdrop-blur-sm px-4 sticky top-0 z-40">
-            <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
-            <div className="flex flex-col min-w-0">
-              <h1 className="font-display font-bold text-sm sm:text-base truncate">
-                {PAGE_TITLES[activeTab]}
-              </h1>
-              <p className="text-[11px] text-muted-foreground truncate hidden sm:block">
-                {PAGE_DESCRIPTIONS[activeTab]}
-              </p>
+          <header className="h-14 flex items-center justify-between gap-3 border-b bg-card/60 backdrop-blur-sm px-4 sticky top-0 z-40">
+            <div className="flex items-center gap-3 min-w-0">
+              <SidebarTrigger className="text-muted-foreground hover:text-foreground shrink-0" />
+              <div className="flex flex-col min-w-0">
+                <h1 className="font-display font-bold text-sm sm:text-base truncate">
+                  {PAGE_TITLES[activeTab] || 'Cockpit'}
+                </h1>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <ConnectionStatusWidget />
             </div>
           </header>
 
           <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-6xl w-full mx-auto space-y-4">
-            {activeTab === 'checkin' && <PredictiveAlert onMitigate={() => setActiveTab('neurocoach')} />}
+            <SectionTabs activeTab={activeTab} onTabChange={setActiveTab} />
             {stressNotif.isCritical && (
               <StressAlertBanner
                 consecutiveHighDays={stressNotif.consecutiveHighDays}
@@ -159,15 +157,23 @@ export default function Dashboard() {
                   isManager={isManager}
                   displayName={profile?.displayName || ''}
                   onScoreComplete={handleStressLevelComplete}
+                  onTabChange={setActiveTab}
+                  onStartProtocol={handleStartProtocol}
+                  autoStartBreathing={autoStartBreathing}
                 />
               </motion.div>
             </AnimatePresence>
           </main>
 
-          <footer className="border-t bg-card/30 px-4 py-3 text-center">
-            <p className="text-[11px] text-muted-foreground">
-              CrewVitals v1.0 (Beta) · CrewVitals by Dark Sector · Zero-Trust Privacy
-            </p>
+          <footer className="border-t bg-card/20 px-4 py-2">
+            <div className="max-w-6xl w-full mx-auto flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
+              <span>Zero-Trust Privacy</span>
+              <span>·</span>
+              <ResearchValidationModal
+                triggerText="Validação de Pesquisa"
+                triggerClassName="text-[11px] text-muted-foreground hover:text-foreground underline-offset-4 hover:underline p-0 h-auto font-normal inline-flex items-center gap-1"
+              />
+            </div>
           </footer>
         </div>
 

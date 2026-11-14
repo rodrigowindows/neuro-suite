@@ -1,18 +1,37 @@
-import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
-interface PredictiveAlertProps {
-  onMitigate: () => void;
+export interface PredictiveAlertProps {
+  onMitigate?: () => void;
+  bioScore?: number;
 }
 
-export default function PredictiveAlert({ onMitigate }: PredictiveAlertProps) {
+export default function PredictiveAlert({
+  onMitigate,
+  bioScore,
+}: PredictiveAlertProps) {
   return (
-    <section role="alert" aria-labelledby="predictive-alert-title" className="rounded-lg border-2 border-destructive/70 bg-destructive/10 p-4 sm:p-5 space-y-3">
-      <p className="text-xs font-medium text-muted-foreground">Cenário demonstrativo — não é uma previsão clínica validada.</p>
-      <h2 id="predictive-alert-title" className="font-display font-bold text-base text-foreground">⚠️ ALERTA DO MOTOR PREDITIVO (Predictive Engine)</h2>
-      <p className="font-semibold text-foreground">Risco de fadiga crítica e erro operacional nas próximas 12h.</p>
-      <p className="text-sm text-foreground">Fatores detectados: Baixa qualidade de sono no Biometric Log + Fadiga detectada no BioScore.</p>
-      <p className="text-sm text-foreground">Ação recomendada: Iniciar AstroAssist.</p>
-      <Button variant="destructive" onClick={onMitigate} className="h-auto min-h-10 whitespace-normal text-left">Iniciar Protocolo de Mitigação</Button>
-    </section>
+    <div
+      role="alert"
+      onClick={onMitigate}
+      className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-md border border-border/60 bg-muted/30 px-3 py-2 text-xs ${
+        onMitigate ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''
+      }`}
+    >
+      <div className="flex items-center gap-2 flex-wrap">
+        <Badge
+          variant="outline"
+          className="text-[10px] font-mono uppercase tracking-wider py-0 px-1.5 h-4 text-muted-foreground border-border/80"
+        >
+          Demonstração
+        </Badge>
+        <span className="font-medium text-foreground">
+          {typeof bioScore === 'number' ? `BioScore ${bioScore} — ` : ''}
+          Risco de erro em tarefas de precisão nas próximas 4 h — suspender acoplagem/EVA.
+        </span>
+      </div>
+      <span className="text-[11px] text-muted-foreground/80 shrink-0">
+        Cenário demonstrativo — não é uma previsão clínica validada.
+      </span>
+    </div>
   );
 }

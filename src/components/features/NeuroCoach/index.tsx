@@ -4,12 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { AlertTriangle, Wind, Droplets, Moon, CheckCircle2, RotateCcw, ShieldCheck, Clock, Download } from 'lucide-react';
+import { AlertTriangle, Wind, Droplets, Moon, CheckCircle2, RotateCcw, ShieldCheck, Clock, Download, X, Sparkles, Activity } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
 interface NeuroCoachProps {
   stressLevel?: string;
   onNavigateTab?: (tab: string) => void;
+  autoStartBreathing?: boolean;
 }
 
 interface CountermeasureState {
@@ -18,7 +20,11 @@ interface CountermeasureState {
   rest: boolean;
 }
 
-export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
+export default function NeuroCoach({
+  stressLevel,
+  onNavigateTab,
+  autoStartBreathing = false,
+}: NeuroCoachProps) {
   const todayKey = `crewvitals_countermeasures_${new Date().toISOString().split('T')[0]}`;
 
   const [countermeasures, setCountermeasures] = useState<CountermeasureState>(() => {
@@ -31,8 +37,16 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
     return { breathing: false, hydration: false, rest: false };
   });
 
-  const [timerActive, setTimerActive] = useState(false);
+  const [timerActive, setTimerActive] = useState(autoStartBreathing);
   const [secondsRemaining, setSecondsRemaining] = useState(180); // 3 minutes
+  const [isOverlayOpen, setIsOverlayOpen] = useState(autoStartBreathing);
+
+  useEffect(() => {
+    if (autoStartBreathing) {
+      setIsOverlayOpen(true);
+      setTimerActive(true);
+    }
+  }, [autoStartBreathing]);
 
   useEffect(() => {
     try {
@@ -43,6 +57,17 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
   }, [countermeasures, todayKey]);
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOverlayOpen) {
+        setIsOverlayOpen(false);
+        setTimerActive(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOverlayOpen]);
+
+  useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
     if (timerActive && secondsRemaining > 0) {
       interval = setInterval(() => {
@@ -50,6 +75,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
       }, 1000);
     } else if (secondsRemaining === 0 && timerActive) {
       setTimerActive(false);
+      setIsOverlayOpen(false);
       setCountermeasures((prev) => ({ ...prev, breathing: true }));
       toast.success('Ciclo de respiração 4-7-8 concluído! Ação 1 marcada.');
     }
@@ -65,6 +91,19 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
     });
   };
 
+  const handleStartBreathing = () => {
+    if (secondsRemaining === 0) {
+      setSecondsRemaining(180);
+    }
+    setTimerActive(true);
+    setIsOverlayOpen(true);
+  };
+
+  const handleCloseOverlay = () => {
+    setIsOverlayOpen(false);
+    setTimerActive(false);
+  };
+
   const completedCount = Number(countermeasures.breathing) + Number(countermeasures.hydration) + Number(countermeasures.rest);
   const progressPercent = Math.round((completedCount / 3) * 100);
 
@@ -74,6 +113,32 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
+  const elapsed = 180 - secondsRemaining;
+  const cycleTime = elapsed % 19;
+  const cycleNumber = Math.min(Math.floor(elapsed / 19) + 1, 10);
+
+  let phase = 1;
+  let phaseText = 'Inspire pelo nariz (4s)';
+  let phaseDescription = 'Inspire profundamente pelo nariz expandindo a caixa torácica e diafragma';
+  let phaseSecondsLeft = 4 - cycleTime;
+
+  if (cycleTime < 4) {
+    phase = 1;
+    phaseText = 'Inspire pelo nariz (4s)';
+    phaseDescription = 'Inspire suavemente pelo nariz preenchendo o diafragma e pulmões';
+    phaseSecondsLeft = 4 - cycleTime;
+  } else if (cycleTime < 11) {
+    phase = 2;
+    phaseText = 'Retenha o ar nos pulmões (7s)';
+    phaseDescription = 'Mantenha o ar nos pulmões com tônus vagal ativo e oxigenação celular';
+    phaseSecondsLeft = 11 - cycleTime;
+  } else {
+    phase = 3;
+    phaseText = 'Expire lentamente pela boca (8s)';
+    phaseDescription = 'Esvazie completamente os pulmões com expiração lenta e controlada';
+    phaseSecondsLeft = 19 - cycleTime;
+  }
+
   const handleRegister = () => {
     toast.success('Contramedidas registradas com sucesso no diário de bordo!');
   };
@@ -82,6 +147,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
     setCountermeasures({ breathing: false, hydration: false, rest: false });
     setTimerActive(false);
     setSecondsRemaining(180);
+    setIsOverlayOpen(false);
     toast.info('Checklist reiniciado para este turno.');
   };
 
@@ -133,7 +199,7 @@ Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas)
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Status Alert Banner */}
-          <div role="alert" className="p-4 rounded-xl border border-red-500/30 bg-red-500/10 dark:bg-red-950/20 flex items-start sm:items-center justify-between gap-4">
+          <div role="alert" className="p-4 rounded-xl border border-red-500/30 bg-red-500/10 dark:bg-red-950/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-lg bg-red-500/20 text-red-500 flex-shrink-0">
                 <AlertTriangle className="h-6 w-6" />
@@ -147,9 +213,19 @@ Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas)
                 </p>
               </div>
             </div>
-            <Badge className="bg-red-500 hover:bg-red-600 text-white font-semibold whitespace-nowrap">
-              Prioridade Alta
-            </Badge>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleStartBreathing}
+                className="font-semibold text-xs whitespace-nowrap shadow-sm"
+              >
+                Executar Protocolo de Mitigação
+              </Button>
+              <Badge className="bg-red-500 hover:bg-red-600 text-white font-semibold whitespace-nowrap hidden sm:inline-flex">
+                Prioridade Alta
+              </Badge>
+            </div>
           </div>
 
           {/* Progress Tracker */}
@@ -200,13 +276,25 @@ Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas)
                   <Button
                     size="sm"
                     variant={timerActive ? 'destructive' : 'outline'}
-                    onClick={() => setTimerActive(!timerActive)}
+                    onClick={() => {
+                      if (timerActive) {
+                        setTimerActive(false);
+                      } else {
+                        handleStartBreathing();
+                      }
+                    }}
                     className="text-xs gap-1.5"
                   >
                     <Clock className="h-3.5 w-3.5" />
-                    {timerActive ? 'Pausar Timer' : secondsRemaining < 180 ? 'Retomar Timer' : 'Timer Guiado (3 min)'}
+                    {timerActive ? 'Pausar Timer' : secondsRemaining < 180 ? 'Retomar Timer' : 'Iniciar Timer Guiado (3 min)'}
                   </Button>
-                  <span className="text-xs font-mono font-bold px-2.5 py-1 bg-muted rounded-md" data-testid="timer-display">
+                  <span
+                    className="text-xs font-mono font-bold px-2.5 py-1 bg-muted rounded-md cursor-pointer hover:bg-muted/80"
+                    data-testid="timer-display"
+                    onClick={handleStartBreathing}
+                    role="button"
+                    aria-label="Abrir ciclo de respiração 4-7-8"
+                  >
                     {formatTimer(secondsRemaining)}
                   </span>
                   {secondsRemaining < 180 && (
@@ -302,6 +390,164 @@ Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas)
           </Button>
         </div>
       </div>
+
+      {/* Immersive 4-7-8 Breathing Overlay (Night Space Cockpit Style) */}
+      {isOverlayOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-2xl text-slate-100 flex flex-col justify-between p-4 sm:p-8 md:p-10 select-none overflow-y-auto animate-in fade-in duration-300"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Experiência Imersiva de Respiração 4-7-8"
+          data-testid="breathing-overlay"
+        >
+          {/* Background HUD Cockpit Grid / Accent Lines */}
+          <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900/40 via-slate-950 to-black opacity-80" />
+          <div className="absolute inset-0 pointer-events-none opacity-5 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+
+          {/* Space Cockpit HUD Header */}
+          <div className="relative z-10 w-full max-w-4xl mx-auto flex items-start sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline" className="border-cyan-500/40 bg-cyan-500/10 text-cyan-300 font-mono text-[10px] tracking-wider uppercase">
+                  Cabine Orbital • Modo Noturno
+                </Badge>
+                <span className="text-[10px] font-mono text-slate-400">
+                  CREWVITALS HUD // SYS.RESP.478
+                </span>
+              </div>
+              <h1 className="text-lg sm:text-xl font-bold font-display text-white tracking-tight flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-cyan-400" />
+                Protocolo de Mitigação — Respiração 4-7-8
+              </h1>
+              <p className="text-xs text-slate-400">
+                Diretrizes Harvard Medical School & NASA HRP • Estabilização Fisiológica e Atenuação de Tônus Simpático
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleCloseOverlay}
+              className="text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-full h-9 w-9 flex-shrink-0"
+              aria-label="Fechar"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+
+          {/* Central Animated Breathing Area */}
+          <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center justify-center my-auto py-6 sm:py-8 space-y-6 sm:space-y-8">
+            {/* Pulsating & Transitioning Breathing Circle */}
+            <div className="relative flex items-center justify-center w-72 h-72 sm:w-80 sm:h-80">
+              {/* Ambient glow background ring */}
+              <div
+                className={`absolute inset-4 rounded-full blur-3xl transition-all duration-1000 ${
+                  phase === 1
+                    ? 'bg-cyan-500/25'
+                    : phase === 2
+                    ? 'bg-indigo-500/30'
+                    : 'bg-emerald-500/25'
+                }`}
+              />
+
+              {/* Outer orbital telemetry guides */}
+              <div className="absolute inset-0 rounded-full border border-dashed border-slate-700/60 pointer-events-none" />
+              <div className="absolute inset-4 rounded-full border border-slate-800 pointer-events-none" />
+
+              {/* Main Breathing Circle */}
+              <motion.div
+                data-testid="breathing-circle"
+                className={`relative w-48 h-48 sm:w-56 sm:h-56 rounded-full flex flex-col items-center justify-center text-center p-6 border-2 transition-colors duration-700 ${
+                  phase === 1
+                    ? 'border-cyan-400/80 bg-cyan-950/40 shadow-[0_0_60px_rgba(34,211,238,0.35)]'
+                    : phase === 2
+                    ? 'border-indigo-400/80 bg-indigo-950/40 shadow-[0_0_70px_rgba(129,140,248,0.45)]'
+                    : 'border-emerald-400/80 bg-emerald-950/40 shadow-[0_0_60px_rgba(52,211,153,0.35)]'
+                }`}
+                animate={{
+                  scale:
+                    phase === 1
+                      ? 1.35
+                      : phase === 2
+                      ? [1.35, 1.39, 1.34, 1.38, 1.35]
+                      : 0.95,
+                }}
+                transition={{
+                  scale:
+                    phase === 1
+                      ? { duration: 4, ease: 'easeInOut' }
+                      : phase === 2
+                      ? { duration: 7, ease: 'easeInOut', repeat: Infinity }
+                      : { duration: 8, ease: 'easeInOut' },
+                }}
+              >
+                <Wind
+                  className={`h-8 w-8 mb-1.5 transition-colors duration-500 ${
+                    phase === 1
+                      ? 'text-cyan-300'
+                      : phase === 2
+                      ? 'text-indigo-300'
+                      : 'text-emerald-300'
+                  }`}
+                />
+                <span className="font-mono text-4xl font-extrabold tracking-tight text-white drop-shadow">
+                  {phaseSecondsLeft}s
+                </span>
+                <span className="text-[10px] font-mono tracking-widest uppercase text-slate-300 mt-1">
+                  Fase {phase} de 3
+                </span>
+              </motion.div>
+            </div>
+
+            {/* Phase Guidance Text */}
+            <div className="text-center space-y-2 max-w-md px-4">
+              <h2 className="text-xl sm:text-2xl font-bold font-display tracking-tight text-white drop-shadow-sm">
+                {phaseText}
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed min-h-[40px] flex items-center justify-center">
+                {phaseDescription}
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                <Badge variant="outline" className="border-slate-800 bg-slate-900/70 text-slate-300 font-mono text-[11px]">
+                  Ciclo {cycleNumber} de 10
+                </Badge>
+                <Badge variant="outline" className="border-slate-800 bg-slate-900/70 text-slate-300 font-mono text-[11px]">
+                  Ritmo Parassimpático
+                </Badge>
+              </div>
+            </div>
+          </div>
+
+          {/* Space Cockpit HUD Footer with 3-minute Countdown & Cancel/Close button */}
+          <div className="relative z-10 w-full max-w-xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-slate-900/85 border border-slate-800/80 backdrop-blur-md shadow-2xl">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                <Clock className="h-5 w-5 animate-pulse" />
+              </div>
+              <div>
+                <div className="text-[10px] tracking-wider uppercase text-slate-400 font-mono">
+                  Contador Regressivo (3 min)
+                </div>
+                <div
+                  className="font-mono text-2xl font-bold text-white tracking-wider"
+                  data-testid="overlay-countdown"
+                >
+                  {formatTimer(secondsRemaining)}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+              <Button
+                variant="outline"
+                onClick={handleCloseOverlay}
+                className="border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-200 text-xs sm:text-sm font-semibold w-full sm:w-auto"
+              >
+                Cancelar / Fechar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

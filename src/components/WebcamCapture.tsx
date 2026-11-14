@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
-import { AlertCircle, ArrowDown } from 'lucide-react';
+import { AlertCircle, ArrowDown, CameraOff } from 'lucide-react';
 import HRVMonitor from './HRVMonitor';
 
 interface WebcamCaptureProps {
@@ -315,7 +315,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
         {!isScanning && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/90">
             <div className="text-center text-white px-4 space-y-2">
-              <div className="text-5xl mb-3">📷</div>
+              <CameraOff className="h-12 w-12 mx-auto mb-3 text-white/70" />
               <p className="text-xl font-bold">Câmera Desligada</p>
               <p className="text-sm text-white/70">Clique em "Iniciar Scan" para ativar</p>
             </div>

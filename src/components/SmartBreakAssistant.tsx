@@ -100,11 +100,11 @@ export default function SmartBreakAssistant({ stressLevel, hrvValue }: SmartBrea
               <Select value={mood} onValueChange={setMood}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="otimo">😊 Ótimo</SelectItem>
-                  <SelectItem value="bem">🙂 Bem</SelectItem>
-                  <SelectItem value="neutro">⚡ Nominal</SelectItem>
-                  <SelectItem value="cansado">😴 Cansado</SelectItem>
-                  <SelectItem value="estressado">😤 Estressado</SelectItem>
+                  <SelectItem value="otimo">Ótimo</SelectItem>
+                  <SelectItem value="bem">Bem</SelectItem>
+                  <SelectItem value="neutro">Nominal</SelectItem>
+                  <SelectItem value="cansado">Cansado</SelectItem>
+                  <SelectItem value="estressado">Estressado</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -186,7 +186,7 @@ export default function SmartBreakAssistant({ stressLevel, hrvValue }: SmartBrea
                       <Badge variant="secondary">{brk.duration}</Badge>
                     </div>
 
-                    <p className="text-xs text-muted-foreground italic">🔬 {brk.science}</p>
+                    <p className="text-xs text-muted-foreground italic">Evidência: {brk.science}</p>
 
                     {isActive && (
                       <div className="space-y-2">
@@ -195,7 +195,7 @@ export default function SmartBreakAssistant({ stressLevel, hrvValue }: SmartBrea
                             <li key={j}>{step}</li>
                           ))}
                         </ol>
-                        <p className="text-sm text-primary font-medium">✅ {brk.expectedBenefit}</p>
+                        <p className="text-sm text-primary font-medium">Benefício esperado: {brk.expectedBenefit}</p>
                       </div>
                     )}
 
@@ -215,7 +215,7 @@ export default function SmartBreakAssistant({ stressLevel, hrvValue }: SmartBrea
           {response.dailyBreakPlan && (
             <Card>
               <CardContent className="pt-4">
-                <h4 className="font-semibold text-sm mb-2">📋 Plano de Pausas para Hoje</h4>
+                <h4 className="font-semibold text-sm mb-2">Plano de Pausas para Hoje</h4>
                 <p className="text-sm text-muted-foreground">{response.dailyBreakPlan}</p>
               </CardContent>
             </Card>

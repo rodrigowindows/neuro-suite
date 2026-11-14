@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import NeuroCoach from './index';
 
 describe('AstroAssist - Prescrição de Contramedidas', () => {
@@ -204,6 +204,165 @@ describe('AstroAssist - Prescrição de Contramedidas', () => {
       createObjectURLSpy.mockRestore();
       revokeObjectURLSpy.mockRestore();
       vi.restoreAllMocks();
+    });
+  });
+
+  describe('5. Experiência Visual Imersiva do Ciclo de Respiração 4-7-8', () => {
+    it('abre o overlay em tela cheia ao clicar em "Iniciar Timer Guiado (3 min)"', () => {
+      render(<NeuroCoach stressLevel="high" />);
+
+      expect(screen.queryByTestId('breathing-overlay')).not.toBeInTheDocument();
+
+      const startButton = screen.getByRole('button', { name: /Iniciar Timer Guiado \(3 min\)/i });
+      fireEvent.click(startButton);
+
+      const overlay = screen.getByTestId('breathing-overlay');
+      expect(overlay).toBeInTheDocument();
+      expect(screen.getByText(/Cabine Orbital • Modo Noturno/i)).toBeInTheDocument();
+      expect(screen.getByText('Inspire pelo nariz (4s)')).toBeInTheDocument();
+      expect(screen.getByTestId('overlay-countdown')).toHaveTextContent('3:00');
+    });
+
+    it('abre o overlay imersivo ao clicar em "Executar Protocolo de Mitigação"', () => {
+      render(<NeuroCoach stressLevel="high" />);
+
+      const mitigateButton = screen.getByRole('button', { name: /Executar Protocolo de Mitigação/i });
+      fireEvent.click(mitigateButton);
+
+      expect(screen.getByTestId('breathing-overlay')).toBeInTheDocument();
+      expect(screen.getByTestId('breathing-circle')).toBeInTheDocument();
+      expect(screen.getByText('Inspire pelo nariz (4s)')).toBeInTheDocument();
+    });
+
+    it('percorre com precisão as 3 fases do ciclo 4-7-8 (4s inspire, 7s retenha, 8s expire)', () => {
+      vi.useFakeTimers();
+      render(<NeuroCoach stressLevel="high" />);
+
+      const startButton = screen.getByRole('button', { name: /Iniciar Timer Guiado \(3 min\)/i });
+      fireEvent.click(startButton);
+
+      // Fase 1: 0s a 3s -> Inspire pelo nariz (4s)
+      expect(screen.getByText('Inspire pelo nariz (4s)')).toBeInTheDocument();
+
+      // Avança 4s -> entra na Fase 2: 7s retenha
+      act(() => {
+        vi.advanceTimersByTime(4000);
+      });
+      expect(screen.getByText('Retenha o ar nos pulmões (7s)')).toBeInTheDocument();
+
+      // Avança mais 7s -> entra na Fase 3: 8s expire
+      act(() => {
+        vi.advanceTimersByTime(7000);
+      });
+      expect(screen.getByText('Expire lentamente pela boca (8s)')).toBeInTheDocument();
+
+      // Avança mais 8s (total 19s) -> inicia novo ciclo na Fase 1
+      act(() => {
+        vi.advanceTimersByTime(8000);
+      });
+      expect(screen.getByText('Inspire pelo nariz (4s)')).toBeInTheDocument();
+
+      vi.useRealTimers();
+    });
+
+    it('fecha o overlay ao clicar no botão "Cancelar / Fechar"', () => {
+      render(<NeuroCoach stressLevel="high" />);
+
+      const startButton = screen.getByRole('button', { name: /Iniciar Timer Guiado \(3 min\)/i });
+      fireEvent.click(startButton);
+      expect(screen.getByTestId('breathing-overlay')).toBeInTheDocument();
+
+      const closeButton = screen.getByRole('button', { name: /Cancelar \/ Fechar/i });
+      fireEvent.click(closeButton);
+
+      expect(screen.queryByTestId('breathing-overlay')).not.toBeInTheDocument();
+    });
+
+    it('fecha o overlay e marca a Ação 1 (Respiração) como concluída ao término dos 3 minutos', () => {
+      vi.useFakeTimers();
+      render(<NeuroCoach stressLevel="high" />);
+
+      const checkbox1 = screen.getByRole('checkbox', {
+        name: /Ação 1 \(Respiração\): Executar ciclo 4-7-8 por 3 minutos\./i,
+      });
+      expect(checkbox1).not.toBeChecked();
+
+      const startButton = screen.getByRole('button', { name: /Iniciar Timer Guiado \(3 min\)/i });
+      fireEvent.click(startButton);
+      expect(screen.getByTestId('breathing-overlay')).toBeInTheDocument();
+
+      // Avança os 180 segundos
+      act(() => {
+        vi.advanceTimersByTime(180000);
+      });
+
+      expect(screen.queryByTestId('breathing-overlay')).not.toBeInTheDocument();
+      expect(checkbox1).toBeChecked();
+
+      vi.useRealTimers();
+    });
+
+    it('testa abertura do overlay escuro do ciclo de respiração 4-7-8 ao clicar no timer', () => {
+      render(<NeuroCoach stressLevel="high" />);
+
+      // Verifica que o overlay não está presente inicialmente
+      expect(screen.queryByTestId('breathing-overlay')).not.toBeInTheDocument();
+
+      // Clica no display do timer para abrir a experiência imersiva
+      const timerDisplay = screen.getByTestId('timer-display');
+      fireEvent.click(timerDisplay);
+
+      // Valida abertura do overlay com estilização escura de cockpit espacial (Modo Noturno)
+      const overlay = screen.getByTestId('breathing-overlay');
+      expect(overlay).toBeInTheDocument();
+      expect(overlay).toHaveClass('bg-slate-950/95');
+      expect(screen.getByRole('dialog', { name: /Experiência Imersiva de Respiração 4-7-8/i })).toBeInTheDocument();
+      expect(screen.getByText(/Cabine Orbital • Modo Noturno/i)).toBeInTheDocument();
+    });
+
+    it('testa se os textos das fases ("Inspire", "Retenha", "Expire") são exibidos corretamente', () => {
+      vi.useFakeTimers();
+      render(<NeuroCoach stressLevel="high" />);
+
+      // Abre o overlay pelo timer
+      const timerButton = screen.getByRole('button', { name: /Iniciar Timer Guiado \(3 min\)/i });
+      fireEvent.click(timerButton);
+
+      const overlay = screen.getByTestId('breathing-overlay');
+      expect(overlay).toBeInTheDocument();
+
+      // Fase 1 (0-4s): exibe texto "Inspire"
+      expect(within(overlay).getByRole('heading', { level: 2, name: /Inspire/i })).toBeInTheDocument();
+      expect(within(overlay).getByText('Inspire pelo nariz (4s)')).toBeInTheDocument();
+
+      // Avança 4 segundos: entra na Fase 2 (4-11s), exibe texto "Retenha"
+      act(() => {
+        vi.advanceTimersByTime(4000);
+      });
+      expect(within(overlay).getByRole('heading', { level: 2, name: /Retenha/i })).toBeInTheDocument();
+      expect(within(overlay).getByText('Retenha o ar nos pulmões (7s)')).toBeInTheDocument();
+
+      // Avança mais 7 segundos: entra na Fase 3 (11-19s), exibe texto "Expire"
+      act(() => {
+        vi.advanceTimersByTime(7000);
+      });
+      expect(within(overlay).getByRole('heading', { level: 2, name: /Expire/i })).toBeInTheDocument();
+      expect(within(overlay).getByText('Expire lentamente pela boca (8s)')).toBeInTheDocument();
+
+      vi.useRealTimers();
+    });
+
+    it('inicializa o protocolo de respiração 4-7-8 automaticamente quando autoStartBreathing={true}', () => {
+      // Arrange & Act
+      render(<NeuroCoach stressLevel="high" autoStartBreathing={true} />);
+
+      // Assert
+      const overlay = screen.getByTestId('breathing-overlay');
+      expect(overlay).toBeInTheDocument();
+      expect(screen.getByRole('dialog', { name: /Experiência Imersiva de Respiração 4-7-8/i })).toBeInTheDocument();
+      expect(screen.getByTestId('breathing-circle')).toBeInTheDocument();
+      expect(screen.getByText('Inspire pelo nariz (4s)')).toBeInTheDocument();
+      expect(screen.getByTestId('overlay-countdown')).toHaveTextContent('3:00');
     });
   });
 });

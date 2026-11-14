@@ -101,7 +101,7 @@ export default function MissionLog() {
     setHorasSono('');
     setTreino('');
     toast({
-      title: 'Registro salvo ✅',
+      title: 'Registro salvo',
       description: 'Seu Biometric Log foi atualizado.',
     });
   };
@@ -199,7 +199,7 @@ export default function MissionLog() {
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">
-                Nenhum registro ainda. Salve seu primeiro registro acima. 🚀
+                Nenhum registro ainda. Salve seu primeiro registro acima.
               </p>
             )}
           </CardContent>

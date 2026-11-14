@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarDays } from 'lucide-react';
+import { CalendarDays, Smile, Meh, Frown, type LucideIcon } from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -13,12 +13,12 @@ import {
   Cell,
 } from 'recharts';
 
-const MOOD_MAP: Record<string, { emoji: string; label: string; value: number; color: string }> = {
-  great: { emoji: '🤩', label: 'Ótimo', value: 5, color: 'hsl(160, 84%, 39%)' },
-  good:  { emoji: '😊', label: 'Bem', value: 4, color: 'hsl(168, 76%, 42%)' },
-  okay:  { emoji: '⚡', label: 'Nominal', value: 3, color: 'hsl(38, 92%, 50%)' },
-  low:   { emoji: '😔', label: 'Baixo', value: 2, color: 'hsl(25, 95%, 53%)' },
-  bad:   { emoji: '😩', label: 'Mal', value: 1, color: 'hsl(0, 84%, 60%)' },
+const MOOD_MAP: Record<string, { label: string; value: number; color: string; icon: LucideIcon }> = {
+  great: { label: 'Ótimo', value: 5, color: 'hsl(160, 84%, 39%)', icon: Smile },
+  good:  { label: 'Bem', value: 4, color: 'hsl(168, 76%, 42%)', icon: Smile },
+  okay:  { label: 'Nominal', value: 3, color: 'hsl(38, 92%, 50%)', icon: Meh },
+  low:   { label: 'Baixo', value: 2, color: 'hsl(25, 95%, 53%)', icon: Frown },
+  bad:   { label: 'Mal', value: 1, color: 'hsl(0, 84%, 60%)', icon: Frown },
 };
 
 interface CheckinDay {
@@ -26,7 +26,6 @@ interface CheckinDay {
   dayLabel: string;
   mood: string;
   moodValue: number;
-  moodEmoji: string;
   moodColor: string;
   energy: number;
 }
@@ -72,7 +71,6 @@ export default function CheckinHistory() {
           dayLabel: dayLabel.charAt(0).toUpperCase() + dayLabel.slice(1),
           mood: entry?.mood || '',
           moodValue: moodInfo?.value || 0,
-          moodEmoji: moodInfo?.emoji || '',
           moodColor: moodInfo?.color || 'hsl(var(--muted))',
           energy: entry?.energy || 0,
         });
@@ -92,10 +90,17 @@ export default function CheckinHistory() {
     if (!active || !payload?.length) return null;
     const d = payload[0].payload as CheckinDay;
     if (!d.mood) return null;
+    const moodInfo = MOOD_MAP[d.mood];
+    const MoodIcon = moodInfo?.icon;
     return (
       <div className="rounded-lg border bg-background px-3 py-2 shadow-md text-xs">
         <p className="font-medium">{d.dayLabel} — {d.date}</p>
-        <p>{d.moodEmoji} {MOOD_MAP[d.mood]?.label} • ⚡ {d.energy}/5</p>
+        <p className="flex items-center gap-1.5 mt-0.5">
+          {MoodIcon && <MoodIcon className="h-3.5 w-3.5" style={{ color: d.moodColor }} />}
+          <span>{moodInfo?.label}</span>
+          <span className="text-muted-foreground">•</span>
+          <span>Energia: {d.energy}/5</span>
+        </p>
       </div>
     );
   };
@@ -110,14 +115,26 @@ export default function CheckinHistory() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {/* Mood emoji row */}
+        {/* Mood status row */}
         <div className="grid grid-cols-7 gap-1 text-center">
-          {data.map((d) => (
-            <div key={d.date} className="flex flex-col items-center gap-0.5">
-              <span className="text-[10px] text-muted-foreground">{d.dayLabel}</span>
-              <span className="text-lg">{d.moodEmoji || '—'}</span>
-            </div>
-          ))}
+          {data.map((d) => {
+            const moodInfo = MOOD_MAP[d.mood];
+            const MoodIcon = moodInfo?.icon;
+            return (
+              <div key={d.date} className="flex flex-col items-center gap-1">
+                <span className="text-[10px] text-muted-foreground">{d.dayLabel}</span>
+                {MoodIcon ? (
+                  <MoodIcon
+                    className="h-4 w-4"
+                    style={{ color: d.moodColor }}
+                    aria-label={moodInfo?.label}
+                  />
+                ) : (
+                  <span className="text-xs text-muted-foreground">—</span>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* Energy bar chart */}
