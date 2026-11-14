@@ -83,7 +83,7 @@ export default function DashboardContent({
           </>
         ) : (
           <div className="text-center py-16 text-muted-foreground">
-            <p className="text-lg font-medium">Complete o NeuroScore primeiro</p>
+            <p className="text-lg font-medium">Complete o BioScore primeiro</p>
             <p className="text-sm mt-1">Faça um scan para desbloquear a gamificação</p>
           </div>
         );

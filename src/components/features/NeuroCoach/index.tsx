@@ -114,10 +114,10 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageCircle className="h-5 w-5 text-secondary" />
-            NeuroCoach - Agente IA Personalizado
+            AstroAssist - Agente IA Personalizado
           </CardTitle>
           <CardDescription>
-            Coaching com PNL baseado no seu NeuroScore para alta performance e compliance NR-1
+            Coaching com PNL baseado no seu BioScore para prontidão operacional e Segurança de Missão Segurança de Missão
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

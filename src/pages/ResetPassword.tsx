@@ -82,7 +82,7 @@ export default function ResetPassword() {
         <Card className="shadow-elegant border-border/50 backdrop-blur-sm">
           <CardHeader className="text-center space-y-3 pb-2">
             <div className="flex justify-center">
-              <img src={neuroSuiteLogo} alt="NeuroSuite" className="h-20 w-auto rounded-xl shadow-medium" />
+              <img src={neuroSuiteLogo} alt="CrewVitals" className="h-20 w-auto rounded-xl shadow-medium" />
             </div>
             <div>
               <h1 className="font-display font-bold text-xl text-foreground">Redefinir Senha</h1>

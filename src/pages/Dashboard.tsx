@@ -16,40 +16,40 @@ import { useStressNotifications } from '@/hooks/useStressNotifications';
 import { supabase } from '@/integrations/supabase/client';
 
 const PAGE_TITLES: Record<string, string> = {
-  checkin: 'Check-in Diário',
-  neuroscore: 'NeuroScore',
-  gamification: 'Gamificação',
-  neurocoach: 'NeuroCoach IA',
+  checkin: 'Avaliação de Turno',
+  neuroscore: 'BioScore',
+  gamification: 'Disciplina de Missão',
+  neurocoach: 'AstroAssist IA',
   leadership: 'Coaching Liderança',
-  'cognitive-fatigue': 'Análise de Fadiga Cognitiva',
+  'cognitive-fatigue': 'Análise de Estresse',
   'smart-breaks': 'Pausas Inteligentes',
-  'mission-log': 'Diário de Bordo',
+  'mission-log': 'Biometric Log',
   'ai-insights': 'IA Insights',
-  alerts: 'Alertas RH',
+  alerts: 'Alertas Comando',
   roi: 'ROI & Economia',
-  nr1: 'NR-1 Compliance',
+  nr1: 'Segurança de Missão',
   'narrative-reports': 'Relatórios Narrativos IA',
-  'nr1-chatbot': 'Chatbot NR-1',
+  'nr1-chatbot': 'Chatbot Segurança de Missão',
   integrations: 'Integrações',
-  'dashboard-rh': 'Dashboard RH',
+  'dashboard-rh': 'Painel de Comando',
 };
 
 const PAGE_DESCRIPTIONS: Record<string, string> = {
-  checkin: 'Triagem emocional rápida de 30 segundos',
+  checkin: 'Avaliação de prontidão para o turno',
   neuroscore: 'Scan facial via webcam para estimar nível de estresse com neurociência',
-  gamification: 'Acompanhe seu progresso, streaks e conquistas',
-  neurocoach: 'Coach de alta performance com IA personalizada',
+  gamification: 'Ciclos concluídos, protocolos em dia e sequência de monitoramento',
+  neurocoach: 'Assistente de recuperação e suporte à tripulação',
   leadership: 'Módulos premium de desenvolvimento de liderança com IA',
-  'cognitive-fatigue': 'IA detecta exaustão mental através da forma como você escreve',
+  'cognitive-fatigue': 'Análise de estresse e carga cognitiva para a missão',
   'smart-breaks': 'Micro-pausas personalizadas baseadas em cronobiologia e biometria',
   'mission-log': 'Registro diário de sono e exercícios da tripulação',
   'ai-insights': 'Análises preditivas de burnout e sentimento',
   alerts: 'Alertas inteligentes para gestão de equipes',
   roi: 'Retorno sobre investimento em saúde ocupacional',
-  nr1: 'Compliance e relatórios NR-1 automatizados',
+  nr1: 'Segurança de Missão e relatórios Segurança de Missão automatizados',
   'narrative-reports': 'Converta métricas em relatórios executivos com IA',
-  'nr1-chatbot': 'Tire dúvidas sobre regulamentação NR-1 e PGR',
-  integrations: 'Conecte com suas ferramentas de RH',
+  'nr1-chatbot': 'Tire dúvidas sobre regulamentação Segurança de Missão e PGR',
+  integrations: 'Conecte com suas ferramentas de Comando',
   'dashboard-rh': 'Visão consolidada dos indicadores de bem-estar',
 };
 
@@ -166,7 +166,7 @@ export default function Dashboard() {
 
           <footer className="border-t bg-card/30 px-4 py-3 text-center">
             <p className="text-[11px] text-muted-foreground">
-              NeuroSuite v1.0 (Beta) · Lincolnectd Neurobusiness · LGPD
+              CrewVitals v1.0 (Beta) · CrewVitals by Dark Sector · Zero-Trust Privacy
             </p>
           </footer>
         </div>

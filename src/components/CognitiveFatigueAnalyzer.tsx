@@ -73,10 +73,10 @@ export default function CognitiveFatigueAnalyzer({ stressLevel }: CognitiveFatig
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Brain className="h-5 w-5 text-primary" />
-            Análise de Fadiga Cognitiva
+            Análise de Estresse
           </CardTitle>
           <CardDescription>
-            A IA analisa padrões de escrita para detectar sinais de exaustão mental
+            Análise de estresse e carga cognitiva para a missão
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -96,7 +96,7 @@ export default function CognitiveFatigueAnalyzer({ stressLevel }: CognitiveFatig
             {isAnalyzing ? (
               <><Loader2 className="h-4 w-4 animate-spin mr-2" />Analisando padrões linguísticos...</>
             ) : (
-              <><Brain className="h-4 w-4 mr-2" />Analisar Fadiga Cognitiva</>
+              <><Brain className="h-4 w-4 mr-2" />Analisar Análise de Estresse</>
             )}
           </Button>
         </CardContent>

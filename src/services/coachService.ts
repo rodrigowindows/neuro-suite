@@ -11,7 +11,7 @@ export function getInitialMessage(stressLevel: string): string {
     return 'Para reduzir turnover, o que drena sua energia? 😐 Reframe como oportunidade (PNL) para equilibrar bem-estar e performance.';
   }
   if (stressLevel === 'high') {
-    return 'Alerta burnout (NR-1). 😟 Qual pausa sensorial (respiração 4-7-8) te recarrega? Vamos criar um plano de reequilíbrio imediato.';
+    return 'Alerta burnout (Segurança de Missão). 😟 Qual pausa sensorial (respiração 4-7-8) te recarrega? Vamos criar um plano de reequilíbrio imediato.';
   }
   return 'Olá! 👋 Faça um scan primeiro para eu calibrar minha análise ao seu estado atual. Enquanto isso, me conta: como você está se sentindo?';
 }
@@ -30,7 +30,7 @@ export function buildContext(stressLevel: string, hrvValue: string): string {
 
 export function exportConversation(messages: CoachMessage[]): Blob {
   const planText = messages
-    .map((msg) => `${msg.role === 'user' ? 'Você' : 'NeuroCoach'}: ${msg.content}`)
+    .map((msg) => `${msg.role === 'user' ? 'Você' : 'AstroAssist'}: ${msg.content}`)
     .join('\n\n');
   return new Blob([planText], { type: 'text/plain' });
 }

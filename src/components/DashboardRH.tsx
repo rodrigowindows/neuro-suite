@@ -78,7 +78,7 @@ Predição,"${prediction}"`;
       <Card>
         <CardContent className="p-12 text-center">
           <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-muted-foreground">Carregando dados RH...</p>
+          <p className="text-muted-foreground">Carregando dados Comando...</p>
         </CardContent>
       </Card>
     );
@@ -99,7 +99,7 @@ Predição,"${prediction}"`;
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BarChart className="h-5 w-5 text-primary" />
-            Dashboard RH - Análise de Bem-Estar (7 dias)
+            Painel de Comando - Análise de Bem-Estar (7 dias)
           </CardTitle>
           <CardDescription>
             Dados agregados anônimos da equipe • Últimos 7 dias

@@ -102,7 +102,7 @@ export default function MissionLog() {
     setTreino('');
     toast({
       title: 'Registro salvo ✅',
-      description: 'Seu diário de bordo foi atualizado.',
+      description: 'Seu Biometric Log foi atualizado.',
     });
   };
 
@@ -116,7 +116,7 @@ export default function MissionLog() {
                 <BookOpen className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <CardTitle>Diário de Bordo</CardTitle>
+                <CardTitle>Biometric Log</CardTitle>
                 <CardDescription>
                   Registre seu sono e exercícios diários — essenciais para mitigar os efeitos da microgravidade.
                 </CardDescription>

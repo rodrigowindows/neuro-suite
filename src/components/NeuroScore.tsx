@@ -74,7 +74,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
 
   const getStressDisplay = (level: string) => {
     if (level === 'moderate') return { emoji: '😐', message: 'Atenção normal, sugira pausas para evitar burnout' };
-    if (level === 'high') return { emoji: '😟', message: 'Alerta estresse, priorize reequilíbrio (NR-1)' };
+    if (level === 'high') return { emoji: '😟', message: 'Fadiga detectada. Risco de erro operacional' };
     return { emoji: '😊', message: 'Foco otimizado, produtividade alta' };
   };
 
@@ -155,7 +155,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
-            NeuroScore — Detecção de Estresse
+            BioScore — Detecção de Estresse
           </CardTitle>
           <CardDescription>
             Análise de taxa de piscadas + HRV via webcam para estimar estresse (baseado em neurociência)
@@ -231,7 +231,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
               <div className="p-4 bg-primary/5 rounded-lg">
                 <p className="text-sm font-medium mb-2">💡 Dica PNL:</p>
                 <p className="text-sm text-muted-foreground">
-                  {result.stressLevel === 'low' && 'Ancore uma memória de sucesso para manter alta performance.'}
+                  {result.stressLevel === 'low' && 'Ancore uma memória de sucesso para manter prontidão operacional.'}
                   {result.stressLevel === 'moderate' && 'Pratique respiração 4-7-8 para reequilíbrio rápido.'}
                   {result.stressLevel === 'high' && 'Pause agora: 2min de respiração profunda + reframe mental (PNL).'}
                 </p>

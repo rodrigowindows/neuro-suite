@@ -10,13 +10,13 @@ import { useEffect, useRef, useState } from 'react';
 
 const INITIAL_MESSAGE = {
   role: 'assistant' as const,
-  content: '👋 Olá! Sou o assistente especialista em **NR-1** e regulamentação brasileira de SST.\n\nPosso ajudar com:\n- 📋 Obrigações da NR-1 e Portaria 1.419/2024\n- ⚠️ Riscos psicossociais no GRO/PGR\n- 💰 Multas e penalidades\n- 📊 Ferramentas de avaliação aceitas\n- 🔗 Integração com eSocial\n\nComo posso ajudar?',
+  content: '👋 Olá! Sou o assistente especialista em **Segurança de Missão** e regulamentação brasileira de SST.\n\nPosso ajudar com:\n- 📋 Obrigações da Segurança de Missão e Portaria 1.419/2024\n- ⚠️ Riscos psicossociais no GRO/PGR\n- 💰 Multas e penalidades\n- 📊 Ferramentas de avaliação aceitas\n- 🔗 Integração com eSocial\n\nComo posso ajudar?',
 };
 
 const SUGGESTIONS = [
-  'Quais são as obrigações da NR-1 sobre riscos psicossociais?',
+  'Quais são as obrigações da Segurança de Missão sobre riscos psicossociais?',
   'Como incluir riscos psicossociais no PGR?',
-  'Quais as penalidades por descumprimento da NR-1?',
+  'Quais as penalidades por descumprimento da Segurança de Missão?',
   'Como a Portaria 1.419/2024 impacta minha empresa?',
   'Quais ferramentas de avaliação são aceitas para riscos psicossociais?',
 ];
@@ -75,7 +75,7 @@ export default function NR1ComplianceChatbot() {
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Shield className="h-5 w-5 text-primary" />
-              Chatbot NR-1 Compliance
+              Chatbot Segurança de Missão
             </div>
             {messages.length > 1 && (
               <Button variant="ghost" size="sm" onClick={clearChat}>
@@ -84,7 +84,7 @@ export default function NR1ComplianceChatbot() {
             )}
           </CardTitle>
           <CardDescription>
-            Tire dúvidas sobre NR-1, Portaria 1.419/2024, PGR, riscos psicossociais e eSocial
+            Tire dúvidas sobre Segurança de Missão, Portaria 1.419/2024, PGR, riscos psicossociais e eSocial
           </CardDescription>
         </CardHeader>
 
@@ -129,7 +129,7 @@ export default function NR1ComplianceChatbot() {
                   </div>
                   <div className="bg-muted/50 border rounded-lg p-3">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm text-muted-foreground">Consultando NR-1</p>
+                      <p className="text-sm text-muted-foreground">Consultando Segurança de Missão</p>
                       <div className="flex gap-1">
                         <span className="w-2 h-2 bg-primary rounded-full animate-[pulse_1.4s_ease-in-out_0s_infinite]" />
                         <span className="w-2 h-2 bg-primary rounded-full animate-[pulse_1.4s_ease-in-out_0.2s_infinite]" />
@@ -144,7 +144,7 @@ export default function NR1ComplianceChatbot() {
 
           <div className="flex gap-2 flex-shrink-0">
             <Input
-              placeholder="Pergunte sobre NR-1, PGR, riscos psicossociais..."
+              placeholder="Pergunte sobre Segurança de Missão, PGR, riscos psicossociais..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}

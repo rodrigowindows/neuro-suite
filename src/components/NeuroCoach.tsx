@@ -87,7 +87,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
         } else if (effectiveStressLevel === 'moderate') {
           initialMessage = 'Para reduzir turnover, o que drena sua energia? 😐 Reframe como oportunidade (PNL) para equilibrar bem-estar e performance.';
         } else if (effectiveStressLevel === 'high') {
-          initialMessage = 'Alerta burnout (NR-1). 😟 Qual pausa sensorial (respiração 4-7-8) te recarrega? Vamos criar um plano de reequilíbrio imediato.';
+          initialMessage = 'Alerta burnout (Segurança de Missão). 😟 Qual pausa sensorial (respiração 4-7-8) te recarrega? Vamos criar um plano de reequilíbrio imediato.';
         } else {
           initialMessage = 'Olá! 👋 Faça um scan primeiro para eu calibrar minha análise ao seu estado atual. Enquanto isso, me conta: como você está se sentindo?';
         }
@@ -188,7 +188,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
 
   const exportPlan = () => {
     const planText = messages
-      .map((msg) => `${msg.role === 'user' ? 'Você' : 'NeuroCoach'}: ${msg.content}`)
+      .map((msg) => `${msg.role === 'user' ? 'Você' : 'AstroAssist'}: ${msg.content}`)
       .join('\n\n');
 
     const blob = new Blob([planText], { type: 'text/plain' });
@@ -210,10 +210,10 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageCircle className="h-5 w-5 text-secondary" />
-            NeuroCoach - Agente IA Personalizado
+            AstroAssist - Agente IA Personalizado
           </CardTitle>
           <CardDescription>
-            Coaching com PNL baseado no seu NeuroScore para alta performance e compliance NR-1
+            Coaching com PNL baseado no seu BioScore para prontidão operacional e Segurança de Missão Segurança de Missão
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -221,7 +221,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
             <div className="p-4 bg-accent/10 rounded-lg border-2 border-accent/30 space-y-3">
               <h3 className="font-semibold text-accent">🎯 Escolha teu tom de comunicação:</h3>
               <p className="text-sm text-muted-foreground">
-                Selecione como prefere que o NeuroCoach se comunique com você
+                Selecione como prefere que o AstroAssist se comunique com você
               </p>
               <Select value={communicationTone} onValueChange={setCommunicationTone}>
                 <SelectTrigger className="w-full">
@@ -297,7 +297,7 @@ export default function NeuroCoach({ stressLevel }: NeuroCoachProps) {
               <div className="flex justify-start">
                 <div className="max-w-[80%] p-3 rounded-lg bg-card border shadow-soft">
                   <p className="text-sm text-muted-foreground animate-pulse">
-                    NeuroCoach está pensando...
+                    AstroAssist está pensando...
                   </p>
                 </div>
               </div>

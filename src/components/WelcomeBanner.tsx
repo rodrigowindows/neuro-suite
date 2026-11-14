@@ -12,7 +12,7 @@ export default function WelcomeBanner({ displayName }: WelcomeBannerProps) {
 
   if (dismissed) return null;
 
-  const greeting = displayName ? `Olá, ${displayName}! 👋` : 'Bem-vindo ao NeuroSuite! 👋';
+  const greeting = displayName ? `Olá, ${displayName}! 👋` : 'Bem-vindo ao CrewVitals! 👋';
 
   return (
     <AnimatePresence>
@@ -39,7 +39,7 @@ export default function WelcomeBanner({ displayName }: WelcomeBannerProps) {
           <div>
             <h3 className="font-display font-bold text-sm text-foreground">{greeting}</h3>
             <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-              Comece fazendo seu primeiro <strong>NeuroScore</strong> — um scan facial rápido que estima seu nível de estresse usando neurociência. É seguro, privado e leva menos de 30 segundos.
+              Comece fazendo seu primeiro <strong>BioScore</strong> — um scan facial rápido que estima seu nível de estresse usando neurociência. É seguro, privado e leva menos de 30 segundos.
             </p>
           </div>
         </div>

@@ -35,7 +35,7 @@ export default function ChatMessages({ messages, isLoading }: ChatMessagesProps)
         <div className="flex justify-start">
           <div className="max-w-[80%] p-3 rounded-lg bg-card border shadow-soft">
             <div className="flex items-center gap-2">
-              <p className="text-sm text-muted-foreground">NeuroCoach está digitando</p>
+              <p className="text-sm text-muted-foreground">AstroAssist está digitando</p>
               <div className="flex gap-1">
                 <span className="w-2 h-2 bg-primary rounded-full animate-[pulse_1.4s_ease-in-out_0s_infinite]" />
                 <span className="w-2 h-2 bg-primary rounded-full animate-[pulse_1.4s_ease-in-out_0.2s_infinite]" />

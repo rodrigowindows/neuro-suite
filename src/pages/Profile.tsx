@@ -150,7 +150,7 @@ export default function Profile() {
                 <CardTitle className="text-base">Informações Pessoais</CardTitle>
               </div>
               <CardDescription className="text-xs">
-                Atualize seu nome e como deseja ser chamado pelo NeuroCoach
+                Atualize seu nome e como deseja ser chamado pelo AstroAssist
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -191,7 +191,7 @@ export default function Profile() {
                   onChange={(e) => setPreferredName(e.target.value)}
                   maxLength={50}
                 />
-                <p className="text-[10px] text-muted-foreground">O NeuroCoach usará este nome nas conversas</p>
+                <p className="text-[10px] text-muted-foreground">O AstroAssist usará este nome nas conversas</p>
               </div>
 
               <Button

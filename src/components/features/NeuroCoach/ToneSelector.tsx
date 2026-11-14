@@ -10,7 +10,7 @@ export default function ToneSelector({ value, onChange }: ToneSelectorProps) {
     <div className="p-4 bg-accent/10 rounded-lg border-2 border-accent/30 space-y-3">
       <h3 className="font-semibold text-accent">🎯 Escolha teu tom de comunicação:</h3>
       <p className="text-sm text-muted-foreground">
-        Selecione como prefere que o NeuroCoach se comunique com você
+        Selecione como prefere que o AstroAssist se comunique com você
       </p>
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger className="w-full">

@@ -8,7 +8,7 @@ export interface StressResult {
 
 export function getStressDisplay(level: string): { emoji: string; message: string } {
   if (level === 'moderate') return { emoji: '😐', message: 'Atenção normal, sugira pausas para evitar burnout' };
-  if (level === 'high') return { emoji: '😟', message: 'Alerta estresse, priorize reequilíbrio (NR-1)' };
+  if (level === 'high') return { emoji: '😟', message: 'Fadiga detectada. Risco de erro operacional' };
   return { emoji: '😊', message: 'Foco otimizado, produtividade alta' };
 }
 
@@ -53,7 +53,7 @@ export function getDiagnosticLabel(level: string): string {
 }
 
 export function getPnlTip(level: string): string {
-  if (level === 'low') return 'Ancore uma memória de sucesso para manter alta performance.';
+  if (level === 'low') return 'Ancore uma memória de sucesso para manter prontidão operacional.';
   if (level === 'moderate') return 'Pratique respiração 4-7-8 para reequilíbrio rápido.';
   return 'Pause agora: 2min de respiração profunda + reframe mental (PNL).';
 }

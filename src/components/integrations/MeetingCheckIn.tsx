@@ -35,13 +35,13 @@ export default function MeetingCheckIn({ overloadLevel, connectedCount, totalMee
 
     try {
       const prompt = checkInType === 'pre'
-        ? `Você é um coach de alta performance com PNL. O usuário vai entrar em uma reunião com:
+        ? `Você é um coach de prontidão operacional com PNL. O usuário vai entrar em uma reunião com:
 Propósito: ${purpose}
 Objetivos: ${objectives}
 Expectativas: ${expectations}
 
 Faça 3 perguntas poderosas (PNL) para alinhar mindset antes da reunião. Seja conciso e motivador.`
-        : `Você é um coach de alta performance com PNL. O usuário acabou uma reunião:
+        : `Você é um coach de prontidão operacional com PNL. O usuário acabou uma reunião:
 Propósito original: ${purpose}
 Feedback: ${feedback || 'Não informado'}
 
@@ -71,7 +71,7 @@ Dê um feedback construtivo baseado em PNL: o que foi bem, o que melhorar, e uma
         if (response.status === 402) {
           throw new Error('Serviço temporariamente indisponível.');
         }
-        throw new Error('Erro ao conectar ao NeuroCoach');
+        throw new Error('Erro ao conectar ao AstroAssist');
       }
 
       const reader = response.body.getReader();
@@ -143,7 +143,7 @@ Dê um feedback construtivo baseado em PNL: o que foi bem, o que melhorar, e uma
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Brain className="h-5 w-5 text-primary" />
-          Check-in de Reunião com IA
+          Avaliação de Turno de Reunião com IA
         </CardTitle>
         <CardDescription>Feedback baseado em PNL antes e depois das reuniões</CardDescription>
       </CardHeader>
@@ -230,7 +230,7 @@ Dê um feedback construtivo baseado em PNL: o que foi bem, o que melhorar, e uma
             <div className="p-4 bg-muted/50 rounded-lg border mt-4">
               <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
                 <Brain className="h-4 w-4 text-primary" />
-                NeuroCoach diz:
+                AstroAssist diz:
               </h4>
               <p className="text-sm whitespace-pre-wrap leading-relaxed">{aiResponse}</p>
             </div>

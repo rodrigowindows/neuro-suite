@@ -67,7 +67,7 @@ export default function StressAlertBanner({
                 🧘 Tente a Mini Meditação
               </span>
               <span className="inline-block text-[10px] px-2 py-1 rounded-full bg-background/50 border border-border">
-                💬 Converse com o NeuroCoach
+                💬 Converse com o AstroAssist
               </span>
             </div>
           </div>
