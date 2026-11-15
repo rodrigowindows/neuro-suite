@@ -1,27 +1,34 @@
-# Links Oficiais de Publicacao para a Banca
+# Links Oficiais de Publicação para a Banca (v1.3)
 
-Tabela de controle dos links publicos fornecidos a banca avaliadora (NASA Space Apps / banca examinadora).
+Tabela de controle dos links públicos fornecidos à banca examinadora (NASA Space Apps / banca examinadora) em inglês e português.
 
-Instrucoes para o responsavel:
-1. Gere os links publicos seguindo o roteiro detalhado em `docs/publicacao/CHECKLIST-PUBLICACAO.md`.
-2. Para cada linha, teste o link em janela anonima (sem nenhuma sessao ativa) antes de marcar como "Sim".
-3. Substitua os marcadores `<PREENCHER>` pelas URLs definitivas e registre a data do teste.
-4. Nao insira credenciais, chaves de acesso nem parametros de autenticacao nos links desta tabela.
-
----
-
-## Tabela de Artefatos da Banca
-
-| Artefato | URL | Testado em Janela Anonima? | Data |
-| :--- | :--- | :---: | :---: |
-| App /demo | https://neuro-suite.lovable.app/demo | [ ] Sim / [ ] Nao | <PREENCHER_DATA> |
-| Deck PDF | <PREENCHER_URL_PDF> | [ ] Sim / [ ] Nao | <PREENCHER_DATA> |
-| Deck PPTX | <PREENCHER_URL_PPTX> | [ ] Sim / [ ] Nao | <PREENCHER_DATA> |
-| Video (ate 30s) | <PREENCHER_URL_YOUTUBE> | [ ] Sim / [ ] Nao | <PREENCHER_DATA> |
+Instruções para o responsável:
+1. Gere e hospede os links públicos seguindo os roteiros operacionais em `docs/publicacao/PUBLISHING-CHECKLIST.en.md` e `docs/publicacao/CHECKLIST-PUBLICACAO.md`.
+2. Para cada linha, teste o link em janela anônima (sem nenhuma sessão ativa e sem credenciais) antes de marcar como "Sim".
+3. Substitua os marcadores `<FILL IN>` pelas URLs definitivas e registre a data de validação do teste.
+4. Não insira credenciais, senhas, chaves de API nem parâmetros de autenticação nos links desta tabela.
 
 ---
 
-## Observacoes de Acesso
-- O acesso ao App `/demo` nao exige login, cadastro, senha nem configuracao previa.
-- Todos os dados apresentados no modo `/demo` sao inteiramente simulados para efeito de demonstracao e homologacao de interface.
-- Se a URL principal do App apresentar qualquer instabilidade de rede externa, utilize os links de contingencia do Deck e do Video para avaliacao completa da solucao.
+## Tabela Bilíngue de Artefatos da Banca
+
+| Artefato | Idioma | URL | Testado em Janela Anônima? | Data |
+| :--- | :---: | :--- | :---: | :---: |
+| App `/demo?lang=en` | EN | https://neuro-suite.lovable.app/demo?lang=en | [ ] Sim / [ ] Não | <FILL IN> |
+| App `/demo?lang=pt` | PT | https://neuro-suite.lovable.app/demo?lang=pt | [ ] Sim / [ ] Não | <FILL IN> |
+| Deck de Apresentação (PDF) | EN | <FILL IN> | [ ] Sim / [ ] Não | <FILL IN> |
+| Deck de Apresentação (PPTX) | EN | <FILL IN> | [ ] Sim / [ ] Não | <FILL IN> |
+| Deck de Apresentação (PDF) | PT | <FILL IN> | [ ] Sim / [ ] Não | <FILL IN> |
+| Deck de Apresentação (PPTX) | PT | <FILL IN> | [ ] Sim / [ ] Não | <FILL IN> |
+| Vídeo de Demonstração (30s) | EN | <FILL IN> | [ ] Sim / [ ] Não | <FILL IN> |
+| Vídeo de Demonstração (30s) | PT | <FILL IN> | [ ] Sim / [ ] Não | <FILL IN> |
+
+---
+
+## Observações de Acesso e Conformidade
+
+- O acesso ao modo `/demo` não exige login, cadastro, senha nem permissão prévia.
+- Todos os dados apresentados no modo `/demo` são 100% simulados para homologação e demonstração operacional de interface.
+- O alerta preditivo exibido na demonstração é um cenário demonstrativo e não uma previsão clínica validada.
+- O CrewVitals é um Sistema de Suporte à Decisão (DSS) para prontidão operacional e não substitui avaliação médica.
+- Se a URL principal do App apresentar qualquer instabilidade de infraestrutura externa durante a avaliação, utilize os links de contingência dos Decks e dos Vídeos para cumprimento integral dos critérios da banca.
