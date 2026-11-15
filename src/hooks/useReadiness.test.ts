@@ -19,6 +19,7 @@ import {
 } from '@/lib/demoScenario';
 import { useAuth } from '@/hooks/useAuth';
 
+// Mock de @/lib/constants com e-mail ficticio para testar o comportamento legado sem expor dados reais
 const demoConfig = vi.hoisted(() => ({ email: '' }));
 
 vi.mock('@/lib/constants', async (importOriginal) => ({
