@@ -1,10 +1,10 @@
-"""Gera CrewVitals-Demo.pptx e CrewVitals-Demo.pdf a partir do mesmo conteudo.
+"""Gera CrewVitals-Demo.pptx e CrewVitals-Demo.pdf a partir do mesmo conteúdo.
 
 Uso:
     python gerar_apresentacao.py
 
-Dependencias: python-pptx (PPTX) e Google Chrome / Edge instalado (PDF, modo headless).
-Para apontar outro executavel do Chrome, defina a variavel de ambiente CHROME_PATH.
+Dependências: python-pptx (PPTX) e Google Chrome / Edge instalado (PDF, modo headless).
+Para apontar outro executável do Chrome, defina a variável de ambiente CHROME_PATH.
 """
 
 from __future__ import annotations
@@ -61,111 +61,106 @@ class Slide:
 
 
 SLIDES: tuple[Slide, ...] = (
-    # Slide 1: Titulo
+    # Slide 1: Título
     Slide(
         kind="cover",
         title="CrewVitals",
-        subtitle="Terminal de Telemetria de Saude da Tripulacao",
-        note="Sistema de Suporte a Decisao (DSS) para monitoramento de prontidao em missoes espaciais",
+        subtitle="Terminal de Telemetria de Saúde da Tripulação",
+        note="Sistema de Suporte à Decisão (DSS) para monitoramento de prontidão em missões espaciais",
     ),
-    # Slide 2: Introducao
+    # Slide 2: Introdução
     Slide(
         kind="bullets",
-        title="O problema: fadiga cognitiva em voos de longa duracao",
+        title="O problema: fadiga cognitiva em voos de longa duração",
         items=(
-            "Missoes espaciais de longa duracao expoem tripulantes a isolamento, confinamento e sobrecarga operacional continua.",
-            "Condicoes extremas degradam vigilancia, tempo de reacao e prontidao cognitiva de maneira gradual e assintomatica.",
-            "A pergunta operacional critica: o tripulante esta realmente apto para assumir o turno com seguranca?",
-            "O CrewVitals torna variacoes de prontidao visiveis precocemente para apoiar a tomada de decisao autonoma a bordo.",
+            "Missões espaciais de longa duração expõem tripulantes a isolamento, confinamento e sobrecarga operacional contínua.",
+            "Condições extremas degradam vigilância, tempo de reação e prontidão cognitiva de maneira gradual e assintomática.",
+            "A pergunta operacional crítica: o tripulante está realmente apto para assumir o turno com segurança?",
+            "O CrewVitals torna variações de prontidão visíveis precocemente para apoiar a tomada de decisão autônoma a bordo.",
         ),
     ),
-    # Slide 3: Solucao
+    # Slide 3: Solução
     Slide(
         kind="cards",
-        title="Solucao: cockpit operacional de 3 niveis",
+        title="Solução: cockpit operacional de 3 níveis",
         cards=(
             (
-                "1. Semaforo operacional",
-                "Veredito imediato de prontidao em 3 estados: GO (apto), ATENCAO (vigilancia) ou NO-GO (nao apto).",
+                "1. Semáforo operacional",
+                "Veredito imediato de prontidão em 3 estados: GO (apto), ATENÇÃO (vigilância) ou NO-GO (não apto).",
             ),
             (
-                "2. Tres numeros essenciais",
-                "BioScore global (0 a 100), estimativa de variabilidade cardiaca (HRV em ms) e taxa de piscadas (piscadas/min inteiras).",
+                "2. Três números essenciais",
+                "BioScore global (0 a 100), taxa de piscadas (piscadas/min) e horas de sono. O HRV atua nos bastidores do cálculo.",
             ),
             (
-                "3. Acao primaria unica",
-                "Recomendacao direta e focada (ex.: protocolo respiratorio guiado 4-7-8) para resposta rapida sem sobrecarga cognitiva.",
+                "3. Ação primária única",
+                "Recomendação direta e focada (ex.: protocolo respiratório guiado 4-7-8) para resposta rápida sem sobrecarga cognitiva.",
             ),
         ),
-        note="Interface concebida para tomada de decisao rapida sob alta carga cognitiva.",
+        note="Interface concebida para tomada de decisão rápida sob alta carga cognitiva.",
     ),
-    # Slide 4: Demonstracao
+    # Slide 4: Demonstração
     Slide(
         kind="table",
-        title="Demonstracao: roteiro operacional em 3 etapas",
-        headers=("Etapa", "Estado e Veredito", "Acao Operacional na Demonstracao"),
+        title="Demonstração: roteiro operacional em 3 etapas",
+        headers=("Etapa", "Estado e Métricas em Tela", "Ação Operacional e Botão Real"),
         rows=(
             (
                 "Etapa 1: Abertura",
-                "NO-GO — Nao Apto (BioScore 34, HRV 38 ms, 26 piscadas/min)",
-                "Acesso direto a rota publica /demo com selo DEMO; deteccao de fadiga severa e indicacao de contramedida.",
+                "NO-GO — Não Apto (BioScore 34, 14 piscadas/min, sono 5,5 h; HRV 28 ms nos bastidores)",
+                "Acesso direto à rota pública /demo com selo DEMO. Botão primário: 'Iniciar Protocolo 4-7-8'.",
             ),
             (
-                "Acao: Protocolo",
-                "Transicao de estado com contramedida respiratoria guiada",
-                "Execucao do Protocolo 4-7-8 e registro da acao pelo tripulante para iniciar a recuperacao.",
+                "Etapa 2: Recuperação",
+                "ATENÇÃO — Vigilância (BioScore 52, 14 piscadas/min, sono 5,5 h; HRV 45 ms nos bastidores)",
+                "Transição após contramedida executada. Botão primário atualizado para: 'Simular novo scan'.",
             ),
             (
-                "Etapa 2: Recuperacao",
-                "ATENCAO — Vigilancia (BioScore 52, HRV 48 ms, 20 piscadas/min)",
-                "Veredito atualizado para vigilancia moderada; cockpit indica nova verificacao fisiologica.",
-            ),
-            (
-                "Etapa 3: Estabilizacao",
-                "GO — Apto para o Turno (BioScore 72, HRV 62 ms, 14 piscadas/min)",
-                "Clique em 'Simular novo scan'; parametros normalizados e tripulante liberado para o turno.",
+                "Etapa 3: Estabilização",
+                "GO — Apto para o Turno (BioScore 72, 18 piscadas/min, sono 5,5 h; HRV 62 ms nos bastidores)",
+                "Clique em 'Simular novo scan' confirma recuperação. Botão primário: 'Iniciar Turno'.",
             ),
         ),
-        widths=(2.2, 4.6, 5.3),
-        note="Demonstracao interativa publica baseada em cenario controlado com valores fixos predeterminados.",
+        widths=(2.2, 5.0, 4.9),
+        note="Demonstração interativa pública baseada em cenário controlado com valores fixos predeterminados.",
     ),
-    # Slide 5: Transparencia Cientifica
+    # Slide 5: Transparência Científica
     Slide(
         kind="table",
-        title="Transparencia cientifica: medido versus simulado",
-        headers=("Indicador / Recurso", "Classificacao na Demo", "Fonte e Limitacoes Operacionais"),
+        title="Transparência científica: medido versus simulado",
+        headers=("Indicador / Recurso", "Classificação na Demo", "Fonte e Limitações Operacionais"),
         rows=(
-            ("Demonstracao publica (/demo)", "100% Simulado", "Valores fixos (BioScore 34, 52 e 72); execucao local sem chamadas ao backend."),
-            ("Alerta preditivo", "Demonstracao", "Alerta ilustrativo rotulado; nao constitui modelo preditivo ou prognostico validado."),
-            ("Fadiga e piscadas (App)", "Estimativa", "Contagem por visao computacional via webcam; exibicao em piscadas/min inteiras."),
-            ("Variacao cardiaca (HRV)", "Estimativa", "rPPG optico experimental por webcam; sem certificacao clinica para diagnostico."),
-            ("Sono e humor", "Autorrelatado", "Check-in subjetivo de horas dormidas, percepcao de estresse e prontidao reportada."),
-            ("Ambiente e radiacao", "Nao coberto", "Sem integracao com dosimetros a bordo; reservado para telemetria futura de cabine."),
+            ("Demonstração pública (/demo)", "100% Simulado", "Valores fixos (BioScore 34, 52 e 72); execução local sem chamadas ao backend."),
+            ("Alerta preditivo", "Demonstração", "Alerta ilustrativo rotulado; não constitui modelo preditivo ou prognóstico validado."),
+            ("Fadiga e piscadas (App)", "Estimativa", "Contagem por visão computacional via webcam; exibição em piscadas/min inteiras."),
+            ("Variação cardíaca (HRV)", "Estimativa", "rPPG óptico experimental por webcam; sem certificação clínica para diagnóstico."),
+            ("Sono e humor", "Autorrelatado", "Check-in subjetivo de horas dormidas, percepção de estresse e prontidão reportada."),
+            ("Ambiente e radiação", "Não coberto", "Sem integração com dosímetros a bordo; reservado para telemetria futura de cabine."),
         ),
         widths=(3.1, 2.2, 6.8),
-        note="O CrewVitals e um Sistema de Suporte a Decisao (DSS) operacional e nao substitui avaliacao medica profissional.",
+        note="O CrewVitals é um Sistema de Suporte à Decisão (DSS) operacional e não substitui avaliação médica profissional.",
     ),
-    # Slide 6: Privacidade e Seguranca
+    # Slide 6: Privacidade e Segurança
     Slide(
         kind="bullets",
-        title="Privacidade e seguranca da telemetria",
+        title="Privacidade e segurança da telemetria",
         items=(
-            "Demonstracao publica isolada: execucao estritamente local no navegador, sem chamadas de rede e sem sessao.",
-            "Zero persistencia na demo: nenhuma telemetria, video de webcam ou dado fisiologico e transmitido ou salvo em banco.",
-            "Arquitetura do sistema operacional: politicas de seguranca RLS no banco de dados isolando telemetria por identificador.",
-            "Funcoes e consultas protegidas: autenticacao por token nos servicos de retaguarda e leitura estrita com colunas explicitas.",
-            "Higiene de telemetria: logs de console suprimidos em producao para evitar vazamento local de metricas biometricas.",
+            "Demonstração pública isolada: execução estritamente local no navegador, sem chamadas de rede e sem sessão.",
+            "Zero persistência na demo: nenhuma telemetria, vídeo de webcam ou dado fisiológico é transmitido ou salvo em banco.",
+            "Arquitetura do sistema operacional: políticas de segurança RLS no banco de dados isolando telemetria por identificador.",
+            "Funções e consultas protegidas: autenticação por token nos serviços de retaguarda e leitura estrita com colunas explícitas.",
+            "Higiene de telemetria: logs de console suprimidos em produção para evitar vazamento local de métricas biométricas.",
         ),
     ),
     # Slide 7: Fechamento
     Slide(
         kind="closing",
         title="CrewVitals — Terminal de Telemetria",
-        subtitle="Apoio a decisao para a tripulacao em missoes espaciais",
+        subtitle="Apoio à decisão para a tripulação em missões espaciais",
         items=(
-            "Demonstracao publica direta (sem login): https://neuro-suite.lovable.app/demo",
-            "Codigo-fonte e documentacao: https://github.com/rodrigowindows/neuro-suite",
-            "Sistema de Suporte a Decisao (DSS) operacional. Nao substitui avaliacao medica.",
+            "Demonstração pública direta (sem login): https://neuro-suite.lovable.app/demo",
+            "Código-fonte e documentação: https://github.com/rodrigowindows/neuro-suite",
+            "Sistema de Suporte à Decisão (DSS) operacional. Não substitui avaliação médica.",
         ),
     ),
 )
@@ -221,7 +216,7 @@ def pptx_title(slide, title: str) -> None:
 
 def pptx_footer(slide, number: int) -> None:
     frame = add_textbox(slide, 0.6, 6.95, 9.0, 0.4)
-    write_paragraph(frame.paragraphs[0], "CrewVitals | Demonstracao Operacional", 14, MUTED)
+    write_paragraph(frame.paragraphs[0], "CrewVitals | Demonstração Operacional", 14, MUTED)
     frame = add_textbox(slide, 11.7, 6.95, 1.0, 0.4)
     write_paragraph(frame.paragraphs[0], str(number), 14, MUTED, align=PP_ALIGN.RIGHT)
 
@@ -419,7 +414,7 @@ def html_slide(number: int, item: Slide) -> str:
         parts.append(f"<table><colgroup>{cols}</colgroup><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>")
     if item.note:
         parts.append(f'<p class="note">{html_cell(item.note)}</p>')
-    parts.append(f'<div class="footer"><span>CrewVitals | Demonstracao Operacional</span><span>{number}</span></div>')
+    parts.append(f'<div class="footer"><span>CrewVitals | Demonstração Operacional</span><span>{number}</span></div>')
     parts.append("</section>")
     return "".join(parts)
 
@@ -443,7 +438,7 @@ def find_chrome() -> str:
     found = shutil.which("chrome") or shutil.which("msedge")
     if found:
         return found
-    raise FileNotFoundError("Chrome ou Edge nao encontrado. Defina CHROME_PATH.")
+    raise FileNotFoundError("Chrome ou Edge não encontrado. Defina CHROME_PATH.")
 
 
 def export_pdf(html_text: str) -> None:
