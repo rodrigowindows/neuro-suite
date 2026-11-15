@@ -1,7 +1,12 @@
-"""Gera CrewVitals-Demo.pptx e CrewVitals-Demo.pdf a partir do mesmo conteúdo.
+"""Gera apresentações CrewVitals em PPTX e PDF (EN e PT).
 
 Uso:
-    python gerar_apresentacao.py
+    python gerar_apresentacao.py [--lang en|pt|all]
+
+Saídas:
+    CrewVitals-Demo-EN.pptx e CrewVitals-Demo-EN.pdf
+    CrewVitals-Demo-PT.pptx e CrewVitals-Demo-PT.pdf
+    CrewVitals-Demo.pptx e CrewVitals-Demo.pdf (cópias idênticas da versão EN, padrão oficial da banca)
 
 Dependências: python-pptx (PPTX) e Google Chrome / Edge instalado (PDF, modo headless).
 Para apontar outro executável do Chrome, defina a variável de ambiente CHROME_PATH.
@@ -9,6 +14,7 @@ Para apontar outro executável do Chrome, defina a variável de ambiente CHROME_
 
 from __future__ import annotations
 
+import argparse
 import html
 import os
 import shutil
@@ -24,8 +30,6 @@ from pptx.enum.text import MSO_ANCHOR, PP_ALIGN
 from pptx.util import Inches, Pt
 
 OUT_DIR = Path(__file__).resolve().parent
-PPTX_PATH = OUT_DIR / "CrewVitals-Demo.pptx"
-PDF_PATH = OUT_DIR / "CrewVitals-Demo.pdf"
 
 SLIDE_W_IN = 13.333
 SLIDE_H_IN = 7.5
@@ -60,7 +64,8 @@ class Slide:
     note: str = ""
 
 
-SLIDES: tuple[Slide, ...] = (
+# ---------------------------------------------------------------- SLIDES PT
+SLIDES_PT: tuple[Slide, ...] = (
     # Slide 1: Título
     Slide(
         kind="cover",
@@ -108,7 +113,7 @@ SLIDES: tuple[Slide, ...] = (
             (
                 "Etapa 1: Abertura",
                 "NO-GO — Não Apto (BioScore 34, 14 piscadas/min, sono 5,5 h; HRV 28 ms nos bastidores)",
-                "Acesso direto à rota pública /demo com selo DEMO. Botão primário: 'Iniciar Protocolo 4-7-8'.",
+                "Acesso direto à rota pública /demo com selo DEMO e controle 'Reiniciar demonstração'. Botão primário: 'Iniciar Protocolo 4-7-8'.",
             ),
             (
                 "Etapa 2: Recuperação",
@@ -158,9 +163,116 @@ SLIDES: tuple[Slide, ...] = (
         title="CrewVitals — Terminal de Telemetria",
         subtitle="Apoio à decisão para a tripulação em missões espaciais",
         items=(
-            "Demonstração pública direta (sem login): https://neuro-suite.lovable.app/demo",
+            "Demonstração pública direta (sem login): https://neuro-suite.lovable.app/demo?lang=pt",
             "Código-fonte e documentação: https://github.com/rodrigowindows/neuro-suite",
             "Sistema de Suporte à Decisão (DSS) operacional. Não substitui avaliação médica.",
+        ),
+    ),
+)
+
+
+# ---------------------------------------------------------------- SLIDES EN
+SLIDES_EN: tuple[Slide, ...] = (
+    # Slide 1: Cover
+    Slide(
+        kind="cover",
+        title="CrewVitals",
+        subtitle="Crew Health Telemetry Terminal",
+        note="Decision Support System (DSS) for crew readiness monitoring on space missions",
+    ),
+    # Slide 2: The Problem
+    Slide(
+        kind="bullets",
+        title="The problem: cognitive fatigue in long-duration spaceflight",
+        items=(
+            "Long-duration space missions expose crew members to isolation, confinement, and continuous operational workload.",
+            "Extreme conditions degrade vigilance, reaction time, and cognitive readiness in a gradual and asymptomatic manner.",
+            "The critical operational question: is the crew member truly fit to safely start their shift?",
+            "CrewVitals surfaces readiness variations early to support autonomous decision-making aboard.",
+        ),
+    ),
+    # Slide 3: Solution
+    Slide(
+        kind="cards",
+        title="Solution: 3-tier operational cockpit",
+        cards=(
+            (
+                "1. Operational status",
+                "Immediate readiness verdict in 3 states: GO (fit for shift), CAUTION (watch), or NO-GO (fatigue / not fit).",
+            ),
+            (
+                "2. Three core metrics",
+                "Overall BioScore (0 to 100), blink rate (blinks/min), and sleep hours. HRV operates behind the scenes in the calculation.",
+            ),
+            (
+                "3. Single primary action",
+                "Direct, focused recommendation (e.g., guided 4-7-8 breathing protocol) for rapid response without cognitive overload.",
+            ),
+        ),
+        note="Interface designed for rapid decision-making under high cognitive workload.",
+    ),
+    # Slide 4: Demonstration
+    Slide(
+        kind="table",
+        title="Demonstration: 3-stage operational walkthrough",
+        headers=("Stage", "On-Screen State and Metrics", "Operational Action and Real Button"),
+        rows=(
+            (
+                "Stage 1: Opening",
+                "NO-GO — Not Fit (BioScore 34, 14 blinks/min, sleep 5.5 h; scenario-only HRV 28 ms)",
+                "Direct access to public route /demo with DEMO seal and 'Restart demo' control. Primary button: 'Start 4-7-8 Protocol'.",
+            ),
+            (
+                "Stage 2: Recovery",
+                "CAUTION — Watch (BioScore 52, 14 blinks/min, sleep 5.5 h; scenario-only HRV 45 ms)",
+                "Transition after countermeasure execution. Primary button updated to: 'Simulate new scan'.",
+            ),
+            (
+                "Stage 3: Stabilization",
+                "GO — Fit for Shift (BioScore 72, 18 blinks/min, sleep 5.5 h; scenario-only HRV 62 ms)",
+                "Clicking 'Simulate new scan' confirms recovery. Primary button: 'Start Shift'.",
+            ),
+        ),
+        widths=(2.2, 5.0, 4.9),
+        note="Public interactive demonstration based on a controlled scenario with fixed predetermined values.",
+    ),
+    # Slide 5: Scientific Transparency
+    Slide(
+        kind="table",
+        title="Scientific transparency: measured versus simulated",
+        headers=("Indicator / Feature", "Demo Classification", "Source and Operational Limitations"),
+        rows=(
+            ("Public demo (/demo)", "100% Simulated", "Fixed scenario values (BioScore 34, 52, 72); local execution without backend calls."),
+            ("Predictive alert", "Demonstration", "Labeled demonstration alert; not a validated predictive model or clinical forecast."),
+            ("Fatigue and blinks (App)", "Estimate", "Computer vision blink count via webcam; displayed as whole integer blinks/min."),
+            ("Heart rate variability (HRV)", "Estimate", "Experimental optical rPPG via webcam; no clinical certification for diagnostic use."),
+            ("Sleep and mood", "Self-reported", "Subjective check-in of sleep hours, perceived stress, and reported readiness."),
+            ("Environment & radiation", "Not covered", "No onboard dosimeter integration; reserved for future cabin telemetry."),
+        ),
+        widths=(3.1, 2.2, 6.8),
+        note="CrewVitals is an operational Decision Support System (DSS) and does not replace professional medical evaluation.",
+    ),
+    # Slide 6: Privacy and Security
+    Slide(
+        kind="bullets",
+        title="Telemetry privacy and security",
+        items=(
+            "Isolated public demonstration: strictly local execution in the browser, without network calls or session.",
+            "Zero persistence in demo: no telemetry, webcam video, or physiological data is transmitted or stored in a database.",
+            "Operational system architecture: database RLS security policies isolating telemetry per crew identifier.",
+            "Protected functions and queries: token authentication on backend services and strict queries with explicit column selection.",
+            "Telemetry hygiene: console logs suppressed in production builds to prevent local leakage of biometric metrics.",
+        ),
+    ),
+    # Slide 7: Closing
+    Slide(
+        kind="closing",
+        title="CrewVitals — Telemetry Terminal",
+        subtitle="Operational decision support for spaceflight crews",
+        items=(
+            "Direct public demonstration (no login): https://neuro-suite.lovable.app/demo?lang=en",
+            "Source code and documentation: https://github.com/rodrigowindows/neuro-suite",
+            "Operational Decision Support System (DSS). Does not replace medical evaluation.",
         ),
     ),
 )
@@ -214,9 +326,10 @@ def pptx_title(slide, title: str) -> None:
     bar.line.fill.background()
 
 
-def pptx_footer(slide, number: int) -> None:
+def pptx_footer(slide, number: int, lang: str = "pt") -> None:
+    footer_text = "CrewVitals | Operational Demonstration" if lang == "en" else "CrewVitals | Demonstração Operacional"
     frame = add_textbox(slide, 0.6, 6.95, 9.0, 0.4)
-    write_paragraph(frame.paragraphs[0], "CrewVitals | Demonstração Operacional", 14, MUTED)
+    write_paragraph(frame.paragraphs[0], footer_text, 14, MUTED)
     frame = add_textbox(slide, 11.7, 6.95, 1.0, 0.4)
     write_paragraph(frame.paragraphs[0], str(number), 14, MUTED, align=PP_ALIGN.RIGHT)
 
@@ -306,7 +419,7 @@ def pptx_closing(slide, item: Slide) -> None:
             write_paragraph(p, it, 18, color, align=PP_ALIGN.CENTER, space_after=12)
 
 
-def build_pptx(slides: tuple[Slide, ...]) -> None:
+def build_pptx(slides: tuple[Slide, ...], out_path: Path, lang: str = "pt") -> None:
     prs = Presentation()
     prs.slide_width = Inches(SLIDE_W_IN)
     prs.slide_height = Inches(SLIDE_H_IN)
@@ -320,7 +433,7 @@ def build_pptx(slides: tuple[Slide, ...]) -> None:
             pptx_closing(slide, item)
         else:
             pptx_title(slide, item.title)
-            pptx_footer(slide, number)
+            pptx_footer(slide, number, lang=lang)
             if item.kind == "bullets":
                 pptx_bullets(slide, item)
             elif item.kind == "cards":
@@ -331,7 +444,7 @@ def build_pptx(slides: tuple[Slide, ...]) -> None:
                 pptx_table(slide, item)
                 if item.note:
                     pptx_note(slide, item.note, y=6.35)
-    prs.save(PPTX_PATH)
+    prs.save(out_path)
 
 
 # ---------------------------------------------------------------- HTML (fonte do PDF)
@@ -376,7 +489,8 @@ def html_cell(text: str) -> str:
     return html.escape(text)
 
 
-def html_slide(number: int, item: Slide) -> str:
+def html_slide(number: int, item: Slide, lang: str = "pt") -> str:
+    footer_text = "CrewVitals | Operational Demonstration" if lang == "en" else "CrewVitals | Demonstração Operacional"
     if item.kind == "cover":
         return (
             f'<section class="slide cover"><h1>{html_cell(item.title)}</h1>'
@@ -414,16 +528,18 @@ def html_slide(number: int, item: Slide) -> str:
         parts.append(f"<table><colgroup>{cols}</colgroup><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>")
     if item.note:
         parts.append(f'<p class="note">{html_cell(item.note)}</p>')
-    parts.append(f'<div class="footer"><span>CrewVitals | Demonstração Operacional</span><span>{number}</span></div>')
+    parts.append(f'<div class="footer"><span>{footer_text}</span><span>{number}</span></div>')
     parts.append("</section>")
     return "".join(parts)
 
 
-def build_html(slides: tuple[Slide, ...]) -> str:
-    sections = "\n".join(html_slide(number, item) for number, item in enumerate(slides, start=1))
+def build_html(slides: tuple[Slide, ...], lang: str = "pt") -> str:
+    sections = "\n".join(html_slide(number, item, lang=lang) for number, item in enumerate(slides, start=1))
+    html_lang = "en" if lang == "en" else "pt-BR"
+    doc_title = f"CrewVitals - Demo ({lang.upper()})"
     return (
-        "<!doctype html>\n<html lang=\"pt-BR\">\n<head>\n<meta charset=\"utf-8\">\n"
-        "<title>CrewVitals - Demo</title>\n"
+        f'<!doctype html>\n<html lang="{html_lang}">\n<head>\n<meta charset="utf-8">\n'
+        f"<title>{doc_title}</title>\n"
         f"<style>{HTML_CSS}</style>\n</head>\n<body>\n{sections}\n</body>\n</html>\n"
     )
 
@@ -441,10 +557,10 @@ def find_chrome() -> str:
     raise FileNotFoundError("Chrome ou Edge não encontrado. Defina CHROME_PATH.")
 
 
-def export_pdf(html_text: str) -> None:
+def export_pdf(html_text: str, pdf_path: Path) -> None:
     chrome = find_chrome()
     with tempfile.TemporaryDirectory() as temp_dir:
-        html_file = Path(temp_dir) / "CrewVitals-Demo.html"
+        html_file = Path(temp_dir) / f"{pdf_path.stem}.html"
         html_file.write_text(html_text, encoding="utf-8")
         subprocess.run(
             [
@@ -452,7 +568,7 @@ def export_pdf(html_text: str) -> None:
                 "--headless=new",
                 "--disable-gpu",
                 "--no-pdf-header-footer",
-                f"--print-to-pdf={PDF_PATH}",
+                f"--print-to-pdf={pdf_path}",
                 html_file.as_uri(),
             ],
             check=True,
@@ -460,12 +576,47 @@ def export_pdf(html_text: str) -> None:
         )
 
 
+def generate_version(lang: str) -> tuple[Path, Path]:
+    is_en = lang == "en"
+    slides = SLIDES_EN if is_en else SLIDES_PT
+    suffix = "EN" if is_en else "PT"
+    pptx_path = OUT_DIR / f"CrewVitals-Demo-{suffix}.pptx"
+    pdf_path = OUT_DIR / f"CrewVitals-Demo-{suffix}.pdf"
+
+    build_pptx(slides, pptx_path, lang=lang)
+    export_pdf(build_html(slides, lang=lang), pdf_path)
+
+    print(f"[{suffix}] PPTX: {pptx_path}")
+    print(f"[{suffix}] PDF:  {pdf_path}")
+    print(f"[{suffix}] Slides: {len(slides)}")
+    return pptx_path, pdf_path
+
+
+def copy_official_default(en_pptx: Path, en_pdf: Path) -> None:
+    official_pptx = OUT_DIR / "CrewVitals-Demo.pptx"
+    official_pdf = OUT_DIR / "CrewVitals-Demo.pdf"
+    shutil.copy2(en_pptx, official_pptx)
+    shutil.copy2(en_pdf, official_pdf)
+    print(f"[OFFICIAL DEFAULT (EN copy)] PPTX: {official_pptx}")
+    print(f"[OFFICIAL DEFAULT (EN copy)] PDF:  {official_pdf}")
+
+
 def main() -> None:
-    build_pptx(SLIDES)
-    export_pdf(build_html(SLIDES))
-    print(f"PPTX: {PPTX_PATH}")
-    print(f"PDF:  {PDF_PATH}")
-    print(f"Slides: {len(SLIDES)}")
+    parser = argparse.ArgumentParser(description="Gera apresentações CrewVitals em PPTX e PDF.")
+    parser.add_argument(
+        "--lang",
+        choices=["en", "pt", "all"],
+        default="all",
+        help="Idioma dos slides (en, pt ou all para ambos com EN como padrão oficial)",
+    )
+    args = parser.parse_args()
+
+    if args.lang in ("pt", "all"):
+        generate_version("pt")
+
+    if args.lang in ("en", "all"):
+        en_pptx, en_pdf = generate_version("en")
+        copy_official_default(en_pptx, en_pdf)
 
 
 if __name__ == "__main__":
