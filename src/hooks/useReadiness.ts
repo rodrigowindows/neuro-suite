@@ -41,6 +41,7 @@ export interface UseReadinessOptions {
   horasSono?: number | null;
   bioScore?: number | null;
   isDemo?: boolean;
+  guestDemo?: boolean;
   locationSearch?: string;
 }
 
@@ -78,7 +79,102 @@ export function getScanVerdictLabel(
   return getReadinessStatus(hrv, stress).label;
 }
 
-export function useReadiness(options: UseReadinessOptions = {}): UseReadinessReturn {
+function useGuestReadiness(options: UseReadinessOptions): UseReadinessReturn {
+  const isResetUrl = isDemoReset(options.locationSearch);
+  const resetAppliedRef = useRef(false);
+
+  const [hasProtocol, setHasProtocol] = useState<boolean>(
+    () => !isResetUrl && hasCountermeasureProtocolToday()
+  );
+
+  const [demoStage, setLocalDemoStage] = useState<DemoStage>(() =>
+    isResetUrl ? 1 : getStoredDemoStage()
+  );
+
+  useEffect(() => {
+    if (!isResetUrl || resetAppliedRef.current) return;
+    resetAppliedRef.current = true;
+    resetDemoStage();
+    setLocalDemoStage(1);
+    setHasProtocol(false);
+    replaceDemoResetUrl();
+  }, [isResetUrl]);
+
+  useEffect(() => {
+    const handleCountermeasure = () => {
+      setHasProtocol(true);
+      setStoredDemoStage(2);
+      setLocalDemoStage(2);
+    };
+
+    const handleStageChanged = (e: Event) => {
+      const customEvent = e as CustomEvent<{ stage: DemoStage }>;
+      if (customEvent.detail?.stage) {
+        setLocalDemoStage(customEvent.detail.stage);
+      } else {
+        setLocalDemoStage(getStoredDemoStage());
+      }
+    };
+
+    window.addEventListener(COUNTERMEASURE_REGISTERED_EVENT, handleCountermeasure);
+    window.addEventListener(DEMO_STAGE_CHANGED_EVENT, handleStageChanged);
+
+    return () => {
+      window.removeEventListener(COUNTERMEASURE_REGISTERED_EVENT, handleCountermeasure);
+      window.removeEventListener(DEMO_STAGE_CHANGED_EVENT, handleStageChanged);
+    };
+  }, []);
+
+  const simulateScan = useCallback(() => {
+    simulateDemoScan();
+    setLocalDemoStage(3);
+  }, []);
+
+  const resetDemo = useCallback(() => {
+    resetDemoStage();
+    setLocalDemoStage(1);
+    setHasProtocol(false);
+  }, []);
+
+  const setStage = useCallback((stage: DemoStage) => {
+    setStoredDemoStage(stage);
+    setLocalDemoStage(stage);
+  }, []);
+
+  const demoData = getDemoScenarioData(demoStage);
+
+  return {
+    state: demoData.readiness.state,
+    label: demoData.readiness.label,
+    headline: demoData.readiness.headline,
+    colorClass: demoData.readiness.colorClass,
+    badgeClass: demoData.readiness.badgeClass,
+    hasData: true,
+    hasRealTelemetry: false,
+    isDemo: true,
+    isDemoActive: true,
+    demoStage,
+    demoStageLabel: demoData.stageBadge,
+    stage: demoStage,
+    stageBadge: demoData.stageBadge,
+    stressLevel: demoData.stressLevel,
+    hrvValue: demoData.hrvValue,
+    blinkRate: demoData.blinkRate,
+    horasSono: demoData.horasSono,
+    bioScore: demoData.bioScore,
+    hasProtocolToday: hasProtocol,
+    logs: demoData.logs,
+    isAlert: demoData.readiness.state === 'nogo',
+    isCaution: demoData.readiness.state === 'caution',
+    isUnknown: demoData.readiness.state === 'unknown',
+    simulateScan,
+    resetDemo,
+    setStage,
+    refresh: async () => {},
+  };
+}
+
+function useStandardReadiness(options: UseReadinessOptions = {}): UseReadinessReturn {
   const { user } = useAuth();
   const { score: wellnessScore } = useWellnessScore();
   const [dbTelemetry, setDbTelemetry] = useState<{
@@ -355,3 +451,11 @@ export function useReadiness(options: UseReadinessOptions = {}): UseReadinessRet
     refresh: loadTelemetryFromDb,
   };
 }
+
+export function useReadiness(options: UseReadinessOptions = {}): UseReadinessReturn {
+  if (options.guestDemo) {
+    return useGuestReadiness(options);
+  }
+  return useStandardReadiness(options);
+}
+

@@ -683,4 +683,80 @@ describe('useReadiness Hook - 3 Etapas Demo, Reset, Ausência Total e Consistên
       expect(result.current.label).toBe('GO');
     });
   });
+
+  describe('Modo Visitante Anônimo (guestDemo)', () => {
+    beforeEach(() => {
+      resetDemoStage();
+      setAuthUser(undefined);
+      vi.clearAllMocks();
+    });
+
+    it('inicializa em etapa 1 (NO-GO, BioScore 34) sem chamar getUser nem from do Supabase', () => {
+      // Arrange & Act
+      const { result } = renderHook(() => useReadiness({ guestDemo: true }));
+
+      // Assert
+      expect(result.current.isDemo).toBe(true);
+      expect(result.current.isDemoActive).toBe(true);
+      expect(result.current.demoStage).toBe(1);
+      expect(result.current.state).toBe('nogo');
+      expect(result.current.label).toBe('NO-GO');
+      expect(result.current.bioScore).toBe(34);
+      expect(result.current.blinkRate).toBe(14);
+      expect(result.current.hrvValue).toBe(28);
+      expect(result.current.stressLevel).toBe('high');
+      expect(supabase.auth.getUser).not.toHaveBeenCalled();
+      expect(supabase.from).not.toHaveBeenCalled();
+    });
+
+    it('registra contramedida e avança para etapa 2 (ATENÇÃO, BioScore 52)', () => {
+      // Arrange
+      const { result } = renderHook(() => useReadiness({ guestDemo: true }));
+      expect(result.current.demoStage).toBe(1);
+
+      // Act
+      act(() => {
+        registerCountermeasureProtocol({ breathing: true });
+      });
+
+      // Assert
+      expect(result.current.demoStage).toBe(2);
+      expect(result.current.state).toBe('caution');
+      expect(result.current.label).toBe('ATENÇÃO');
+      expect(result.current.bioScore).toBe(52);
+      expect(result.current.hasProtocolToday).toBe(true);
+      expect(supabase.auth.getUser).not.toHaveBeenCalled();
+      expect(supabase.from).not.toHaveBeenCalled();
+    });
+
+    it('simulateScan avança para etapa 3 (GO, BioScore 72) e resetDemo retorna para etapa 1', () => {
+      // Arrange
+      const { result } = renderHook(() => useReadiness({ guestDemo: true }));
+
+      // Act: avança scan
+      act(() => {
+        result.current.simulateScan();
+      });
+
+      // Assert etapa 3
+      expect(result.current.demoStage).toBe(3);
+      expect(result.current.state).toBe('go');
+      expect(result.current.label).toBe('GO');
+      expect(result.current.bioScore).toBe(72);
+      expect(result.current.blinkRate).toBe(18);
+
+      // Act: reinicia demo
+      act(() => {
+        result.current.resetDemo();
+      });
+
+      // Assert etapa 1
+      expect(result.current.demoStage).toBe(1);
+      expect(result.current.state).toBe('nogo');
+      expect(result.current.label).toBe('NO-GO');
+      expect(result.current.bioScore).toBe(34);
+      expect(supabase.auth.getUser).not.toHaveBeenCalled();
+      expect(supabase.from).not.toHaveBeenCalled();
+    });
+  });
 });
