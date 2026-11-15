@@ -95,3 +95,11 @@ Last activity: 2026-11-15 — Reexecucao de auditoria completa da Phase 11 (550 
   - Abrir janela anônima, inspecionar DevTools (Network) e confirmar 0 requisições a `supabase`.
   - Hospedar o deck (PDF/PPTX) e vídeo de 30s com link público e preencher `docs/publicacao/LINKS.md`.
   - Executar o UAT cronometrado de 60s em janela anônima (`docs/publicacao/UAT-v1.2.md`).
+
+
+## Marco v1.3 — Demo Multilíngue EN e PT (planejado em 2026-11-15)
+
+- **Status:** planejado. Prompts prontos em `.planning/prompts-v1.3/` (fases 21 a 31). Nada executado.
+- **Ordem:** 21, 26, 27, 28, 29 em paralelo; depois 22, 23, 24, 25 em paralelo; depois 30; por fim 31.
+- **Decisão:** módulo próprio `src/i18n/` sem dependência nova; `LangProvider` só em `/`, `/auth` e `/demo`; EN é o padrão para navegadores não portugueses.
+- **Pendências herdadas do v1.2 (dono):** log de rede real em `/demo`, ensaio em janela anônima, hospedar deck e vídeo, trocar a senha da conta demo antiga.

@@ -129,3 +129,18 @@ SEC-04 aparece em duas fases porque o contrato tem dois lados (função e recept
 ---
 *Requirements defined: 2026-11-15*
 *Last updated: 2026-11-15 após reauditoria da Fase 19 (Fases 17 e 18 commitadas: 562 testes, tsc, build e eslint limpos, consistência deck x demo e blindados intactos)*
+
+## v1.3 Requirements — Demo Multilíngue (EN e PT)
+
+- [ ] **I18N-01**: Módulo `src/i18n/` com `LangProvider`, `useI18n`, `translate`, `resolveInitialLang` (`?lang=` > localStorage > navegador `pt*` > `en`)
+- [ ] **I18N-02**: `LanguageToggle` (EN | PT) acessível, com alvo de 44 px, em 375 px sem rolagem horizontal
+- [ ] **I18N-03**: Teste de paridade de chaves EN/PT por namespace; `LangProvider` só em `/`, `/auth` e `/demo`; demais rotas em português e inalteradas
+- [ ] **I18N-04**: `/demo` completa em EN e PT (selo, estados, botões, números, log) com zero chamada ao Supabase nas duas línguas
+- [ ] **I18N-05**: `PredictiveAlert` em EN e PT, rotulado como demonstração; Dashboard continua em português
+- [ ] **I18N-06**: Landing em EN e PT sem alegações proibidas
+- [ ] **I18N-07**: Login em EN e PT com fluxo intacto
+- [ ] **I18N-08**: Deck de 7 slides e PDF de 7 páginas em EN e em PT; `CrewVitals-Demo.pptx/.pdf` = versão EN
+- [ ] **I18N-09**: Roteiro de vídeo de até 30 s em EN e PT, com botões reais
+- [ ] **I18N-10**: README em EN e PT, sem emojis nos títulos
+- [ ] **I18N-11**: Checklist, `LINKS.md` e textos de submissão em EN e PT, com links `?lang=en` e `?lang=pt`
+- [ ] **I18N-12**: Revisão de termos e auditoria final com gates verdes, blindados intactos e UAT em `docs/publicacao/UAT-v1.3.md`

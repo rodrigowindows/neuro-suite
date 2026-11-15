@@ -136,3 +136,27 @@ Fases 12, 13, 14 e 15 não compartilham arquivos. A fase 16 depende das quatro.
 | 18 | 1/1 | Concluída (commit 9c70ed3): `useGuestDemoReadiness` separado, eslint limpo |
 | 19 | 1/1 | Reauditoria feita; resultado em `docs/publicacao/UAT-v1.2.md` |
 | 20 | 0/1 | Pendente: remover e-mail da conta demo do bundle (`.planning/prompts-v1.2/20-remover-email-demo.md`) |
+
+---
+
+# Marco v1.3 — Demo Multilíngue (EN e PT)
+
+**Motivo:** o projeto e a banca são em inglês. A demo, a landing, o login, o deck, o vídeo, o README e a publicação precisam de EN e PT, com EN como padrão para navegadores não portugueses.
+
+**Decisão:** módulo próprio `src/i18n/` (sem biblioteca; `package.json` é blindado), `LangProvider` só nas rotas `/`, `/auth` e `/demo`. O resto do app segue em português. Contrato e glossário em `.planning/prompts-v1.3/`.
+
+| # | Phase | Goal | Requirements | Prompt |
+|---|-------|------|--------------|--------|
+| 21 | Núcleo i18n | Provider, hook, seletor EN/PT, teste de paridade | I18N-01..03 | `21-i18n-core.md` |
+| 22 | Demo EN/PT | `/demo` traduzida, log e avisos incluídos | I18N-04 | `22-demo-i18n.md` |
+| 23 | Alerta preditivo EN/PT | Tradução sem afetar o Dashboard | I18N-05 | `23-predictive-alert-i18n.md` |
+| 24 | Landing EN/PT | Landing traduzida | I18N-06 | `24-landing-i18n.md` |
+| 25 | Login EN/PT | `/auth` traduzida | I18N-07 | `25-auth-i18n.md` |
+| 26 | Deck EN/PT | PPTX e PDF de 7 slides em cada língua | I18N-08 | `26-deck-bilingue.md` |
+| 27 | Vídeo EN/PT | Roteiros de 30 s | I18N-09 | `27-video-bilingue.md` |
+| 28 | README EN/PT | README bilíngue sem emojis nos títulos | I18N-10 | `28-readme-bilingue.md` |
+| 29 | Publicação EN/PT | Checklist, links e texto de submissão | I18N-11 | `29-publicacao-en.md` |
+| 30 | Revisão de tradução | Termos, naturalidade, PT preservado | I18N-12 | `30-revisao-traducao.md` |
+| 31 | Auditoria v1.3 | Gates, escopo, consistência, UAT | I18N-12 | `31-auditoria-i18n.md` |
+
+Ondas: 21, 26, 27, 28, 29 em paralelo; depois 22, 23, 24, 25 em paralelo; depois 30; por fim 31.
