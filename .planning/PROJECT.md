@@ -66,7 +66,8 @@ Sistema de monitoramento fisiológico e suporte à decisão (DSS) para mitigaç�
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Demo com conta compartilhada (e não rota `/demo` pública) | Preferência do dono; evita criar conta a cada ensaio | — Pending (mitigar: forçar demo na conta demo; credenciais fora do repo e dos documentos) |
+| Demo com conta compartilhada (e não rota `/demo` pública) | Preferência do dono; evita criar conta a cada ensaio | Substituída no v1.2: a banca exige link sem login. Conta compartilhada fica como plano B |
+| Rota `/demo` pública, sem sessão e sem rede (v1.2) | Requisito da banca: link sem senha, permissão ou cadastro. Sem sessão não há credencial no bundle nem custo de IA exposto | Concluída no v1.2 (auditoria e UAT em docs/publicacao/UAT-v1.2.md) |
 | SQL de CHECK só em `docs/` | Migration em `supabase/migrations` é aplicada pelo Lovable e altera o banco real | — Pending |
 | `verify_jwt` por função, não em bloco | `google-calendar` precisa aceitar o callback do Google sem JWT | — Pending |
 

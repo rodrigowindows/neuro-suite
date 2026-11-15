@@ -66,7 +66,7 @@ Marco "Endurecimento de Segurança e Demo com Conta Compartilhada". Cada requisi
 |---------|--------|
 | Aplicar o CHECK no banco | Decisão do dono: o SQL só é gerado (schema estável) |
 | Migration em `supabase/migrations` | O Lovable a aplicaria ao sincronizar |
-| Rota `/demo` pública | Decisão do dono: conta compartilhada |
+| Rota `/demo` pública | ~~Decisão do dono: conta compartilhada~~ Revogada no v1.2: a banca exige acesso sem login (ver PUB-01..12) |
 | Tocar em `src/integrations/supabase/**`, `package.json`, `vite.config.ts` | Blindagem Lovable |
 
 ## Traceability
@@ -85,16 +85,47 @@ Marco "Endurecimento de Segurança e Demo com Conta Compartilhada". Cada requisi
 | DOC-03, DOC-04, DOC-05 | Phase 10 | Complete |
 | QA-01, QA-02 | Phase 11 | Complete |
 | QA-03 | Phase 11 | Pending (aguarda deploy e ensaio visual) |
+| PUB-01, PUB-02, PUB-03, PUB-04 | Phase 12 | Complete |
+| PUB-05, PUB-06 | Phase 13 | Complete |
+| PUB-07, PUB-08, PUB-09 | Phase 14 | Complete |
+| PUB-10, PUB-11 | Phase 15 | Complete |
+| PUB-12 | Phase 16 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 27 total
 - Complete (código e testes): 26
 - Pending (ensaio visual): 1 (QA-03)
 - Verificações de produção pendentes, fora da contagem de 27: SEC-01 e SEC-02 (aguardam deploy e ensaio visual)
+- v1.2 requirements: 12 total
+- Complete (código, materiais e UAT): 12 (PUB-01 a PUB-12)
+- Pendências de produção do v1.2: Ensaio visual ao vivo em produção pelo dono (documentado em `docs/publicacao/UAT-v1.2.md`)
 - Unmapped: 0
 
 SEC-04 aparece em duas fases porque o contrato tem dois lados (função e receptor). A Phase 11 confere os dois.
 
 ---
+## v1.2 Requirements — Demo Pública sem Login
+
+### Rota pública (PUB, fase 12)
+- [x] **PUB-01**: `/demo` abre o cockpit sem sessão e sem redirecionar para `/auth`
+- [x] **PUB-02**: Em `/demo` não ocorre nenhuma chamada ao Supabase (auth, tabelas, funções)
+- [x] **PUB-03**: Roteiro de 3 etapas (NO-GO, ATENÇÃO, GO) com "Simular novo scan" e reinício sem recarregar
+- [x] **PUB-04**: Selo permanente "DEMO: dados simulados"; alerta preditivo rotulado como demonstração; piscadas formatadas só na exibição
+
+### Entrada (PUB, fase 13)
+- [x] **PUB-05**: Landing tem botão "Ver demonstração (sem login)" para `/demo`
+- [x] **PUB-06**: Tela de login oferece o mesmo atalho; fluxo de login existente intacto
+
+### Material (PUB, fases 14 e 15)
+- [x] **PUB-07**: Deck PPTX com exatamente 7 slides (título e introdução incluídos), sem credenciais, citando o link público
+- [x] **PUB-08**: PDF idêntico ao PPTX
+- [x] **PUB-09**: Roteiro de vídeo de no máximo 30 s com tempos por cena
+- [x] **PUB-10**: Checklist do dono para publicar, hospedar deck e vídeo e testar em janela anônima
+- [x] **PUB-11**: README com seção "Demonstração" apontando para `/demo`
+
+### Qualidade (PUB, fase 16)
+- [x] **PUB-12**: Gates verdes, blindados intactos, prova automatizada de zero chamada ao Supabase em `/demo`, UAT cronometrado
+
+---
 *Requirements defined: 2026-11-15*
-*Last updated: 2026-11-15 após auditoria de código da Phase 11 (550 testes, tsc e build verdes)*
+*Last updated: 2026-11-15 após auditoria e UAT da Phase 16 (561 testes, tsc e build verdes, blindados intactos)*

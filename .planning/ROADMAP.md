@@ -102,3 +102,33 @@ Numeração continua do Marco 2 (fases 01 a 03). As fases 04 a 10 não compartil
 
 ---
 *Roadmap created: 2026-11-15*
+
+---
+
+# Marco v1.2 — Demo Pública sem Login (requisito da banca)
+
+**Motivo:** a banca exige link público que não peça senha, permissão nem cadastro. Hoje `/dashboard` redireciona para `/auth` e o deck (9 slides) manda entrar com conta demo. Esta decisão **substitui** a linha "Rota `/demo` pública" de Out of Scope do v1.1; a conta compartilhada continua como plano B.
+
+**Contrato fixo entre fases (permite paralelismo):** rota pública `/demo`, sem `AuthProvider` obrigatório, sem chamada ao Supabase, dados 100% simulados e rotulados. URL publicada: `https://neuro-suite.lovable.app/demo`.
+
+**Blindagem Lovable (todas as fases):** não tocar `src/integrations/supabase/**`, `supabase/migrations/**`, `package.json`, `package-lock.json`, `bun.lock*`, `vite.config.ts`. Sem dependência nova. Chaves internas de navegação, endpoints e nomes de schema ficam estáveis. Fases rodam em terminais paralelos com arquivos exclusivos; a 16 roda por último.
+
+| # | Phase | Goal | Requirements | Prompt |
+|---|-------|------|--------------|--------|
+| 12 | Rota `/demo` sem login | Cockpit navegável sem sessão, sem rede | PUB-01..04 | `.planning/prompts-v1.2/12-demo-publica.md` |
+| 13 | Portas de entrada | Landing e login levam à demo sem login | PUB-05, PUB-06 | `.planning/prompts-v1.2/13-portas-de-entrada.md` |
+| 14 | Deck de 7 slides e vídeo de 30 s | Material da banca sem credencial | PUB-07..09 | `.planning/prompts-v1.2/14-deck-7-slides.md` |
+| 15 | Publicação e links públicos | Checklist do dono e README | PUB-10, PUB-11 | `.planning/prompts-v1.2/15-publicacao.md` |
+| 16 | Auditoria e UAT sem login | Gates e prova de zero login | PUB-12 | `.planning/prompts-v1.2/16-auditoria.md` |
+
+Fases 12, 13, 14 e 15 não compartilham arquivos. A fase 16 depende das quatro.
+
+## Progress v1.2
+
+| Phase | Plans | Status |
+|-------|-------|--------|
+| 12 | 1/1 | Conclu�da no c�digo (commit 53ac4b7, 33 testes espec�ficos) |
+| 13 | 1/1 | Conclu�da no c�digo (commit 105c8a0, 16 testes de entrada) |
+| 14 | 1/1 | Conclu�da nos materiais (commit e2810c1, 7 slides PPTX/PDF, v�deo 30s) |
+| 15 | 1/1 | Conclu�da na documenta��o (commit 52a0a40, checklist e README) |
+| 16 | 1/1 | Conclu�da (auditoria de c�digo aprovada; relat�rio em docs/publicacao/UAT-v1.2.md) |

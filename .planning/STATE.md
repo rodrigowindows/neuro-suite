@@ -77,3 +77,18 @@ Phase: 11 — Auditoria e UAT (codigo e gates validados; ensaio visual e teste 4
 Plan: —
 Status: Gates e codigo 100% validados; aguarda resultados informados de producao e ensaio visual
 Last activity: 2026-11-15 — Reexecucao de auditoria completa da Phase 11 (550 testes, tsc, build, diff blindados e greps aprovados)
+
+
+## Marco v1.2 — Demo Pública sem Login (concluído em 2026-11-15)
+
+- **Status:** Concluído no código, materiais e auditoria (Phase 16).
+- **Entregas Validadas:**
+  - Rota pública /demo sem sessão e sem chamadas Supabase (useGuestReadiness, Demo.tsx, Demo.test.tsx).
+  - Botões de acesso na Landing Page (Index.tsx) e tela de Login (Auth.tsx).
+  - Deck PPTX e PDF com exatamente 7 slides e roteiro de vídeo de 30s sem credenciais (docs/apresentacao/).
+  - Checklist operacional de publicação e links públicos (docs/publicacao/).
+  - Auditoria e UAT documentados em docs/publicacao/UAT-v1.2.md (561 testes passando, tsc/build verdes, blindados intactos).
+- **Ações Externas Pendentes (do Dono):**
+  - Publicar no Lovable com acesso público (https://neuro-suite.lovable.app/demo).
+  - Hospedar o deck (PDF/PPTX) e vídeo de 30s com link público e preencher docs/publicacao/LINKS.md.
+  - Executar o UAT cronometrado de 60s em janela anônima (docs/publicacao/UAT-v1.2.md).
