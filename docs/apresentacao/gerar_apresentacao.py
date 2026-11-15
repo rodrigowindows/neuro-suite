@@ -1,10 +1,10 @@
-"""Gera CrewVitals-Demo.pptx e CrewVitals-Demo.pdf a partir do mesmo conteúdo.
+"""Gera CrewVitals-Demo.pptx e CrewVitals-Demo.pdf a partir do mesmo conteudo.
 
 Uso:
     python gerar_apresentacao.py
 
-Dependências: python-pptx (PPTX) e Google Chrome instalado (PDF, modo headless).
-Para apontar outro Chrome, defina a variável de ambiente CHROME_PATH.
+Dependencias: python-pptx (PPTX) e Google Chrome / Edge instalado (PDF, modo headless).
+Para apontar outro executavel do Chrome, defina a variavel de ambiente CHROME_PATH.
 """
 
 from __future__ import annotations
@@ -42,6 +42,8 @@ WARN = "F4A261"
 CHROME_CANDIDATES = (
     r"C:\Program Files\Google\Chrome\Application\chrome.exe",
     r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+    r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+    r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
 )
 
 
@@ -59,149 +61,111 @@ class Slide:
 
 
 SLIDES: tuple[Slide, ...] = (
+    # Slide 1: Titulo
     Slide(
         kind="cover",
         title="CrewVitals",
-        subtitle="Apoio à decisão para a tripulação em missões longas",
-        note="Roteiro de gravação da demo com conta compartilhada",
+        subtitle="Terminal de Telemetria de Saude da Tripulacao",
+        note="Sistema de Suporte a Decisao (DSS) para monitoramento de prontidao em missoes espaciais",
     ),
+    # Slide 2: Introducao
     Slide(
         kind="bullets",
-        title="O problema",
+        title="O problema: fadiga cognitiva em voos de longa duracao",
         items=(
-            "Missões longas expõem a tripulação a radiação, isolamento, microgravidade e ambiente fechado.",
-            "Essas condições alteram fadiga, humor e prontidão aos poucos.",
-            "O tripulante precisa identificar mudanças em si mesmo.",
-            "O CrewVitals torna essas mudanças visíveis cedo: um veredito (GO, ATENÇÃO ou NO-GO) e uma ação sugerida.",
+            "Missoes espaciais de longa duracao expoem tripulantes a isolamento, confinamento e sobrecarga operacional continua.",
+            "Condicoes extremas degradam vigilancia, tempo de reacao e prontidao cognitiva de maneira gradual e assintomatica.",
+            "A pergunta operacional critica: o tripulante esta realmente apto para assumir o turno com seguranca?",
+            "O CrewVitals torna variacoes de prontidao visiveis precocemente para apoiar a tomada de decisao autonoma a bordo.",
         ),
     ),
+    # Slide 3: Solucao
     Slide(
         kind="cards",
-        title="O ciclo de autonomia",
+        title="Solucao: cockpit operacional de 3 niveis",
         cards=(
-            ("1. Detectar", "Scan de prontidão e sinais de fadiga (BioScore)."),
-            ("2. Avaliar", "Veredito de prontidão: GO, ATENÇÃO ou NO-GO."),
-            ("3. Decidir", "Escolha de protocolo, como a respiração 4-7-8."),
-            ("4. Agir", "O tripulante executa a contramedida."),
-            ("5. Verificar", "Novo scan mostra o estado depois da ação."),
-            ("6. Registrar", "A execução entra no log da missão."),
+            (
+                "1. Semaforo operacional",
+                "Veredito imediato de prontidao em 3 estados: GO (apto), ATENCAO (vigilancia) ou NO-GO (nao apto).",
+            ),
+            (
+                "2. Tres numeros essenciais",
+                "BioScore global (0 a 100), estimativa de variabilidade cardiaca (HRV em ms) e taxa de piscadas (piscadas/min inteiras).",
+            ),
+            (
+                "3. Acao primaria unica",
+                "Recomendacao direta e focada (ex.: protocolo respiratorio guiado 4-7-8) para resposta rapida sem sobrecarga cognitiva.",
+            ),
         ),
-        note="Na demo, os passos de detecção e verificação usam valores fixos.",
+        note="Interface concebida para tomada de decisao rapida sob alta carga cognitiva.",
     ),
+    # Slide 4: Demonstracao
     Slide(
         kind="table",
-        title="Roteiro da demo cronometrado (30 a 45 s)",
-        headers=("Tempo (alvo)", "Ação", "O que aparece"),
+        title="Demonstracao: roteiro operacional em 3 etapas",
+        headers=("Etapa", "Estado e Veredito", "Acao Operacional na Demonstracao"),
         rows=(
             (
-                "0:00 - 0:08",
-                "Abrir https://neuro-suite.lovable.app e fazer login com [EMAIL DA CONTA DEMO] e [SENHA, enviada em separado].",
-                "Entrada na aplicação com a conta demo.",
+                "Etapa 1: Abertura",
+                "NO-GO — Nao Apto (BioScore 34, HRV 38 ms, 26 piscadas/min)",
+                "Acesso direto a rota publica /demo com selo DEMO; deteccao de fadiga severa e indicacao de contramedida.",
             ),
             (
-                "0:08 - 0:12",
-                "Abrir /dashboard?demo=reset.",
-                "Demo reiniciada.",
+                "Acao: Protocolo",
+                "Transicao de estado com contramedida respiratoria guiada",
+                "Execucao do Protocolo 4-7-8 e registro da acao pelo tripulante para iniciar a recuperacao.",
             ),
             (
-                "0:12 - 0:17",
-                "Abrir /dashboard?demo=1.",
-                "Etapa 1: NO-GO - FADIGA (NÃO APTO), BioScore 34, selo DEMO 1/3.",
+                "Etapa 2: Recuperacao",
+                "ATENCAO — Vigilancia (BioScore 52, HRV 48 ms, 20 piscadas/min)",
+                "Veredito atualizado para vigilancia moderada; cockpit indica nova verificacao fisiologica.",
             ),
             (
-                "0:17 - 0:29",
-                "Clicar em Iniciar Protocolo 4-7-8, marcar uma contramedida e clicar em Registrar Execução de Contramedidas.",
-                "Log registra a contramedida executada.",
-            ),
-            (
-                "0:29 - 0:33",
-                "Verificar a etapa 2.",
-                "Etapa 2: ATENÇÃO - VIGILÂNCIA, selo DEMO 2/3.",
-            ),
-            (
-                "0:33 - 0:38",
-                "Clicar em Simular novo scan.",
-                "Etapa 3: GO - APTO PARA O TURNO, selo DEMO 3/3.",
+                "Etapa 3: Estabilizacao",
+                "GO — Apto para o Turno (BioScore 72, HRV 62 ms, 14 piscadas/min)",
+                "Clique em 'Simular novo scan'; parametros normalizados e tripulante liberado para o turno.",
             ),
         ),
-        widths=(2.0, 6.1, 4.0),
-        note="Tempos são alvo (total de 38 s). Cronometrar um ensaio antes da gravação.",
+        widths=(2.2, 4.6, 5.3),
+        note="Demonstracao interativa publica baseada em cenario controlado com valores fixos predeterminados.",
     ),
+    # Slide 5: Transparencia Cientifica
     Slide(
         kind="table",
-        title="Texto de fala por etapa",
-        headers=("Momento", "Fala sugerida"),
+        title="Transparencia cientifica: medido versus simulado",
+        headers=("Indicador / Recurso", "Classificacao na Demo", "Fonte e Limitacoes Operacionais"),
         rows=(
-            (
-                "Abertura",
-                "Este é o CrewVitals, um sistema de apoio à decisão para a tripulação. Vou usar uma conta de demonstração.",
-            ),
-            (
-                "Etapa 1",
-                "O sistema mostra fadiga elevada. O veredito é NO-GO, com BioScore 34.",
-            ),
-            (
-                "Ação",
-                "Vou iniciar o protocolo 4-7-8, uma respiração descrita na base científica do sistema. Marco a contramedida e registro a execução.",
-            ),
-            (
-                "Etapa 2",
-                "O estado passou para ATENÇÃO. O registro da ação mudou o veredito.",
-            ),
-            (
-                "Etapa 3",
-                "Faço um novo scan simulado. O veredito é GO, com BioScore 72 e HRV 62. Esta é uma demonstração com valores fixos.",
-            ),
-            (
-                "Encerramento",
-                "O CrewVitals apoia a decisão do tripulante. Não é diagnóstico.",
-            ),
+            ("Demonstracao publica (/demo)", "100% Simulado", "Valores fixos (BioScore 34, 52 e 72); execucao local sem chamadas ao backend."),
+            ("Alerta preditivo", "Demonstracao", "Alerta ilustrativo rotulado; nao constitui modelo preditivo ou prognostico validado."),
+            ("Fadiga e piscadas (App)", "Estimativa", "Contagem por visao computacional via webcam; exibicao em piscadas/min inteiras."),
+            ("Variacao cardiaca (HRV)", "Estimativa", "rPPG optico experimental por webcam; sem certificacao clinica para diagnostico."),
+            ("Sono e humor", "Autorrelatado", "Check-in subjetivo de horas dormidas, percepcao de estresse e prontidao reportada."),
+            ("Ambiente e radiacao", "Nao coberto", "Sem integracao com dosimetros a bordo; reservado para telemetria futura de cabine."),
         ),
-        widths=(2.4, 9.7),
+        widths=(3.1, 2.2, 6.8),
+        note="O CrewVitals e um Sistema de Suporte a Decisao (DSS) operacional e nao substitui avaliacao medica profissional.",
     ),
-    Slide(
-        kind="table",
-        title="Medido, autorrelatado e simulado",
-        headers=("Indicador", "Classificação", "Fonte"),
-        rows=(
-            ("Fadiga cognitiva e sono", "Parcial", "Piscadas/min estimadas por webcam; horas de sono autorrelatadas."),
-            ("Cardiovascular", "Parcial", "HRV estimada por webcam (não validada clinicamente); sem pressão arterial nem ECG."),
-            ("Saúde mental, isolamento e confinamento", "Autorrelatado", "Avaliação de prontidão (humor/energia) e fadiga percebida."),
-            ("Perda óssea e muscular", "Parcial", "Exercício autorrelatado; sem densitometria."),
-            ("Radiação espacial", "Não coberto", "Sem dosímetro; prevista integração com dosímetros de bordo."),
-            ("Imunológico", "Autorrelatado", "Sintomas."),
-        ),
-        widths=(3.6, 2.2, 6.3),
-        note=(
-            "A demo usa valores fixos (src/lib/demoScenario.ts): BioScore 34, 52 e 72 nas etapas 1, 2 e 3. "
-            "Nenhuma medição ao vivo acontece na demo. Nenhum indicador da tabela está classificado como Medido."
-        ),
-    ),
+    # Slide 6: Privacidade e Seguranca
     Slide(
         kind="bullets",
-        title="Segurança",
+        title="Privacidade e seguranca da telemetria",
         items=(
-            "Dados: políticas por usuário no banco (RLS com auth.uid()).",
-            "Funções: exigem usuário autenticado, exceto as ações do Google Calendar (usam token do Google).",
-            "Navegador: nenhuma chave de IA no front-end.",
-            "Itens que dependem da plataforma (confirmação de e-mail, CAPTCHA, headers) estão no checklist manual e ainda não estão aplicados.",
+            "Demonstracao publica isolada: execucao estritamente local no navegador, sem chamadas de rede e sem sessao.",
+            "Zero persistencia na demo: nenhuma telemetria, video de webcam ou dado fisiologico e transmitido ou salvo em banco.",
+            "Arquitetura do sistema operacional: politicas de seguranca RLS no banco de dados isolando telemetria por identificador.",
+            "Funcoes e consultas protegidas: autenticacao por token nos servicos de retaguarda e leitura estrita com colunas explicitas.",
+            "Higiene de telemetria: logs de console suprimidos em producao para evitar vazamento local de metricas biometricas.",
         ),
     ),
-    Slide(
-        kind="bullets",
-        title="Se algo falhar",
-        items=(
-            "Não clicar em Iniciar Scan nem em Atualizar scan durante a demo: ambos abrem a webcam real.",
-            "Os valores da demo vêm do código (BioScore 34, 52 e 72), não da conta; a conta só precisa estar logada.",
-            "Se a tela estiver em estado antigo, abrir /dashboard?demo=reset em vez de /dashboard?demo=1.",
-        ),
-    ),
+    # Slide 7: Fechamento
     Slide(
         kind="closing",
-        title="Apoio à decisão, não diagnóstico",
-        subtitle=(
-            "O CrewVitals é um Sistema de Suporte à Decisão (DSS) operacional "
-            "e não substitui avaliação médica."
+        title="CrewVitals — Terminal de Telemetria",
+        subtitle="Apoio a decisao para a tripulacao em missoes espaciais",
+        items=(
+            "Demonstracao publica direta (sem login): https://neuro-suite.lovable.app/demo",
+            "Codigo-fonte e documentacao: https://github.com/rodrigowindows/neuro-suite",
+            "Sistema de Suporte a Decisao (DSS) operacional. Nao substitui avaliacao medica.",
         ),
     ),
 )
@@ -257,22 +221,22 @@ def pptx_title(slide, title: str) -> None:
 
 def pptx_footer(slide, number: int) -> None:
     frame = add_textbox(slide, 0.6, 6.95, 9.0, 0.4)
-    write_paragraph(frame.paragraphs[0], "CrewVitals | Roteiro de demo", 14, MUTED)
+    write_paragraph(frame.paragraphs[0], "CrewVitals | Demonstracao Operacional", 14, MUTED)
     frame = add_textbox(slide, 11.7, 6.95, 1.0, 0.4)
     write_paragraph(frame.paragraphs[0], str(number), 14, MUTED, align=PP_ALIGN.RIGHT)
 
 
-def pptx_note(slide, text: str, y: float = 6.4) -> None:
+def pptx_note(slide, text: str, y: float = 6.35) -> None:
     frame = add_textbox(slide, 0.6, y, 12.1, 0.45)
     write_paragraph(frame.paragraphs[0], text, 14, WARN)
 
 
 def pptx_cover(slide, item: Slide) -> None:
-    frame = add_textbox(slide, 0.9, 2.0, 11.5, 1.2, anchor=MSO_ANCHOR.BOTTOM)
+    frame = add_textbox(slide, 0.9, 1.9, 11.5, 1.3, anchor=MSO_ANCHOR.BOTTOM)
     write_paragraph(frame.paragraphs[0], item.title, 60, TEXT, bold=True)
     frame = add_textbox(slide, 0.9, 3.35, 11.5, 0.8)
     write_paragraph(frame.paragraphs[0], item.subtitle, 28, ACCENT)
-    frame = add_textbox(slide, 0.9, 4.3, 11.5, 0.6)
+    frame = add_textbox(slide, 0.9, 4.35, 11.5, 0.6)
     write_paragraph(frame.paragraphs[0], item.note, 18, MUTED)
 
 
@@ -280,11 +244,14 @@ def pptx_bullets(slide, item: Slide) -> None:
     frame = add_textbox(slide, 0.6, 1.8, 12.1, 4.8)
     for index, text in enumerate(item.items):
         paragraph = frame.paragraphs[0] if index == 0 else frame.add_paragraph()
-        write_paragraph(paragraph, f"\u2022  {text}", 22, TEXT, space_after=14)
+        write_paragraph(paragraph, f"\u2022  {text}", 21, TEXT, space_after=16)
 
 
 def pptx_cards(slide, item: Slide) -> None:
-    card_w, card_h, gap_x, gap_y = 3.83, 2.1, 0.3, 0.3
+    card_count = len(item.cards)
+    card_w = 3.83
+    card_h = 3.8 if card_count <= 3 else 2.1
+    gap_x, gap_y = 0.3, 0.3
     for index, (head, body) in enumerate(item.cards):
         col, row = index % 3, index // 3
         x = 0.6 + col * (card_w + gap_x)
@@ -296,16 +263,16 @@ def pptx_cards(slide, item: Slide) -> None:
         frame = card.text_frame
         frame.word_wrap = True
         frame.vertical_anchor = MSO_ANCHOR.TOP
-        frame.margin_left = frame.margin_right = Inches(0.2)
-        frame.margin_top = Inches(0.18)
-        write_paragraph(frame.paragraphs[0], head, 22, ACCENT, bold=True, space_after=8)
+        frame.margin_left = frame.margin_right = Inches(0.25)
+        frame.margin_top = Inches(0.25)
+        write_paragraph(frame.paragraphs[0], head, 22, ACCENT, bold=True, space_after=12)
         write_paragraph(frame.add_paragraph(), body, 17, TEXT)
 
 
 def pptx_table(slide, item: Slide) -> None:
     rows, cols = len(item.rows) + 1, len(item.headers)
     body_size = 14
-    shape = slide.shapes.add_table(rows, cols, Inches(0.6), Inches(1.7), Inches(sum(item.widths)), Inches(0.5 * rows))
+    shape = slide.shapes.add_table(rows, cols, Inches(0.6), Inches(1.65), Inches(sum(item.widths)), Inches(0.5 * rows))
     table = shape.table
     table.first_row = True
     table.horz_banding = False
@@ -316,8 +283,8 @@ def pptx_table(slide, item: Slide) -> None:
         cell.fill.solid()
         cell.fill.fore_color.rgb = rgb(fill)
         cell.vertical_anchor = MSO_ANCHOR.MIDDLE
-        cell.margin_left = cell.margin_right = Inches(0.1)
-        cell.margin_top = cell.margin_bottom = Inches(0.05)
+        cell.margin_left = cell.margin_right = Inches(0.12)
+        cell.margin_top = cell.margin_bottom = Inches(0.06)
         frame = cell.text_frame
         frame.word_wrap = True
         frame.paragraphs[0].text = ""
@@ -332,10 +299,16 @@ def pptx_table(slide, item: Slide) -> None:
 
 
 def pptx_closing(slide, item: Slide) -> None:
-    frame = add_textbox(slide, 0.9, 2.4, 11.5, 1.6, anchor=MSO_ANCHOR.BOTTOM)
+    frame = add_textbox(slide, 0.9, 1.5, 11.5, 1.4, anchor=MSO_ANCHOR.BOTTOM)
     write_paragraph(frame.paragraphs[0], item.title, 48, TEXT, bold=True, align=PP_ALIGN.CENTER)
-    frame = add_textbox(slide, 1.5, 4.3, 10.3, 1.2)
-    write_paragraph(frame.paragraphs[0], item.subtitle, 22, MUTED, align=PP_ALIGN.CENTER)
+    frame = add_textbox(slide, 1.0, 3.1, 11.3, 0.8)
+    write_paragraph(frame.paragraphs[0], item.subtitle, 24, ACCENT, align=PP_ALIGN.CENTER)
+    if item.items:
+        frame = add_textbox(slide, 1.0, 4.2, 11.3, 2.2)
+        for idx, it in enumerate(item.items):
+            p = frame.paragraphs[0] if idx == 0 else frame.add_paragraph()
+            color = TEXT if idx < 2 else MUTED
+            write_paragraph(p, it, 18, color, align=PP_ALIGN.CENTER, space_after=12)
 
 
 def build_pptx(slides: tuple[Slide, ...]) -> None:
@@ -357,7 +330,8 @@ def build_pptx(slides: tuple[Slide, ...]) -> None:
                 pptx_bullets(slide, item)
             elif item.kind == "cards":
                 pptx_cards(slide, item)
-                pptx_note(slide, item.note, y=6.35)
+                if item.note:
+                    pptx_note(slide, item.note, y=6.35)
             elif item.kind == "table":
                 pptx_table(slide, item)
                 if item.note:
@@ -376,13 +350,13 @@ body {{ margin: 0; background: #{BG}; color: #{TEXT}; font-family: {FONT}, Arial
 .slide:last-child {{ page-break-after: auto; }}
 h1 {{ font-size: 32pt; margin: 0; padding-bottom: 0.1in; font-weight: 700; }}
 .bar {{ width: 1.2in; height: 0.06in; background: #{ACCENT}; margin-bottom: 0.3in; }}
-.bullets p {{ font-size: 22pt; margin: 0 0 14pt 0; line-height: 1.3; }}
+.bullets p {{ font-size: 21pt; margin: 0 0 16pt 0; line-height: 1.35; }}
 .cards {{ display: grid; grid-template-columns: repeat(3, 3.83in); gap: 0.3in; margin-top: 0.1in; }}
-.card {{ background: #{PANEL}; height: 2.1in; padding: 0.18in 0.2in; }}
-.card h2 {{ font-size: 22pt; color: #{ACCENT}; margin: 0 0 8pt 0; }}
-.card p {{ font-size: 17pt; margin: 0; line-height: 1.3; }}
+.card {{ background: #{PANEL}; height: 3.8in; padding: 0.25in 0.22in; }}
+.card h2 {{ font-size: 22pt; color: #{ACCENT}; margin: 0 0 12pt 0; }}
+.card p {{ font-size: 17pt; margin: 0; line-height: 1.35; }}
 table {{ width: 100%; border-collapse: collapse; table-layout: fixed; }}
-th, td {{ font-size: 14pt; text-align: left; vertical-align: middle; padding: 5pt 8pt; line-height: 1.3; }}
+th, td {{ font-size: 14pt; text-align: left; vertical-align: middle; padding: 6pt 9pt; line-height: 1.35; }}
 th {{ background: #{HEADER_FILL}; font-weight: 700; }}
 td:first-child {{ font-weight: 700; }}
 tbody tr:nth-child(odd) td {{ background: #{PANEL}; }}
@@ -390,13 +364,16 @@ tbody tr:nth-child(even) td {{ background: #{BG}; }}
 .note {{ position: absolute; left: 0.6in; right: 0.6in; top: 6.35in; font-size: 14pt; color: #{WARN}; margin: 0; }}
 .footer {{ position: absolute; left: 0.6in; right: 0.6in; bottom: 0.3in; font-size: 14pt; color: #{MUTED};
            display: flex; justify-content: space-between; }}
-.cover {{ padding-top: 2.0in; }}
+.cover {{ padding-top: 1.9in; }}
 .cover h1 {{ font-size: 60pt; }}
 .cover .sub {{ font-size: 28pt; color: #{ACCENT}; margin: 0.3in 0 0.2in 0; }}
 .cover .meta {{ font-size: 18pt; color: #{MUTED}; margin: 0; }}
-.closing {{ display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }}
-.closing h1 {{ font-size: 48pt; }}
-.closing p {{ font-size: 22pt; color: #{MUTED}; max-width: 10.3in; margin: 0.3in 0 0 0; }}
+.closing {{ display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding-top: 1.5in; }}
+.closing h1 {{ font-size: 48pt; margin: 0 0 0.1in 0; }}
+.closing .sub {{ font-size: 24pt; color: #{ACCENT}; max-width: 10.3in; margin: 0 0 0.35in 0; }}
+.closing-items {{ max-width: 10.5in; }}
+.closing-item {{ font-size: 18pt; color: #{TEXT}; margin: 0 0 12pt 0; line-height: 1.4; }}
+.closing-item:last-child {{ font-size: 15pt; color: #{MUTED}; margin-top: 16pt; }}
 """
 
 
@@ -412,9 +389,11 @@ def html_slide(number: int, item: Slide) -> str:
             f'<p class="meta">{html_cell(item.note)}</p></section>'
         )
     if item.kind == "closing":
+        items_html = "".join(f'<p class="closing-item">{html_cell(it)}</p>' for it in item.items) if item.items else ""
         return (
             f'<section class="slide closing"><h1>{html_cell(item.title)}</h1>'
-            f'<p>{html_cell(item.subtitle)}</p></section>'
+            f'<p class="sub">{html_cell(item.subtitle)}</p>'
+            f'<div class="closing-items">{items_html}</div></section>'
         )
 
     parts = [f'<section class="slide">', f"<h1>{html_cell(item.title)}</h1>", '<div class="bar"></div>']
@@ -440,7 +419,7 @@ def html_slide(number: int, item: Slide) -> str:
         parts.append(f"<table><colgroup>{cols}</colgroup><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>")
     if item.note:
         parts.append(f'<p class="note">{html_cell(item.note)}</p>')
-    parts.append(f'<div class="footer"><span>CrewVitals | Roteiro de demo</span><span>{number}</span></div>')
+    parts.append(f'<div class="footer"><span>CrewVitals | Demonstracao Operacional</span><span>{number}</span></div>')
     parts.append("</section>")
     return "".join(parts)
 
@@ -464,7 +443,7 @@ def find_chrome() -> str:
     found = shutil.which("chrome") or shutil.which("msedge")
     if found:
         return found
-    raise FileNotFoundError("Chrome não encontrado. Defina CHROME_PATH.")
+    raise FileNotFoundError("Chrome ou Edge nao encontrado. Defina CHROME_PATH.")
 
 
 def export_pdf(html_text: str) -> None:
