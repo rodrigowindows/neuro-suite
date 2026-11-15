@@ -103,6 +103,24 @@ describe('Index page', () => {
     expect(screen.getByRole('button', { name: 'Iniciar Missão' })).toBeTruthy();
   });
 
+  it('renders the "Ver demonstração (sem login)" link with destination /demo', () => {
+    // Arrange & Act
+    renderIndex();
+    const demoLink = screen.getByRole('link', { name: 'Ver demonstração (sem login)' });
+
+    // Assert
+    expect(demoLink).toBeTruthy();
+    expect(demoLink.getAttribute('href')).toBe('/demo');
+  });
+
+  it('renders supporting text informing that demo data is simulated', () => {
+    // Arrange & Act
+    const { container } = renderIndex();
+
+    // Assert
+    expect(container.textContent).toContain('dados simulados');
+  });
+
   it('renders no emoji in the rendered HTML', () => {
     // Arrange
     const emoji = /\p{Extended_Pictographic}/u;

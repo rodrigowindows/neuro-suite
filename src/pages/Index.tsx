@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Activity, MessageCircle, Trophy, Rocket, Zap, Target, Shield, ArrowRight, Brain, ChevronDown, Moon, Dumbbell, Bell, Sparkles, CalendarCheck, Orbit, Eye } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
@@ -104,20 +104,41 @@ export default function Index() {
               <span className="font-semibold text-foreground"> Garanta a segurança da tripulação com análise de fadiga via câmeras da nave.</span>
             </motion.p>
 
-            <motion.div variants={fadeUp} custom={3} className="flex flex-col sm:flex-row gap-3 justify-center mb-8">
-              <Button size="lg" onClick={() => navigate('/auth')} className="text-lg px-8 py-6 shadow-elegant hover:shadow-glow transition-all">
+            <motion.div variants={fadeUp} custom={3} className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">
+              <Button
+                asChild
+                size="lg"
+                className="text-lg px-8 py-6 min-h-[44px] shadow-elegant hover:shadow-glow transition-all"
+              >
+                <Link to="/demo">Ver demonstração (sem login)</Link>
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => navigate('/auth')}
+                className="text-lg px-8 py-6 min-h-[44px]"
+              >
                 Iniciar Missão
               </Button>
-              <Button size="lg" variant="outline" onClick={() => document.getElementById('beneficios')?.scrollIntoView({ behavior: 'smooth' })} className="text-lg px-8 py-6">
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => document.getElementById('beneficios')?.scrollIntoView({ behavior: 'smooth' })}
+                className="text-lg px-8 py-6 min-h-[44px]"
+              >
                 Ver Recursos
               </Button>
             </motion.div>
 
-            <motion.p variants={fadeUp} custom={4} className="text-[11px] text-muted-foreground max-w-md mx-auto">
+            <motion.p variants={fadeUp} custom={4} className="text-xs text-muted-foreground max-w-md mx-auto mb-2">
+              Demonstração guiada com dados simulados de telemetria e biometria, sem necessidade de credenciais.
+            </motion.p>
+
+            <motion.p variants={fadeUp} custom={5} className="text-[11px] text-muted-foreground max-w-md mx-auto">
               ATENÇÃO — NÃO SUBSTITUI AVALIAÇÃO MÉDICA. Ferramenta de apoio ao bem-estar da tripulação.
             </motion.p>
 
-            <motion.div variants={fadeUp} custom={5} className="mt-12">
+            <motion.div variants={fadeUp} custom={6} className="mt-12">
               <ChevronDown className="h-6 w-6 text-muted-foreground mx-auto animate-bounce" />
             </motion.div>
           </motion.div>

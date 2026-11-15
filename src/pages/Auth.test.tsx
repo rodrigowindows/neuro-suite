@@ -53,6 +53,26 @@ describe('Auth page', () => {
     expect(container.textContent).not.toMatch(/Apple/);
   });
 
+  it('shows the "Ver demonstração sem login" link with destination /demo while keeping "Autenticar"', () => {
+    // Arrange & Act
+    renderAuth();
+    const demoLink = screen.getByRole('link', { name: 'Ver demonstração sem login' });
+    const authButton = screen.getByRole('button', { name: 'Autenticar' });
+
+    // Assert
+    expect(demoLink).toBeTruthy();
+    expect(demoLink.getAttribute('href')).toBe('/demo');
+    expect(authButton).toBeTruthy();
+  });
+
+  it('renders supporting text informing that demo data is simulated on auth page', () => {
+    // Arrange & Act
+    const { container } = renderAuth();
+
+    // Assert
+    expect(container.textContent).toContain('dados simulados');
+  });
+
   it('renders no emoji in the rendered HTML', () => {
     // Arrange
     const emoji = /\p{Extended_Pictographic}/u;
