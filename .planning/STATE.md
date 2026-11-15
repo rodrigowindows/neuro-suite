@@ -79,16 +79,19 @@ Status: Gates e codigo 100% validados; aguarda resultados informados de producao
 Last activity: 2026-11-15 — Reexecucao de auditoria completa da Phase 11 (550 testes, tsc, build, diff blindados e greps aprovados)
 
 
-## Marco v1.2 — Demo Pública sem Login (concluído em 2026-11-15)
+## Marco v1.2 — Demo Pública sem Login (reauditado em 2026-11-15; pendências abertas)
 
-- **Status:** Concluído no código, materiais e auditoria (Phase 16).
-- **Entregas Validadas:**
-  - Rota pública /demo sem sessão e sem chamadas Supabase (useGuestReadiness, Demo.tsx, Demo.test.tsx).
-  - Botões de acesso na Landing Page (Index.tsx) e tela de Login (Auth.tsx).
-  - Deck PPTX e PDF com exatamente 7 slides e roteiro de vídeo de 30s sem credenciais (docs/apresentacao/).
-  - Checklist operacional de publicação e links públicos (docs/publicacao/).
-  - Auditoria e UAT documentados em docs/publicacao/UAT-v1.2.md (561 testes passando, tsc/build verdes, blindados intactos).
+- **Status:** Código, deck e vídeo reauditados (Fases 12 a 19). Aberto: e-mail da conta demo no bundle (fase 20), log de rede real em `/demo` e ensaio do dono em janela anônima.
+- **Entregas e Correções Validadas:**
+  - Rota pública `/demo` sem sessão e sem chamadas Supabase (`useGuestDemoReadiness`, `Demo.tsx`, `Demo.test.tsx`).
+  - Botões de acesso na Landing Page (`Index.tsx`) e tela de Login (`Auth.tsx`).
+  - Deck PPTX e PDF com exatamente 7 slides e roteiro de vídeo de 30s sem credenciais (`docs/apresentacao/`).
+  - Correção de consistência da Fase 17 (`c5c69bf`): números reais alinhados a `demoScenario.ts` (34/14/5,5, 52/14/5,5, 72/18/5,5), botões reais de tela, remoção de métricas não visíveis na tela da demo e acentuação UTF-8 completa restaurada no PPTX e PDF.
+  - Correção de arquitetura e lint da Fase 18 (`9c70ed3`): desacoplamento explícito de `useGuestDemoReadiness`, eliminação de violações de `rules-of-hooks` no ESLint, e inclusão de teste de consistência AAA das 3 etapas em `Demo.test.tsx`.
+  - Checklist operacional de publicação e links públicos (`docs/publicacao/CHECKLIST-PUBLICACAO.md` e `LINKS.md`).
+  - Reauditoria formal da Fase 19 consolidada em `docs/publicacao/UAT-v1.2.md`: 562 testes passando (50/50 arquivos), `npx tsc --noEmit` limpo, `npm run build` limpo em 17.56s, `npx eslint src/hooks/useReadiness.ts src/pages/Demo.tsx` limpo (0 erros), diff dos arquivos blindados estritamente vazio e remoção do emoji residual do título no `README.md`.
 - **Ações Externas Pendentes (do Dono):**
-  - Publicar no Lovable com acesso público (https://neuro-suite.lovable.app/demo).
-  - Hospedar o deck (PDF/PPTX) e vídeo de 30s com link público e preencher docs/publicacao/LINKS.md.
-  - Executar o UAT cronometrado de 60s em janela anônima (docs/publicacao/UAT-v1.2.md).
+  - Publicar no Lovable com acesso público (`https://neuro-suite.lovable.app/demo`).
+  - Abrir janela anônima, inspecionar DevTools (Network) e confirmar 0 requisições a `supabase`.
+  - Hospedar o deck (PDF/PPTX) e vídeo de 30s com link público e preencher `docs/publicacao/LINKS.md`.
+  - Executar o UAT cronometrado de 60s em janela anônima (`docs/publicacao/UAT-v1.2.md`).

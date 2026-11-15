@@ -11,7 +11,7 @@ O **CrewVitals** é uma plataforma de telemetria fisiológica e suporte à decis
 
 ---
 
-## 🚀 Demonstração Pública (Acesso sem Login)
+## Demonstração Pública (Acesso sem Login)
 
 Para avaliação direta da banca examinadora e revisores externos:
 

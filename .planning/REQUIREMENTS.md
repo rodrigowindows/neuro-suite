@@ -89,7 +89,7 @@ Marco "Endurecimento de Segurança e Demo com Conta Compartilhada". Cada requisi
 | PUB-05, PUB-06 | Phase 13 | Complete |
 | PUB-07, PUB-08, PUB-09 | Phase 14 | Complete |
 | PUB-10, PUB-11 | Phase 15 | Complete |
-| PUB-12 | Phase 16 | Complete |
+| PUB-12 | Phase 16 | Parcial (e-mail da conta demo no bundle: fase 20; UAT do dono pendente) |
 
 **Coverage:**
 - v1.1 requirements: 27 total
@@ -97,7 +97,7 @@ Marco "Endurecimento de Segurança e Demo com Conta Compartilhada". Cada requisi
 - Pending (ensaio visual): 1 (QA-03)
 - Verificações de produção pendentes, fora da contagem de 27: SEC-01 e SEC-02 (aguardam deploy e ensaio visual)
 - v1.2 requirements: 12 total
-- Complete (código, materiais e UAT): 12 (PUB-01 a PUB-12)
+- Complete (código, materiais e UAT): 12 (PUB-01 a PUB-12) reauditados na Fase 19 após correções das Fases 17 e 18
 - Pendências de produção do v1.2: Ensaio visual ao vivo em produção pelo dono (documentado em `docs/publicacao/UAT-v1.2.md`)
 - Unmapped: 0
 
@@ -116,16 +116,16 @@ SEC-04 aparece em duas fases porque o contrato tem dois lados (função e recept
 - [x] **PUB-05**: Landing tem botão "Ver demonstração (sem login)" para `/demo`
 - [x] **PUB-06**: Tela de login oferece o mesmo atalho; fluxo de login existente intacto
 
-### Material (PUB, fases 14 e 15)
-- [x] **PUB-07**: Deck PPTX com exatamente 7 slides (título e introdução incluídos), sem credenciais, citando o link público
-- [x] **PUB-08**: PDF idêntico ao PPTX
-- [x] **PUB-09**: Roteiro de vídeo de no máximo 30 s com tempos por cena
+### Material (PUB, fases 14 e 15, corrigidos na fase 17)
+- [x] **PUB-07**: Deck PPTX com exatamente 7 slides (título e introdução incluídos), sem credenciais, dados reais 34/14/5,5 e acentos íntegros, citando o link público
+- [x] **PUB-08**: PDF idêntico ao PPTX com exatamente 7 páginas e acentos íntegros
+- [x] **PUB-09**: Roteiro de vídeo de no máximo 30 s com tempos por cena e botões reais de tela
 - [x] **PUB-10**: Checklist do dono para publicar, hospedar deck e vídeo e testar em janela anônima
-- [x] **PUB-11**: README com seção "Demonstração" apontando para `/demo`
+- [x] **PUB-11**: README com seção "Demonstração" apontando para `/demo` e título sem emojis
 
-### Qualidade (PUB, fase 16)
-- [x] **PUB-12**: Gates verdes, blindados intactos, prova automatizada de zero chamada ao Supabase em `/demo`, UAT cronometrado
+### Qualidade (PUB, fases 16 e 18, reauditados na fase 19)
+- [ ] **PUB-12**: Gates verdes (562 testes, tsc e build limpos), ESLint limpo (zero erros de hook), blindados intactos, prova automatizada de zero chamada ao Supabase em `/demo`, UAT consolidado
 
 ---
 *Requirements defined: 2026-11-15*
-*Last updated: 2026-11-15 após auditoria e UAT da Phase 16 (561 testes, tsc e build verdes, blindados intactos)*
+*Last updated: 2026-11-15 após reauditoria da Fase 19 (Fases 17 e 18 commitadas: 562 testes, tsc, build e eslint limpos, consistência deck x demo e blindados intactos)*

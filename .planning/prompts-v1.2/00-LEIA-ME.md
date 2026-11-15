@@ -38,6 +38,10 @@ A, B, C e D rodam ao mesmo tempo. E roda por último.
 - Antes de commitar: `git diff --stat -- src/integrations supabase/migrations package.json package-lock.json vite.config.ts` precisa estar vazio.
 - Conferir `git status` ao final: só os seus arquivos mudam.
 
+## Rodada de correção (após auditoria independente)
+
+Rodar 17 e 18 em paralelo (exclusivos: `docs/apresentacao/**`; `src/hooks/useReadiness*` e `src/pages/Demo*`) e depois 19.
+
 ## Ações do dono (não são código)
 
 Listadas em `docs/publicacao/CHECKLIST-PUBLICACAO.md` (gerado pelo prompt 15): publicar no Lovable com acesso público, hospedar deck e vídeo com link aberto, abrir tudo em janela anônima.

@@ -127,8 +127,12 @@ Fases 12, 13, 14 e 15 n√£o compartilham arquivos. A fase 16 depende das quatro.
 
 | Phase | Plans | Status |
 |-------|-------|--------|
-| 12 | 1/1 | ConcluÌda no cÛdigo (commit 53ac4b7, 33 testes especÌficos) |
-| 13 | 1/1 | ConcluÌda no cÛdigo (commit 105c8a0, 16 testes de entrada) |
-| 14 | 1/1 | ConcluÌda nos materiais (commit e2810c1, 7 slides PPTX/PDF, vÌdeo 30s) |
-| 15 | 1/1 | ConcluÌda na documentaÁ„o (commit 52a0a40, checklist e README) |
-| 16 | 1/1 | ConcluÌda (auditoria de cÛdigo aprovada; relatÛrio em docs/publicacao/UAT-v1.2.md) |
+| 12 | 1/1 | Conclu√≠da no c√≥digo (commit 53ac4b7) |
+| 13 | 1/1 | Conclu√≠da no c√≥digo (commit 105c8a0) |
+| 14 | 1/1 | Conclu√≠da nos materiais (commit e2810c1) |
+| 15 | 1/1 | Conclu√≠da na documenta√ß√£o (commit 52a0a40) |
+| 16 | 1/1 | Auditoria inicial com erros (commit ee90361), refeita na fase 19 |
+| 17 | 1/1 | Conclu√≠da (commit c5c69bf): n√∫meros reais, bot√µes reais e acentos no deck e no v√≠deo |
+| 18 | 1/1 | Conclu√≠da (commit 9c70ed3): `useGuestDemoReadiness` separado, eslint limpo |
+| 19 | 1/1 | Reauditoria feita; resultado em `docs/publicacao/UAT-v1.2.md` |
+| 20 | 0/1 | Pendente: remover e-mail da conta demo do bundle (`.planning/prompts-v1.2/20-remover-email-demo.md`) |
