@@ -32,12 +32,16 @@ const mockUserProgress = {
   ],
 };
 
+const { mockProgressSelect } = vi.hoisted(() => ({
+  mockProgressSelect: vi.fn().mockReturnThis(),
+}));
+
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     from: vi.fn((table: string) => {
       if (table === 'user_progress') {
         return {
-          select: vi.fn().mockReturnThis(),
+          select: mockProgressSelect,
           eq: vi.fn().mockReturnThis(),
           maybeSingle: vi.fn().mockResolvedValue({
             data: mockUserProgress,
@@ -111,5 +115,33 @@ describe('Gamification - Cockpit Sóbrio NASA', () => {
     expect(screen.getByText(/Faça scan por mais 2 dias para Protocolo de Resiliência/i)).toBeInTheDocument();
     expect(screen.queryByText(/🧘/)).not.toBeInTheDocument();
     expect(screen.queryByText(/🏆/)).not.toBeInTheDocument();
+  });
+
+  it('lê o progresso com colunas explícitas, sem select("*") (AAA)', async () => {
+    // Arrange
+    const expectedColumns = 'current_streak, longest_streak, badges, total_scans';
+
+    // Act
+    await act(async () => {
+      render(<Gamification />);
+    });
+
+    // Assert
+    expect(mockProgressSelect).toHaveBeenCalledWith(expectedColumns);
+    expect(mockProgressSelect).not.toHaveBeenCalledWith('*');
+  });
+
+  it('lê o progresso para atualização com colunas explícitas, sem select("*") (AAA)', async () => {
+    // Arrange
+    const expectedColumns = 'id, last_scan_date, current_streak, longest_streak, total_scans, badges';
+
+    // Act
+    await act(async () => {
+      render(<Gamification stressLevel="moderate" />);
+    });
+
+    // Assert
+    expect(mockProgressSelect).toHaveBeenCalledWith(expectedColumns);
+    expect(mockProgressSelect).not.toHaveBeenCalledWith('*');
   });
 });

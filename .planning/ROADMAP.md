@@ -91,14 +91,14 @@ Numeração continua do Marco 2 (fases 01 a 03). As fases 04 a 10 não compartil
 
 | Phase | Plans | Status |
 |-------|-------|--------|
-| 04 | 0/1 | Not started |
-| 05 | 0/1 | Not started |
-| 06 | 0/1 | Not started |
-| 07 | 0/1 | Not started |
-| 08 | 0/1 | Not started |
-| 09 | 0/1 | Not started |
-| 10 | 0/1 | Not started |
-| 11 | 0/1 | Not started |
+| 04 | 1/1 | Concluída no código |
+| 05 | 1/1 | Concluída no código |
+| 06 | 1/1 | Concluída no código |
+| 07 | 1/1 | Concluída no código |
+| 08 | 1/1 | Concluída no código |
+| 09 | 1/1 | Concluída no código |
+| 10 | 1/1 | Concluída no código |
+| 11 | 0/1 | Aguarda ensaio visual e deploy |
 
 ---
 *Roadmap created: 2026-11-15*

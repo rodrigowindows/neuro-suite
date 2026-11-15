@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Activity, MessageCircle, Trophy, Rocket, Zap, Target, Shield, ArrowRight, Star, Brain, ChevronDown, Moon, Dumbbell, Bell, Sparkles, CalendarCheck, WifiOff, Lock, Orbit, Eye } from "lucide-react";
+import { Activity, MessageCircle, Trophy, Rocket, Zap, Target, Shield, ArrowRight, Brain, ChevronDown, Moon, Dumbbell, Bell, Sparkles, CalendarCheck, Orbit, Eye } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import neuroSuiteLogo from '@/assets/neurosuite-logo.jpg';
@@ -13,35 +13,35 @@ const fadeUp = {
 };
 
 const features = [
-  { icon: Eye, title: 'Análise de Fadiga', desc: 'Câmeras da nave detectam sinais de fadiga e micro-expressões. Monitoramento contínuo do estado cognitivo da tripulação em tempo real.', stat: '60s', statLabel: 'análise rápida' },
-  { icon: MessageCircle, title: 'AstroAssist Espacial', desc: 'Coach de IA com suporte psicológico adaptativo — essencial quando a comunicação com a Terra leva minutos para chegar.', stat: '24/7', statLabel: 'disponível' },
-  { icon: Trophy, title: 'Disciplina de Missão', desc: 'Ciclos concluídos, protocolos em dia e sequência de monitoramento. Transforme o cuidado com a saúde em um hábito recompensador durante a missão.', stat: '12+', statLabel: 'conquistas' },
-  { icon: Rocket, title: 'Painel de Comando', desc: 'Visão consolidada da saúde da tripulação, métricas de fadiga e insights acionáveis para o controle da missão.', stat: '100%', statLabel: 'visibilidade' },
+  { icon: Eye, title: 'Análise de Fadiga', desc: 'Câmeras da nave detectam sinais de fadiga e micro-expressões. Monitoramento contínuo do estado cognitivo da tripulação em tempo real.' },
+  { icon: MessageCircle, title: 'AstroAssist Espacial', desc: 'Coach de IA com suporte psicológico adaptativo — essencial quando a comunicação com a Terra leva minutos para chegar.' },
+  { icon: Trophy, title: 'Disciplina de Missão', desc: 'Ciclos concluídos, protocolos em dia e sequência de monitoramento. Transforme o cuidado com a saúde em um hábito recompensador durante a missão.' },
+  { icon: Rocket, title: 'Painel de Comando', desc: 'Visão consolidada da saúde da tripulação, métricas de fadiga e insights acionáveis para o controle da missão.' },
 ];
 
-const testimonials = [
-  { text: '"Em Marte, a comunicação leva 20 minutos. Ter esse sistema local me deu segurança para agir rápido quando a fadiga apareceu."', name: 'Dra. Elena Vasquez', role: 'Comandante, Missão Ares III', stars: 5 },
-  { text: '"O monitoramento de sono e fadiga virou parte da rotina da tripulação. Dados processados na própria nave, sem depender da Terra."', name: 'Cmdt. James Chen', role: 'Piloto, Estação Lunar Gateway', stars: 5 },
-  { text: '"Detectamos sinais de esgotamento cognitivo semanas antes de virar problema. Isso muda o jogo em missões de longa duração."', name: 'Dr. Ana Kowalski', role: 'Médica de Voo, Programa Artemis', stars: 5 },
+const contextCards = [
+  { icon: Orbit, title: 'Latência de comunicação com a Terra', desc: 'O sinal entre a nave e a Terra leva tempo para ir e voltar, e esse atraso cresce com a distância. Decisões de saúde precisam poder ser tomadas a bordo.' },
+  { icon: Moon, title: 'Isolamento e confinamento', desc: 'Ambientes fechados, equipe reduzida e pouca variação de rotina exigem acompanhamento contínuo de sono, fadiga e humor.' },
+  { icon: Dumbbell, title: 'Microgravidade', desc: 'Sem carga gravitacional, músculos, ossos e o sistema vestibular se alteram. Registrar exercícios e acompanhar a saúde faz parte da rotina da missão.' },
 ];
 
 const stats = [
-  { value: '100%', label: 'Offline', icon: WifiOff },
-  { value: '0', label: 'Dados Vazados', icon: Lock },
-  { value: 'Privacy', label: 'First', icon: Shield },
-  { value: '24/7', label: 'Monitoramento', icon: Orbit },
+  { value: 'RLS', label: 'Isolamento de dados por usuário', icon: Shield },
+  { value: 'Modo Autônomo', label: 'Simulado nesta versão', icon: Orbit },
+  { value: 'Webcam', label: 'Estimativas, não diagnóstico', icon: Eye },
+  { value: 'DSS', label: 'Apoio à decisão', icon: Brain },
 ];
 
 const modules = [
-  { icon: CalendarCheck, title: 'Avaliação de Prontidão', desc: 'Triagem operacional de 30s com IA que gera recomendações personalizadas baseadas na prontidão e carga cognitiva do astronauta.', tag: 'Tripulação' },
+  { icon: CalendarCheck, title: 'Avaliação de Prontidão', desc: 'Triagem operacional com IA que gera recomendações personalizadas baseadas na prontidão e carga cognitiva do tripulante.', tag: 'Tripulação' },
   { icon: Activity, title: 'BioScore', desc: 'Análise facial via câmeras da nave detecta fadiga e estima variabilidade cardíaca para calcular o estado cognitivo.', tag: 'Tripulação' },
   { icon: MessageCircle, title: 'AstroAssist IA', desc: 'Coach de prontidão operacional com suporte psicológico adaptado ao nível de estresse e isolamento da missão.', tag: 'Tripulação' },
   { icon: Trophy, title: 'Disciplina de Missão', desc: 'Ciclos concluídos, protocolos em dia e sequência de monitoramento que transformam o cuidado com a saúde em hábito motivador durante a missão.', tag: 'Tripulação' },
-  { icon: Moon, title: 'Registro de Sono', desc: 'Registro de horas dormidas e qualidade do sono — crítico para o ritmo circadiano em ambiente sem ciclo dia/noite.', tag: 'Tripulação' },
-  { icon: Dumbbell, title: 'Log de Exercícios', desc: 'Registro de treinos diários para mitigar perda óssea e muscular em microgravidade.', tag: 'Tripulação' },
-  { icon: Brain, title: 'IA Insights', desc: 'Predição de fadiga cognitiva, análise de sentimento e relatórios automáticos para o controle da missão.', tag: 'Comando' },
-  { icon: Bell, title: 'Alertas Proativos', desc: 'Notificações inteligentes quando tripulantes atingem níveis críticos de fadiga por dias consecutivos.', tag: 'Comando' },
-  { icon: Sparkles, title: 'Coaching de Liderança', desc: 'Módulo de desenvolvimento para comandantes de missão com suporte de IA em decisões críticas.', tag: 'Comando' },
+  { icon: Moon, title: 'Registro de Sono', desc: 'Registro de horas dormidas e qualidade do sono — relevante para o ritmo circadiano em ambiente sem ciclo dia/noite.', tag: 'Tripulação' },
+  { icon: Dumbbell, title: 'Log de Exercícios', desc: 'Registro de treinos diários para acompanhar a perda óssea e muscular em microgravidade.', tag: 'Tripulação' },
+  { icon: Brain, title: 'IA Insights', desc: 'Estimativas de fadiga cognitiva, análise de sentimento e relatórios para o controle da missão.', tag: 'Comando' },
+  { icon: Bell, title: 'Alertas Proativos', desc: 'Notificações quando tripulantes atingem níveis críticos de fadiga por dias consecutivos.', tag: 'Comando' },
+  { icon: Sparkles, title: 'Apoio ao Comando', desc: 'Apoio ao comandante da missão em decisões críticas, com sugestões geradas por IA.', tag: 'Comando' },
 ];
 
 export default function Index() {
@@ -106,7 +106,7 @@ export default function Index() {
 
             <motion.div variants={fadeUp} custom={3} className="flex flex-col sm:flex-row gap-3 justify-center mb-8">
               <Button size="lg" onClick={() => navigate('/auth')} className="text-lg px-8 py-6 shadow-elegant hover:shadow-glow transition-all">
-                Iniciar Missão 🚀
+                Iniciar Missão
               </Button>
               <Button size="lg" variant="outline" onClick={() => document.getElementById('beneficios')?.scrollIntoView({ behavior: 'smooth' })} className="text-lg px-8 py-6">
                 Ver Recursos
@@ -114,7 +114,7 @@ export default function Index() {
             </motion.div>
 
             <motion.p variants={fadeUp} custom={4} className="text-[11px] text-muted-foreground max-w-md mx-auto">
-              ⚠️ ATENÇÃO — NÃO SUBSTITUI AVALIAÇÃO MÉDICA. Ferramenta de apoio ao bem-estar da tripulação.
+              ATENÇÃO — NÃO SUBSTITUI AVALIAÇÃO MÉDICA. Ferramenta de apoio ao bem-estar da tripulação.
             </motion.p>
 
             <motion.div variants={fadeUp} custom={5} className="mt-12">
@@ -128,7 +128,7 @@ export default function Index() {
           <div className="container mx-auto px-4 max-w-5xl">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {stats.map((s, i) => (
-                <motion.div key={s.label} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="text-center">
+                <motion.div key={s.value} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="text-center">
                   <s.icon className="h-6 w-6 text-primary mx-auto mb-2" />
                   <p className="text-2xl sm:text-3xl font-display font-bold">{s.value}</p>
                   <p className="text-xs text-muted-foreground">{s.label}</p>
@@ -143,7 +143,7 @@ export default function Index() {
           <div className="container mx-auto px-4 max-w-5xl">
             <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-12">
               <h2 id="features-heading" className="text-3xl sm:text-4xl font-display font-bold mb-4">
-                Tudo que a tripulação precisa para uma Missão Segura 🛰️
+                Recursos para a Missão
               </h2>
               <p className="text-muted-foreground max-w-xl mx-auto">Neurociência + IA integradas em uma plataforma completa de saúde espacial.</p>
             </motion.div>
@@ -153,14 +153,8 @@ export default function Index() {
                 <motion.div key={f.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1, duration: 0.5 }}>
                   <Card className="h-full hover:shadow-elegant transition-all duration-300 group border-border/50">
                     <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div className="p-2.5 bg-primary/10 rounded-lg group-hover:bg-primary/15 transition-colors" aria-hidden="true">
-                          <f.icon className="h-5 w-5 text-primary" />
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xl font-display font-bold text-primary">{f.stat}</p>
-                          <p className="text-[10px] text-muted-foreground">{f.statLabel}</p>
-                        </div>
+                      <div className="p-2.5 bg-primary/10 rounded-lg w-fit group-hover:bg-primary/15 transition-colors" aria-hidden="true">
+                        <f.icon className="h-5 w-5 text-primary" />
                       </div>
                       <CardTitle className="text-lg mt-3">{f.title}</CardTitle>
                     </CardHeader>
@@ -179,9 +173,9 @@ export default function Index() {
           <div className="container mx-auto px-4 max-w-6xl">
             <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-12">
               <h2 id="modules-heading" className="text-3xl sm:text-4xl font-display font-bold mb-4">
-                Sistemas Integrados de Bordo 🧩
+                Sistemas Integrados de Bordo
               </h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">Da tripulação ao comando da missão, cada sistema foi projetado com neurociência e IA para máxima segurança.</p>
+              <p className="text-muted-foreground max-w-xl mx-auto">Da tripulação ao controle da missão, cada sistema foi projetado com neurociência e IA para máxima segurança.</p>
             </motion.div>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -227,32 +221,27 @@ export default function Index() {
           </div>
         </section>
 
-        {/* Testimonials */}
-        <section id="depoimentos" className="py-16 sm:py-24 bg-muted/30" aria-labelledby="testimonials-heading">
+        {/* Contexto da missão */}
+        <section id="depoimentos" className="py-16 sm:py-24 bg-muted/30" aria-labelledby="contexto-heading">
           <div className="container mx-auto px-4 max-w-5xl">
             <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-12">
-              <h2 id="testimonials-heading" className="text-3xl sm:text-4xl font-display font-bold mb-4">
-                Validado em Missões Reais 🚀
+              <h2 id="contexto-heading" className="text-3xl sm:text-4xl font-display font-bold mb-4">
+                Contexto da missão
               </h2>
             </motion.div>
 
             <div className="grid md:grid-cols-3 gap-5">
-              {testimonials.map((t, i) => (
-                <motion.div key={t.name} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.12 }}>
+              {contextCards.map((c, i) => (
+                <motion.div key={c.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.12 }}>
                   <Card className="h-full border-border/50">
-                    <CardContent className="pt-6">
-                      <div className="flex gap-0.5 mb-3">
-                        {Array.from({ length: t.stars }).map((_, j) => (
-                          <Star key={j} className="h-4 w-4 fill-accent text-accent" />
-                        ))}
+                    <CardHeader className="pb-3">
+                      <div className="p-2.5 bg-primary/10 rounded-lg w-fit" aria-hidden="true">
+                        <c.icon className="h-5 w-5 text-primary" />
                       </div>
-                      <blockquote>
-                        <p className="text-sm text-muted-foreground leading-relaxed mb-4">{t.text}</p>
-                        <footer>
-                          <p className="font-semibold text-sm">— {t.name}</p>
-                          <p className="text-xs text-muted-foreground">{t.role}</p>
-                        </footer>
-                      </blockquote>
+                      <CardTitle className="text-base mt-3">{c.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <CardDescription className="text-sm leading-relaxed">{c.desc}</CardDescription>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -274,13 +263,13 @@ export default function Index() {
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,hsl(var(--primary)/0.15),transparent_60%)]" />
               <div className="relative z-10 text-center py-12 sm:py-16 px-6 sm:px-12">
                 <h2 id="cta-heading" className="text-3xl sm:text-4xl font-display font-bold text-white mb-4">
-                  Pronto para a Decolagem? 🚀
+                  Pronto para a Decolagem?
                 </h2>
                 <p className="text-white/80 text-base sm:text-lg mb-8 max-w-xl mx-auto">
                   Acesse agora. Neurociência + IA protegendo a saúde da sua tripulação em qualquer ponto do sistema solar.
                 </p>
                 <Button size="lg" variant="secondary" onClick={() => navigate('/auth')} className="text-lg px-8 py-6 shadow-soft">
-                  Acessar Painel do Astronauta 🧑‍🚀
+                  Acessar Painel do Astronauta
                 </Button>
               </div>
             </motion.div>
@@ -293,7 +282,7 @@ export default function Index() {
             <h2 className="text-3xl sm:text-4xl font-display font-bold text-center mb-12">Como Funciona em 3 Passos</h2>
             <div className="grid md:grid-cols-3 gap-8">
               {[
-                { step: '01', title: 'Análise Facial', desc: 'As câmeras da nave fazem uma análise de 60 segundos. Sem wearables, sem equipamento extra.', icon: Eye },
+                { step: '01', title: 'Análise Facial', desc: 'As câmeras da nave fazem uma análise rápida. Sem wearables, sem equipamento extra.', icon: Eye },
                 { step: '02', title: 'IA Processa Localmente', desc: 'Algoritmos de neurociência processam fadiga e variabilidade cardíaca direto na nave — sem depender da Terra.', icon: Brain },
                 { step: '03', title: 'Ação Imediata', desc: 'Receba um plano personalizado de recuperação com técnicas validadas para ambientes de isolamento.', icon: Target },
               ].map((s, i) => (
@@ -320,14 +309,14 @@ export default function Index() {
                 <span className="font-display font-bold">{APP_CONFIG.name}</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Zero-Trust Privacy 🔒
+                Zero-Trust Privacy
               </p>
             </div>
             <div>
               <h3 className="font-semibold mb-3">Contato</h3>
               <address className="text-sm text-muted-foreground not-italic space-y-1">
-                <p>📧 {APP_CONFIG.contact.email}</p>
-                <p>📱 {APP_CONFIG.contact.whatsapp}</p>
+                <p>{APP_CONFIG.contact.email}</p>
+                <p>{APP_CONFIG.contact.whatsapp}</p>
               </address>
             </div>
           </div>

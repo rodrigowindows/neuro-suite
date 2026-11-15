@@ -1,6 +1,27 @@
-import { describe, it, expect } from "vitest";
-import { getLevelForXP, computeXP, LEVELS } from "./useGamificationScore";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { renderHook, waitFor } from "@testing-library/react";
+import { getLevelForXP, computeXP, LEVELS, useGamificationScore } from "./useGamificationScore";
 import type { AchievementBadge } from "@/types/stress";
+
+const { mockProgressSelect } = vi.hoisted(() => ({
+  mockProgressSelect: vi.fn().mockReturnThis(),
+}));
+
+vi.mock("@/integrations/supabase/client", () => ({
+  supabase: {
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user: { id: "astronaut-001" } } }),
+    },
+    from: vi.fn(() => {
+      const chain = {
+        select: mockProgressSelect,
+        eq: vi.fn(() => chain),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+      };
+      return chain;
+    }),
+  },
+}));
 
 describe("getLevelForXP", () => {
   it("returns Iniciante for 0 XP", () => {
@@ -64,5 +85,25 @@ describe("LEVELS", () => {
   });
   it("last level has Infinity maxXP", () => {
     expect(LEVELS[LEVELS.length - 1].maxXP).toBe(Infinity);
+  });
+});
+
+describe("useGamificationScore - leitura de user_progress", () => {
+  beforeEach(() => {
+    mockProgressSelect.mockClear();
+  });
+
+  it("consulta apenas as colunas usadas no cálculo, sem select(\"*\")", async () => {
+    // Arrange
+    const expectedColumns = "total_scans, current_streak, longest_streak, badges";
+
+    // Act
+    renderHook(() => useGamificationScore());
+
+    // Assert
+    await waitFor(() => {
+      expect(mockProgressSelect).toHaveBeenCalledWith(expectedColumns);
+    });
+    expect(mockProgressSelect).not.toHaveBeenCalledWith("*");
   });
 });

@@ -7,9 +7,9 @@ export interface StressResult {
 }
 
 export function getStressDisplay(level: string): { emoji: string; message: string } {
-  if (level === 'moderate') return { emoji: '⚡', message: 'Atenção normal, sugira pausas para evitar burnout' };
-  if (level === 'high') return { emoji: '😟', message: 'Fadiga detectada. Risco de erro operacional' };
-  return { emoji: '😊', message: 'Foco otimizado, produtividade alta' };
+  if (level === 'moderate') return { emoji: 'Atenção', message: 'Atenção normal, sugira pausas para evitar burnout' };
+  if (level === 'high') return { emoji: 'Alerta', message: 'Fadiga detectada. Risco de erro operacional' };
+  return { emoji: 'OK', message: 'Foco otimizado, produtividade alta' };
 }
 
 export function calculateStressLevel(blinkRate: number, hrvValue?: number): StressResult {
@@ -28,7 +28,7 @@ export function calculateStressLevel(blinkRate: number, hrvValue?: number): Stre
   if (hrvValue && hrvValue < 30 && blinkRate > 25) {
     stressLevel = 'high';
     message = 'Alerta estresse: HRV baixo + piscadas altas (validação cruzada)';
-    emoji = '🚨';
+    emoji = 'Crítico';
   }
 
   return {

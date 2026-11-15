@@ -2,20 +2,52 @@ import { describe, it, expect } from "vitest";
 import { getInitialMessage, buildContext, exportConversation, CoachMessage } from "./coachService";
 
 describe("getInitialMessage", () => {
-  it("returns PNL anchor message for low stress", () => {
-    expect(getInitialMessage("low")).toContain("Ancore");
+  it("returns PNL anchor message for low stress without emojis", () => {
+    // Arrange
+    const stressLevel = "low";
+
+    // Act
+    const message = getInitialMessage(stressLevel);
+
+    // Assert
+    expect(message).toContain("Ancore");
+    expect(message).not.toMatch(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u);
   });
 
-  it("returns turnover message for moderate stress", () => {
-    expect(getInitialMessage("moderate")).toContain("turnover");
+  it("returns turnover message for moderate stress without emojis", () => {
+    // Arrange
+    const stressLevel = "moderate";
+
+    // Act
+    const message = getInitialMessage(stressLevel);
+
+    // Assert
+    expect(message).toContain("turnover");
+    expect(message).not.toMatch(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u);
   });
 
-  it("returns burnout alert for high stress", () => {
-    expect(getInitialMessage("high")).toContain("burnout");
+  it("returns burnout alert for high stress without emojis", () => {
+    // Arrange
+    const stressLevel = "high";
+
+    // Act
+    const message = getInitialMessage(stressLevel);
+
+    // Assert
+    expect(message).toContain("burnout");
+    expect(message).not.toMatch(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u);
   });
 
-  it("returns scan prompt for unknown stress", () => {
-    expect(getInitialMessage("unknown")).toContain("scan");
+  it("returns scan prompt for unknown stress without emojis", () => {
+    // Arrange
+    const stressLevel = "unknown";
+
+    // Act
+    const message = getInitialMessage(stressLevel);
+
+    // Assert
+    expect(message).toContain("scan");
+    expect(message).not.toMatch(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u);
   });
 });
 

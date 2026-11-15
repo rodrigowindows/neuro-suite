@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWellnessScore } from '@/hooks/useWellnessScore';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,6 +10,7 @@ import {
   ReadinessStatus,
 } from '@/lib/readiness';
 import { computeStressScore, computeHrvScore } from '@/lib/wellnessScoring';
+import { DEMO_ACCOUNT_EMAIL } from '@/lib/constants';
 import {
   hasCountermeasureProtocolToday,
   COUNTERMEASURE_REGISTERED_EVENT,
@@ -24,6 +25,11 @@ import {
   simulateDemoScan,
   isDemoMode,
   isDemoReset,
+  markDemoRequested,
+  hasDemoRequested,
+  clearDemoRequested,
+  isDemoOff,
+  replaceDemoResetUrl,
   getDemoScenarioData,
   DEMO_STAGE_CHANGED_EVENT,
 } from '@/lib/demoScenario';
@@ -42,6 +48,8 @@ export interface UseReadinessReturn extends ReadinessStatus {
   hasData: boolean;
   hasRealTelemetry: boolean;
   isDemo: boolean;
+  /** true somente quando o estado exibido vem do cenario demo (nao de telemetria real). */
+  isDemoActive: boolean;
   demoStage: DemoStage | null;
   demoStageLabel: string | null;
   stage: DemoStage | null;
@@ -80,11 +88,19 @@ export function useReadiness(options: UseReadinessOptions = {}): UseReadinessRet
     horasSono?: number | null;
   }>({});
 
-  const isDemoUrl = isDemoMode(options.locationSearch);
+  const hasDemoQuery = isDemoMode(options.locationSearch);
+  const isDemoOffUrl = isDemoOff(options.locationSearch);
+  const isDemoUrl = !isDemoOffUrl && (hasDemoQuery || hasDemoRequested());
   const isResetUrl = isDemoReset(options.locationSearch);
   const isDemo = Boolean(options.isDemo || isDemoUrl);
+  // Conta demo forca o cenario demo mesmo com telemetria no banco. Vazio = inerte.
+  const isDemoAccount =
+    Boolean(DEMO_ACCOUNT_EMAIL) &&
+    user?.email?.toLowerCase() === DEMO_ACCOUNT_EMAIL.toLowerCase();
+  const useDemoScenario = isDemo && isDemoAccount;
   // Demo sem estado salvo na sessão começa limpa: ignora protocolo gravado antes.
   const isFreshDemo = isDemo && !isResetUrl && !hasStoredDemoStage();
+  const resetAppliedRef = useRef(false);
 
   const [hasProtocol, setHasProtocol] = useState<boolean>(
     () => !isResetUrl && !isFreshDemo && hasCountermeasureProtocolToday()
@@ -135,11 +151,20 @@ export function useReadiness(options: UseReadinessOptions = {}): UseReadinessRet
   }, [loadTelemetryFromDb]);
 
   useEffect(() => {
-    if (isResetUrl) {
-      resetDemoStage();
-      setLocalDemoStage(1);
-      setHasProtocol(false);
-    }
+    if (hasDemoQuery) markDemoRequested();
+  }, [hasDemoQuery]);
+
+  useEffect(() => {
+    if (isDemoOffUrl) clearDemoRequested();
+  }, [isDemoOffUrl]);
+
+  useEffect(() => {
+    if (!isResetUrl || resetAppliedRef.current) return;
+    resetAppliedRef.current = true;
+    resetDemoStage();
+    setLocalDemoStage(1);
+    setHasProtocol(false);
+    replaceDemoResetUrl();
   }, [isResetUrl]);
 
   useEffect(() => {
@@ -221,7 +246,7 @@ export function useReadiness(options: UseReadinessOptions = {}): UseReadinessRet
   const hasRealTelemetry = hasExplicitRealProps || (!isDemo && hasManualPropTelemetry) || hasDbTelemetry;
 
   // Demo mode active when requested AND no explicit real telemetry provided
-  if (isDemo && !hasExplicitRealProps && !hasDbTelemetry) {
+  if (isDemo && (useDemoScenario || (!hasExplicitRealProps && !hasDbTelemetry))) {
     const demoData = getDemoScenarioData(demoStage);
     return {
       state: demoData.readiness.state,
@@ -232,6 +257,7 @@ export function useReadiness(options: UseReadinessOptions = {}): UseReadinessRet
       hasData: true,
       hasRealTelemetry: false,
       isDemo: true,
+      isDemoActive: true,
       demoStage,
       demoStageLabel: demoData.stageBadge,
       stage: demoStage,
@@ -308,6 +334,7 @@ export function useReadiness(options: UseReadinessOptions = {}): UseReadinessRet
     hasData: hasRealTelemetry,
     hasRealTelemetry,
     isDemo,
+    isDemoActive: false,
     demoStage: isDemo ? demoStage : null,
     demoStageLabel: isDemo ? `DEMO ${demoStage}/3` : null,
     stage: isDemo ? demoStage : null,

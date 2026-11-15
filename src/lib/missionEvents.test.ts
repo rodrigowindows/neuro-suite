@@ -6,9 +6,29 @@ import {
   formatEventDate,
   formatMissionEvent,
   MISSION_EVENTS_STORAGE_KEY,
+  MISSION_EVENT_ADDED_EVENT,
   MAX_MISSION_EVENTS,
   MissionEvent,
 } from './missionEvents';
+
+describe('clearMissionEvents (AAA Pattern)', () => {
+  it('apaga o log gravado e dispara MISSION_EVENT_ADDED_EVENT', () => {
+    // Arrange
+    localStorage.clear();
+    appendEvent({ type: 'scan', label: 'BioScore: GO (BioScore 85)' });
+    const listener = vi.fn();
+    window.addEventListener(MISSION_EVENT_ADDED_EVENT, listener);
+
+    // Act
+    clearMissionEvents();
+    window.removeEventListener(MISSION_EVENT_ADDED_EVENT, listener);
+
+    // Assert
+    expect(localStorage.getItem(MISSION_EVENTS_STORAGE_KEY)).toBeNull();
+    expect(getRecentEvents()).toHaveLength(0);
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+});
 
 describe('missionEvents module (AAA Pattern)', () => {
   beforeEach(() => {

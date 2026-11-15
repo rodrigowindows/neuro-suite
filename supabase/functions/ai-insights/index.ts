@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { requireAuthenticatedUser } from "../_shared/requireAuth.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -10,6 +11,9 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const authError = await requireAuthenticatedUser(req, corsHeaders);
+  if (authError) return authError;
+
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -20,7 +24,6 @@ serve(async (req) => {
     }
 
     const { type, data } = await req.json();
-    console.log(`AI Insights request: ${type}`);
 
     let systemPrompt = '';
     let userPrompt = '';
@@ -345,8 +348,6 @@ CONTEXTO DA EMPRESA:
       console.error('Failed to parse AI response as JSON:', content);
       parsed = { raw: content, parseError: true };
     }
-
-    console.log(`AI Insights response generated for: ${type}`);
 
     return new Response(JSON.stringify({ result: parsed }), {
       status: 200,

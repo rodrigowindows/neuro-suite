@@ -7,6 +7,7 @@ import { useWellnessScore } from '@/hooks/useWellnessScore';
 import { supabase } from '@/integrations/supabase/client';
 import { registerCountermeasureProtocol } from '@/lib/missionEvents';
 import { setStoredDemoStage, DemoStage } from '@/lib/demoScenario';
+import { useAuth } from '@/hooks/useAuth';
 
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: vi.fn(() => ({
@@ -14,6 +15,15 @@ vi.mock('@/hooks/useAuth', () => ({
     loading: false,
     signOut: vi.fn(),
   })),
+}));
+
+const demoConfig = vi.hoisted(() => ({ email: '' }));
+
+vi.mock('@/lib/constants', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/constants')>()),
+  get DEMO_ACCOUNT_EMAIL() {
+    return demoConfig.email;
+  },
 }));
 
 vi.mock('@/hooks/useUserRole', () => ({
@@ -651,6 +661,54 @@ function renderDashboardAt(path: string) {
     </MemoryRouter>
   );
 }
+
+describe('Dashboard Page - conta demo com telemetria no banco', () => {
+  const DEMO_EMAIL = 'crew.demo@crewvitals.test';
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    sessionStorage.clear();
+    demoConfig.email = DEMO_EMAIL;
+    vi.mocked(useAuth).mockReturnValue({
+      user: { id: 'demo-001', email: DEMO_EMAIL },
+      loading: false,
+      signOut: vi.fn(),
+    } as any);
+    vi.mocked(useWellnessScore).mockReturnValue({ score: 85, loading: false } as any);
+    vi.mocked(useUserRole).mockReturnValue({ isManager: false, isAdmin: false, loading: false });
+    mockLastScan({ stress_level: 'low', hrv_value: 65 });
+  });
+
+  afterEach(() => {
+    demoConfig.email = '';
+    vi.mocked(useAuth).mockReturnValue({
+      user: { id: 'astronaut-001', email: 'astronaut@nasa.gov' },
+      loading: false,
+      signOut: vi.fn(),
+    } as any);
+  });
+
+  it.each<{ stage: DemoStage; header: string; cockpit: RegExp; badge: string }>([
+    { stage: 1, header: 'Atenção: Fadiga Detectada', cockpit: /^NO-GO - FADIGA \(NÃO APTO\)$/, badge: 'DEMO 1/3' },
+    { stage: 2, header: 'Status da Missão: Atenção', cockpit: /^ATENÇÃO - VIGILÂNCIA$/, badge: 'DEMO 2/3' },
+    { stage: 3, header: 'Status da Missão: Nominal', cockpit: /^GO - APTO PARA O TURNO$/, badge: 'DEMO 3/3' },
+  ])('etapa $stage: header e cockpit seguem o cenário demo, ignorando o banco', async ({ stage, header, cockpit, badge }) => {
+    // Arrange
+    setStoredDemoStage(stage);
+    window.history.pushState({}, '', '/dashboard?demo=1');
+
+    // Act
+    renderDashboardAt('/dashboard?demo=1');
+
+    // Assert
+    await waitFor(() => {
+      expect(screen.getByTestId('mission-status-text')).toHaveTextContent(header);
+    });
+    expect(await screen.findByText(cockpit)).toBeInTheDocument();
+    expect(screen.getByTestId('mission-status-stage')).toHaveTextContent(badge);
+  });
+});
 
 describe('Dashboard Page - Header e Cockpit derivados do mesmo state', () => {
   beforeEach(() => {

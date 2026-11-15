@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -31,6 +31,7 @@ export default function IntegrationsDashboard() {
   const { toast } = useToast();
   const [loadingPlatform, setLoadingPlatform] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const pendingOAuthStateRef = useRef<string | null>(null);
 
   const [integrations, setIntegrations] = useState<Record<string, IntegrationStatus>>({
     meet: { connected: false, status: 'offline', meetingTime: 0, messagesCount: 0, lastSync: '-', isReal: false },
@@ -63,6 +64,13 @@ export default function IntegrationsDashboard() {
 
   useEffect(() => {
     const handleMessage = async (event: MessageEvent) => {
+      const allowedOrigin = new URL(import.meta.env.VITE_SUPABASE_URL).origin;
+      if (event.origin !== allowedOrigin) return;
+
+      const expectedState = pendingOAuthStateRef.current;
+      if (!expectedState || event.data?.state !== expectedState) return;
+      pendingOAuthStateRef.current = null;
+
       if (event.data?.success && event.data?.access_token) {
         setLoadingPlatform('meet');
         try {
@@ -97,14 +105,17 @@ export default function IntegrationsDashboard() {
   const connectGoogleMeet = async () => {
     setLoadingPlatform('meet');
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-calendar?action=auth`);
+      const origin = encodeURIComponent(window.location.origin);
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-calendar?action=auth&origin=${origin}`);
       const data = await response.json();
       if (data.error) throw new Error(data.error);
+      pendingOAuthStateRef.current = data.state ?? null;
       const width = 500, height = 600;
       const left = window.screenX + (window.outerWidth - width) / 2;
       const top = window.screenY + (window.outerHeight - height) / 2;
       window.open(data.authUrl, 'Google OAuth', `width=${width},height=${height},left=${left},top=${top}`);
     } catch (error: any) {
+      pendingOAuthStateRef.current = null;
       toast({ title: 'Erro ao iniciar OAuth', description: error.message, variant: 'destructive' });
       setLoadingPlatform(null);
     }

@@ -28,14 +28,14 @@ const defaultScores: FeatureScores = {
 
 export function computeNeuroscoreLabel(stressLevel: string): { label: string; color: string } {
   return {
-    label: stressLevel === 'low' ? '😊' : stressLevel === 'moderate' ? '⚡' : '😟',
+    label: stressLevel === 'low' ? 'Baixo' : stressLevel === 'moderate' ? 'Moderado' : 'Alto',
     color: stressLevel === 'low' ? 'bg-green-500' : stressLevel === 'moderate' ? 'bg-yellow-500' : 'bg-red-500',
   };
 }
 
 export function computeGamificationLabel(streak: number, totalScans: number): { label: string; color: string } {
   return {
-    label: streak > 0 ? `🔥${streak}` : `${totalScans}`,
+    label: streak > 0 ? `${streak}d` : `${totalScans}`,
     color: streak >= 7 ? 'bg-orange-500' : streak >= 3 ? 'bg-yellow-500' : 'bg-muted',
   };
 }
@@ -57,7 +57,7 @@ export function computeInsightsFromScans(scans: { stress_level: string; hrv_valu
   const avgHRV = hrvValues.length > 0 ? Math.round(hrvValues.reduce((a, b) => a + b, 0) / hrvValues.length) : 0;
 
   const aiInsights = {
-    label: highPercent > 30 ? '⚠️' : highPercent > 15 ? '⚡' : '✅',
+    label: highPercent > 30 ? 'Alerta' : highPercent > 15 ? 'Atenção' : 'OK',
     color: highPercent > 30 ? 'bg-red-500' : highPercent > 15 ? 'bg-yellow-500' : 'bg-green-500',
   };
 
@@ -68,7 +68,7 @@ export function computeInsightsFromScans(scans: { stress_level: string; hrv_valu
     label: `${alertCount}`,
     color: 'bg-red-500',
   } : {
-    label: '✓',
+    label: 'OK',
     color: 'bg-green-500',
   };
 
@@ -80,7 +80,7 @@ export function computeInsightsFromScans(scans: { stress_level: string; hrv_valu
 
   const riskLevel = highPercent > 30 ? 'high' : highPercent > 15 ? 'moderate' : 'low';
   const nr1 = {
-    label: riskLevel === 'low' ? '✅' : riskLevel === 'moderate' ? '⚡' : '⚠️',
+    label: riskLevel === 'low' ? 'OK' : riskLevel === 'moderate' ? 'Atenção' : 'Alerta',
     color: riskLevel === 'low' ? 'bg-green-500' : riskLevel === 'moderate' ? 'bg-yellow-500' : 'bg-red-500',
   };
 

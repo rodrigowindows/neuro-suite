@@ -182,9 +182,6 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
         const landmarks = results.faceLandmarks[0];
         const currentEAR = calculateEAR(landmarks);
         
-        // Log de debug detalhado com plataforma
-        console.log('Platform:', navigator.userAgent, 'Landmarks:', results.faceLandmarks.length, 'EAR:', currentEAR?.toFixed(3) || 'N/A');
-
         // Reset contador de frames sem face
         noFaceFramesRef.current = 0;
         setFaceDetected(true);
@@ -203,9 +200,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
           blinkCountRef.current += 1;
           setBlinkCount(blinkCountRef.current);
           lastBlinkTimeRef.current = now;
-          
-          console.log('Piscada detectada! Total:', blinkCountRef.current);
-          
+
           // Salvar timestamp em background mode
           if (isBackgroundMode) {
             backgroundDataRef.current.blinks.push(blinkCountRef.current);
@@ -255,7 +250,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
   // Controlar scan com setInterval para background
   useEffect(() => {
     if (isScanning && faceLandmarker) {
-      console.log('Starting scan with faceLandmarker:', !!faceLandmarker);
+      if (import.meta.env.DEV) console.log('Starting scan with faceLandmarker:', !!faceLandmarker);
       blinkCountRef.current = 0;
       setBlinkCount(0);
       setCurrentBlinkRate(0);
@@ -268,7 +263,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
         processFrame();
       }, 50);
       
-      console.log('processFrame iniciado com setInterval (50ms)');
+      if (import.meta.env.DEV) console.log('processFrame iniciado com setInterval (50ms)');
     } else {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -285,7 +280,6 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
   }, [isScanning, faceLandmarker]);
 
   const handleHRVDetected = (hrv: number, heartRate: number) => {
-    console.log('HRV detectado:', hrv, 'ms, HR:', heartRate, 'bpm');
     setHRVValue(hrv);
   };
 

@@ -6,43 +6,99 @@ import {
 } from "./useFeatureScores";
 
 describe("computeNeuroscoreLabel", () => {
-  it("returns 😊 and green for low stress", () => {
-    const result = computeNeuroscoreLabel("low");
-    expect(result.label).toBe("😊");
+  it("returns Baixo and green for low stress", () => {
+    // Arrange
+    const stressLevel = "low";
+
+    // Act
+    const result = computeNeuroscoreLabel(stressLevel);
+
+    // Assert
+    expect(result.label).toBe("Baixo");
     expect(result.color).toContain("green");
   });
-  it("returns ⚡ and yellow for moderate stress", () => {
-    const result = computeNeuroscoreLabel("moderate");
-    expect(result.label).toBe("⚡");
+
+  it("returns Moderado and yellow for moderate stress", () => {
+    // Arrange
+    const stressLevel = "moderate";
+
+    // Act
+    const result = computeNeuroscoreLabel(stressLevel);
+
+    // Assert
+    expect(result.label).toBe("Moderado");
     expect(result.color).toContain("yellow");
   });
-  it("returns 😟 and red for high stress", () => {
-    const result = computeNeuroscoreLabel("high");
-    expect(result.label).toBe("😟");
+
+  it("returns Alto and red for high stress", () => {
+    // Arrange
+    const stressLevel = "high";
+
+    // Act
+    const result = computeNeuroscoreLabel(stressLevel);
+
+    // Assert
+    expect(result.label).toBe("Alto");
     expect(result.color).toContain("red");
   });
-  it("returns 😟 for unknown level", () => {
-    expect(computeNeuroscoreLabel("unknown").label).toBe("😟");
+
+  it("returns Alto for unknown level", () => {
+    // Arrange
+    const stressLevel = "unknown";
+
+    // Act
+    const result = computeNeuroscoreLabel(stressLevel);
+
+    // Assert
+    expect(result.label).toBe("Alto");
   });
 });
 
 describe("computeGamificationLabel", () => {
-  it("shows fire emoji with streak when streak > 0", () => {
-    const result = computeGamificationLabel(5, 20);
-    expect(result.label).toBe("🔥5");
+  it("shows streak with d suffix when streak > 0", () => {
+    // Arrange
+    const streak = 5;
+    const totalScans = 20;
+
+    // Act
+    const result = computeGamificationLabel(streak, totalScans);
+
+    // Assert
+    expect(result.label).toBe("5d");
   });
+
   it("shows total scans when streak is 0", () => {
-    const result = computeGamificationLabel(0, 15);
+    // Arrange
+    const streak = 0;
+    const totalScans = 15;
+
+    // Act
+    const result = computeGamificationLabel(streak, totalScans);
+
+    // Assert
     expect(result.label).toBe("15");
   });
+
   it("returns orange for streak >= 7", () => {
-    expect(computeGamificationLabel(7, 0).color).toContain("orange");
+    // Arrange
+    const streak = 7;
+    const totalScans = 0;
+
+    // Act
+    const result = computeGamificationLabel(streak, totalScans);
+
+    // Assert
+    expect(result.color).toContain("orange");
   });
+
   it("returns yellow for streak 3-6", () => {
+    // Arrange & Act & Assert
     expect(computeGamificationLabel(3, 0).color).toContain("yellow");
     expect(computeGamificationLabel(6, 0).color).toContain("yellow");
   });
+
   it("returns muted for streak < 3", () => {
+    // Arrange & Act & Assert
     expect(computeGamificationLabel(2, 0).color).toContain("muted");
     expect(computeGamificationLabel(0, 0).color).toContain("muted");
   });
@@ -54,96 +110,157 @@ describe("computeInsightsFromScans", () => {
     hrv_value: hrv,
   });
 
-  it("returns ✅ ai-insights when high% <= 15", () => {
+  it("returns OK ai-insights when high% <= 15", () => {
+    // Arrange
     const scans = Array(10).fill(makeScan("low"));
+
+    // Act
     const result = computeInsightsFromScans(scans);
-    expect(result.aiInsights.label).toBe("✅");
+
+    // Assert
+    expect(result.aiInsights.label).toBe("OK");
     expect(result.aiInsights.color).toContain("green");
   });
 
-  it("returns ⚡ ai-insights when high% is 16-30", () => {
+  it("returns Atenção ai-insights when high% is 16-30", () => {
+    // Arrange
     const scans = [
       ...Array(8).fill(makeScan("low")),
       ...Array(2).fill(makeScan("high")),
     ];
+
+    // Act
     const result = computeInsightsFromScans(scans);
-    expect(result.aiInsights.label).toBe("⚡");
+
+    // Assert
+    expect(result.aiInsights.label).toBe("Atenção");
     expect(result.aiInsights.color).toContain("yellow");
   });
 
-  it("returns ⚠️ ai-insights when high% > 30", () => {
+  it("returns Alerta ai-insights when high% > 30", () => {
+    // Arrange
     const scans = [
       ...Array(5).fill(makeScan("low")),
       ...Array(5).fill(makeScan("high")),
     ];
+
+    // Act
     const result = computeInsightsFromScans(scans);
-    expect(result.aiInsights.label).toBe("⚠️");
+
+    // Assert
+    expect(result.aiInsights.label).toBe("Alerta");
     expect(result.aiInsights.color).toContain("red");
   });
 
-  it("returns ✓ alerts when no critical conditions", () => {
+  it("returns OK alerts when no critical conditions", () => {
+    // Arrange
     const scans = Array(10).fill(makeScan("low", 50));
+
+    // Act
     const result = computeInsightsFromScans(scans);
-    expect(result.alerts.label).toBe("✓");
+
+    // Assert
+    expect(result.alerts.label).toBe("OK");
     expect(result.alerts.color).toContain("green");
   });
 
   it("counts alert for high stress > 30%", () => {
+    // Arrange
     const scans = [
       ...Array(3).fill(makeScan("low")),
       ...Array(7).fill(makeScan("high")),
     ];
+
+    // Act
     const result = computeInsightsFromScans(scans);
+
+    // Assert
     expect(result.alerts.label).toBe("1");
     expect(result.alerts.color).toContain("red");
   });
 
   it("counts alert for low HRV < 30", () => {
+    // Arrange
     const scans = Array(10).fill(makeScan("low", 20));
+
+    // Act
     const result = computeInsightsFromScans(scans);
+
+    // Assert
     expect(result.alerts.label).toBe("1");
   });
 
   it("counts 2 alerts for high stress + low HRV", () => {
+    // Arrange
     const scans = [
       ...Array(3).fill(makeScan("low", 20)),
       ...Array(7).fill(makeScan("high", 25)),
     ];
+
+    // Act
     const result = computeInsightsFromScans(scans);
+
+    // Assert
     expect(result.alerts.label).toBe("2");
   });
 
   it("calculates ROI wellness score correctly", () => {
-    // All low: lowPercent=100, highPercent=0 → 100*0.6 + 100*0.4 = 100
+    // Arrange
     const scans = Array(10).fill(makeScan("low"));
+
+    // Act
     const result = computeInsightsFromScans(scans);
+
+    // Assert
     expect(result.roi.label).toBe("100");
     expect(result.roi.color).toContain("green");
   });
 
   it("ROI red for mostly high stress", () => {
+    // Arrange
     const scans = Array(10).fill(makeScan("high"));
+
+    // Act
     const result = computeInsightsFromScans(scans);
-    // lowPercent=0, highPercent=100 → 0*0.6 + 0*0.4 = 0
+
+    // Assert
     expect(result.roi.label).toBe("0");
     expect(result.roi.color).toContain("red");
   });
 
-  it("NR1 returns ✅ for low risk", () => {
+  it("NR1 returns OK for low risk", () => {
+    // Arrange
     const scans = Array(10).fill(makeScan("low"));
-    expect(computeInsightsFromScans(scans).nr1.label).toBe("✅");
+
+    // Act
+    const result = computeInsightsFromScans(scans);
+
+    // Assert
+    expect(result.nr1.label).toBe("OK");
   });
 
-  it("NR1 returns ⚠️ for high risk", () => {
+  it("NR1 returns Alerta for high risk", () => {
+    // Arrange
     const scans = [
       ...Array(3).fill(makeScan("low")),
       ...Array(7).fill(makeScan("high")),
     ];
-    expect(computeInsightsFromScans(scans).nr1.label).toBe("⚠️");
+
+    // Act
+    const result = computeInsightsFromScans(scans);
+
+    // Assert
+    expect(result.nr1.label).toBe("Alerta");
   });
 
   it("dashboard-rh shows total scan count", () => {
+    // Arrange
     const scans = Array(7).fill(makeScan("low"));
-    expect(computeInsightsFromScans(scans).dashboardRh.label).toBe("7");
+
+    // Act
+    const result = computeInsightsFromScans(scans);
+
+    // Assert
+    expect(result.dashboardRh.label).toBe("7");
   });
 });

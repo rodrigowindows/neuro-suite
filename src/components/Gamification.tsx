@@ -64,7 +64,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
     try {
       const { data, error } = await supabase
         .from('user_progress')
-        .select('*')
+        .select('current_streak, longest_streak, badges, total_scans')
         .eq('user_id', user.id)
         .maybeSingle();
 
@@ -89,7 +89,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
     try {
       const { data: currentProgress } = await supabase
         .from('user_progress')
-        .select('*')
+        .select('id, last_scan_date, current_streak, longest_streak, total_scans, badges')
         .eq('user_id', user.id)
         .maybeSingle();
 

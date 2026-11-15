@@ -49,7 +49,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
 
           const { data } = await supabase
             .from('stress_scans')
-            .select('*')
+            .select('blink_rate, stress_level, hrv_value')
             .eq('user_id', user.id)
             .order('created_at', { ascending: false })
             .limit(1)

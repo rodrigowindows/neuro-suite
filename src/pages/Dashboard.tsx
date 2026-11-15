@@ -122,15 +122,10 @@ export default function Dashboard() {
     return <DashboardSkeleton />;
   }
 
-  const isDemo =
-    typeof window !== 'undefined' &&
-    new URLSearchParams(window.location?.search || '').get('demo') === '1';
-
-  const hasNoTelemetry = !stressLevel && hrvValue === undefined;
-  const isDemoActive = Boolean(isDemo && hasNoTelemetry);
-
-  const effectiveStress = isDemoActive ? 'high' : stressLevel;
-  const effectiveHrv = isDemoActive ? 28 : hrvValue;
+  // Cenario demo vem do hook, o mesmo usado pelo header: header e cockpit nunca divergem.
+  const { isDemo, isDemoActive } = readiness;
+  const effectiveStress = isDemoActive ? readiness.stressLevel ?? '' : stressLevel;
+  const effectiveHrv = isDemoActive ? readiness.hrvValue ?? undefined : hrvValue;
 
   return (
     <MotionConfig reducedMotion="user">
@@ -188,7 +183,7 @@ export default function Dashboard() {
                   activeTab={activeTab}
                   stressLevel={effectiveStress}
                   hrvValue={effectiveHrv}
-                  isDemo={isDemoActive ? true : isDemo}
+                  isDemo={isDemo}
                   readinessLabel={readiness.label}
                   showMeditation={showMeditation}
                   isFirstVisit={isFirstVisit}

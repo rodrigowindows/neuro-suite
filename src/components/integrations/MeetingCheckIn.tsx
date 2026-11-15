@@ -28,6 +28,12 @@ export default function MeetingCheckIn({ overloadLevel, connectedCount, totalMee
       return;
     }
 
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast({ title: 'Sessão expirada', description: 'Sessão expirada. Faça novamente o login.', variant: 'destructive' });
+      return;
+    }
+
     setIsGenerating(true);
     setAiResponse('');
 
@@ -53,7 +59,8 @@ Dê um feedback construtivo baseado em PNL: o que foi bem, o que melhorar, e uma
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           messages: [{ role: 'user', content: prompt }],

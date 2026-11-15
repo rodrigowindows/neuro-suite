@@ -5,15 +5,15 @@ export interface CoachMessage {
 
 export function getInitialMessage(stressLevel: string): string {
   if (stressLevel === 'low') {
-    return 'Ótimo foco! 😊 Qual expectativa de performance você quer elevar? Sugestão PNL: Ancore uma memória de sucesso para manter alta produtividade.';
+    return 'Ótimo foco! Qual expectativa de performance você quer elevar? Sugestão PNL: Ancore uma memória de sucesso para manter alta produtividade.';
   }
   if (stressLevel === 'moderate') {
-    return 'Para reduzir turnover, o que drena sua energia? ⚡ Reframe como oportunidade (PNL) para equilibrar bem-estar e performance.';
+    return 'Para reduzir turnover, o que drena sua energia? Reframe como oportunidade (PNL) para equilibrar bem-estar e performance.';
   }
   if (stressLevel === 'high') {
-    return 'Alerta burnout (Segurança de Missão). 😟 Qual pausa sensorial (respiração 4-7-8) te recarrega? Vamos criar um plano de reequilíbrio imediato.';
+    return 'Alerta burnout (Segurança de Missão). Qual pausa sensorial (respiração 4-7-8) te recarrega? Vamos criar um plano de reequilíbrio imediato.';
   }
-  return 'Olá! 👋 Faça um scan primeiro para eu calibrar minha análise ao seu estado atual. Enquanto isso, me conta: como você está se sentindo?';
+  return 'Olá! Faça um scan primeiro para eu calibrar minha análise ao seu estado atual. Enquanto isso, me conta: como você está se sentindo?';
 }
 
 export function buildContext(stressLevel: string, hrvValue: string): string {

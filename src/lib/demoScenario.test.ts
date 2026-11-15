@@ -9,7 +9,11 @@ import {
   simulateDemoScan,
   getDemoScenarioData,
   getDemoEventLogs,
+  hasDemoRequested,
+  markDemoRequested,
+  replaceDemoResetUrl,
   DEMO_STORAGE_KEY,
+  DEMO_REQUESTED_KEY,
   DEMO_STAGE_CHANGED_EVENT,
 } from './demoScenario';
 import {
@@ -30,7 +34,11 @@ describe('demoScenario - Cenário de Demonstração Interativo de 3 Etapas', () 
       expect(isDemoMode('')).toBe(false);
       expect(isDemoMode('?demo=0')).toBe(false);
       expect(isDemoMode('?demo=true')).toBe(false);
-      expect(isDemoMode('?demo=reset')).toBe(false);
+    });
+
+    it('ativa demo também para ?demo=reset, pois o reset já inicia a demo', () => {
+      // Arrange & Act & Assert
+      expect(isDemoMode('?demo=reset')).toBe(true);
     });
 
     it('identifica comando de reset quando ?demo=reset ou ?reset estiver presente', () => {
@@ -39,6 +47,34 @@ describe('demoScenario - Cenário de Demonstração Interativo de 3 Etapas', () 
       expect(isDemoReset('?demo=1&reset=1')).toBe(true);
       expect(isDemoReset('?demo=1')).toBe(false);
       expect(isDemoReset('')).toBe(false);
+    });
+  });
+
+  describe('Persistência da solicitação de demo na sessão', () => {
+    it('sem a chave gravada, nenhuma solicitação de demo existe', () => {
+      // Arrange & Act & Assert
+      expect(hasDemoRequested()).toBe(false);
+    });
+
+    it('markDemoRequested grava crewvitals_demo_requested = 1 no sessionStorage', () => {
+      // Arrange & Act
+      markDemoRequested();
+
+      // Assert
+      expect(sessionStorage.getItem(DEMO_REQUESTED_KEY)).toBe('1');
+      expect(hasDemoRequested()).toBe(true);
+    });
+
+    it('replaceDemoResetUrl troca a query para ?demo=1 mantendo o pathname', () => {
+      // Arrange
+      window.history.pushState({}, '', '/dashboard?demo=reset&reset=1');
+
+      // Act
+      replaceDemoResetUrl();
+
+      // Assert
+      expect(window.location.pathname).toBe('/dashboard');
+      expect(window.location.search).toBe('?demo=1');
     });
   });
 

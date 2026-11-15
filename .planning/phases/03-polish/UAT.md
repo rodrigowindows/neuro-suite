@@ -97,11 +97,11 @@ Widget de conexão (`ConnectionStatusWidget.tsx`): botões `Simular Queda` / `Re
 1. Terminal em `C:\Projetos\neuro-suite`: `npm run dev`.
 2. Aguardar a URL. Porta `8080` (`vite.config.ts`).
 3. **Fazer login antes** de gravar, em `http://localhost:8080/auth`.
-4. **Abrir `http://localhost:8080/dashboard?demo=reset` antes de gravar.** Limpa o estágio de sessão da demo e restaura a etapa 1. Depois, abrir DevTools (F12) → aba *Console* e *Application → Local Storage*.
+4. **Abrir `http://localhost:8080/dashboard?demo=1` antes de gravar.** Ativa a demo na etapa 1. Depois, abrir DevTools (F12) → aba *Console* e *Application → Local Storage*. Use `?demo=reset` somente para repetir a gravação: reinicia a etapa 1, limpa o protocolo de hoje e troca a URL para `?demo=1`.
 
 **Bloco A — Viewport desktop 1366x768 (0:05–0:14)**
-1. (0:05) DevTools → Device toolbar → `1366 x 768`. Recarregar em `/dashboard?demo=reset`.
-2. (0:06) Estado sem dados: limpar `mars_mission_connection_mode` no Local Storage e confirmar a tela sem scan. Conferir: header `Aguardando scan`, cockpit `AGUARDANDO SCAN`, botão `Iniciar Scan de Prontidão`. Registrar PASSOU/FALHOU.
+1. (0:05) DevTools → Device toolbar → `1366 x 768`. Recarregar em `/dashboard?demo=1`.
+2. (0:06) Estado sem dados: no Session Storage remover `crewvitals_demo_requested` e `crewvitals_demo_stage`; no Local Storage limpar `mars_mission_connection_mode`. Abrir `/dashboard` sem query e confirmar a tela sem scan. Conferir: header `Aguardando scan`, cockpit `AGUARDANDO SCAN`, botão `Iniciar Scan de Prontidão`. Registrar PASSOU/FALHOU.
 3. (0:08) Clicar em `Iniciar Scan de Prontidão`. Deve abrir a aba NeuroScore. Registrar.
 4. (0:09) Abrir `http://localhost:8080/dashboard?demo=1`. Conferir NO-GO: header `Atenção: Fadiga Detectada`, cockpit `NO-GO - FADIGA (NÃO APTO)`, badge DEMO, botão `Iniciar Protocolo 4-7-8`. Registrar.
 5. (0:11) Widget de conexão: clicar `Simular Queda`. Esperar 1 toast ("Conexão com a Terra perdida…"). Badge âmbar e botão `Reconectar`. Verificar `localStorage.mars_mission_connection_mode === 'autonomous'`. Registrar.
@@ -109,8 +109,8 @@ Widget de conexão (`ConnectionStatusWidget.tsx`): botões `Simular Queda` / `Re
 7. (0:13) Checar overflow: header, widget e título não sobrepostos. Sem barra de rolagem horizontal.
 
 **Bloco B — Viewport mobile 390x844 (0:14–0:24)**
-1. (0:14) DevTools → `390 x 844`. Recarregar em `/dashboard?demo=reset`.
-2. (0:15) Repetir os passos 2–4 do Bloco A (estado sem dados, `?demo=1`).
+1. (0:14) DevTools → `390 x 844`. Recarregar em `/dashboard?demo=1`.
+2. (0:15) Repetir os passos 2–4 do Bloco A (estado sem dados com sessão limpa, depois `?demo=1`).
 3. (0:18) Widget de conexão: subtexto truncado (`max-w-[200px] truncate`) e botão mostrando só ícone (`hidden sm:inline`). Confirmar que o ícone é visível e clicável.
 4. (0:20) Repetir `Simular Queda` / `Reconectar`. Confirmar 1 toast por clique.
 5. (0:22) Rolar a página inteira. Sem rolagem horizontal. Gutter lateral de 16px.

@@ -79,7 +79,7 @@ export default function DailyCheckin() {
       const today = new Date().toISOString().split('T')[0];
       const { data } = await supabase
         .from('daily_checkins')
-        .select('*')
+        .select('mood, energy_level, ai_response, created_at')
         .eq('user_id', user.id)
         .gte('created_at', `${today}T00:00:00`)
         .lte('created_at', `${today}T23:59:59`)

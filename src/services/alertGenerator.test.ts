@@ -18,68 +18,110 @@ const defaultThresholds: AlertThresholds = {
 
 describe("generateAlerts", () => {
   it("generates critical alert when high stress exceeds threshold", () => {
+    // Arrange
     const stats: StressStats = { ...defaultStats, highPercent: 40 };
+
+    // Act
     const alerts = generateAlerts(stats, null, 0, defaultThresholds);
     const critical = alerts.find((a) => a.id === "high_stress");
+
+    // Assert
     expect(critical).toBeDefined();
     expect(critical?.type).toBe("critical");
+    expect(critical?.title).toBe("Limite de Estresse Alto Ultrapassado");
   });
 
   it("generates critical alert when HRV is below threshold", () => {
+    // Arrange
     const stats: StressStats = { ...defaultStats, avgHRV: 25 };
+
+    // Act
     const alerts = generateAlerts(stats, null, 0, defaultThresholds);
     const hrvAlert = alerts.find((a) => a.id === "low_hrv");
+
+    // Assert
     expect(hrvAlert).toBeDefined();
     expect(hrvAlert?.type).toBe("critical");
+    expect(hrvAlert?.title).toBe("HRV Médio Abaixo do Limite");
   });
 
   it("does not generate HRV alert when avgHRV is 0", () => {
+    // Arrange
     const stats: StressStats = { ...defaultStats, avgHRV: 0 };
+
+    // Act
     const alerts = generateAlerts(stats, null, 0, defaultThresholds);
+
+    // Assert
     expect(alerts.find((a) => a.id === "low_hrv")).toBeUndefined();
   });
 
   it("generates warning for consecutive high days", () => {
+    // Arrange & Act
     const alerts = generateAlerts(defaultStats, null, 5, defaultThresholds);
     const consecutive = alerts.find((a) => a.id === "consecutive_high");
+
+    // Assert
     expect(consecutive).toBeDefined();
     expect(consecutive?.type).toBe("warning");
+    expect(consecutive?.title).toBe("Estresse Alto Consecutivo");
   });
 
   it("generates warning for worsening trend", () => {
+    // Arrange
     const trend: StressTrend = {
       direction: "worsening",
       recentHighPercent: 60,
       olderHighPercent: 30,
     };
+
+    // Act
     const alerts = generateAlerts(defaultStats, trend, 0, defaultThresholds);
     const trendAlert = alerts.find((a) => a.id === "trend_worsening");
+
+    // Assert
     expect(trendAlert).toBeDefined();
     expect(trendAlert?.type).toBe("warning");
+    expect(trendAlert?.title).toBe("Tendência de Piora Detectada");
   });
 
   it("generates info for improving trend", () => {
+    // Arrange
     const trend: StressTrend = {
       direction: "improving",
       recentHighPercent: 10,
       olderHighPercent: 50,
     };
+
+    // Act
     const alerts = generateAlerts(defaultStats, trend, 0, defaultThresholds);
     const improving = alerts.find((a) => a.id === "trend_improving");
+
+    // Assert
     expect(improving).toBeDefined();
     expect(improving?.type).toBe("info");
+    expect(improving?.title).toBe("Tendência de Melhora");
   });
 
   it("generates low engagement alert for few scans", () => {
+    // Arrange
     const stats: StressStats = { ...defaultStats, totalScans: 2 };
+
+    // Act
     const alerts = generateAlerts(stats, null, 0, defaultThresholds);
     const engagement = alerts.find((a) => a.id === "low_engagement");
+
+    // Assert
     expect(engagement).toBeDefined();
     expect(engagement?.type).toBe("info");
+    expect(engagement?.title).toBe("Baixo Engajamento");
   });
 
   it("returns empty array when no thresholds exceeded", () => {
+    // Arrange & Act
     const alerts = generateAlerts(defaultStats, null, 0, defaultThresholds);
+
+    // Assert
     expect(alerts.length).toBe(0);
   });
 });

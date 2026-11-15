@@ -210,4 +210,18 @@ describe('DailyCheckin Component', () => {
       ).toBeInTheDocument();
     });
   });
+
+  it('6. consulta o check-in do dia com colunas explícitas, sem select("*") (AAA)', async () => {
+    // Arrange
+    const expectedColumns = 'mood, energy_level, ai_response, created_at';
+
+    // Act
+    render(<DailyCheckin />);
+
+    // Assert
+    await waitFor(() => {
+      expect(mockSupabaseSelect).toHaveBeenCalledWith(expectedColumns);
+    });
+    expect(mockSupabaseSelect).not.toHaveBeenCalledWith('*');
+  });
 });

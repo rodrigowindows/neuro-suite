@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from 'react';
 
 const INITIAL_MESSAGE = {
   role: 'assistant' as const,
-  content: '👋 Olá! Sou o assistente especialista em **Segurança de Missão** e regulamentação brasileira de SST.\n\nPosso ajudar com:\n- 📋 Obrigações da Segurança de Missão e Portaria 1.419/2024\n- ⚠️ Riscos psicossociais no GRO/PGR\n- 💰 Multas e penalidades\n- 📊 Ferramentas de avaliação aceitas\n- 🔗 Integração com eSocial\n\nComo posso ajudar?',
+  content: 'Olá! Sou o assistente especialista em **Segurança de Missão** e regulamentação brasileira de SST.\n\nPosso ajudar com:\n- Obrigações da Segurança de Missão e Portaria 1.419/2024\n- Riscos psicossociais no GRO/PGR\n- Multas e penalidades\n- Ferramentas de avaliação aceitas\n- Integração com eSocial\n\nComo posso ajudar?',
 };
 
 const SUGGESTIONS = [

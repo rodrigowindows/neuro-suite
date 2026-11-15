@@ -278,7 +278,7 @@ export function appendEvent(params: AppendEventParams): MissionEvent {
 }
 
 /**
- * Limpa todos os eventos de missao gravados (util para testes).
+ * Apaga todos os eventos de missao gravados e notifica os ouvintes.
  */
 export function clearMissionEvents(): void {
   try {
@@ -288,5 +288,9 @@ export function clearMissionEvents(): void {
     }
   } catch {
     // ignore
+  }
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(MISSION_EVENT_ADDED_EVENT, { detail: null }));
   }
 }

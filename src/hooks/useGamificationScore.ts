@@ -71,7 +71,7 @@ export function useGamificationScore(): GamificationData {
 
       const { data: progress } = await supabase
         .from('user_progress')
-        .select('*')
+        .select('total_scans, current_streak, longest_streak, badges')
         .eq('user_id', user.id)
         .maybeSingle();
 

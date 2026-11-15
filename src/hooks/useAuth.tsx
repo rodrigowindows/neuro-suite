@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     } else {
       toast({
-        title: 'Cadastro realizado! 🎉',
+        title: 'Cadastro realizado!',
         description: 'Você já pode fazer login.',
       });
     }
@@ -92,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     toast({
       title: 'Logout realizado',
-      description: 'Até logo! 👋',
+      description: 'Até logo.',
     });
   };
 

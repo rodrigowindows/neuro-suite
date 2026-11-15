@@ -8,6 +8,12 @@ const corsHeaders = {
 const GOOGLE_CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID');
 const GOOGLE_CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+const FRONTEND_ORIGIN = Deno.env.get('FRONTEND_ORIGIN');
+const ALLOWED_ORIGINS: string[] = [
+  'https://neuro-suite.lovable.app',
+  'http://localhost:8080',
+  ...(FRONTEND_ORIGIN ? [FRONTEND_ORIGIN] : []),
+];
 
 function escapeHtml(str: string): string {
   return str
@@ -16,6 +22,27 @@ function escapeHtml(str: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+function encodeState(nonce: string, origin: string): string {
+  return btoa(JSON.stringify({ nonce, origin }));
+}
+
+function decodeState(state: string): { nonce: string; origin: string } | null {
+  try {
+    const parsed = JSON.parse(atob(state));
+    if (typeof parsed?.nonce !== 'string' || !ALLOWED_ORIGINS.includes(parsed?.origin)) return null;
+    return { nonce: parsed.nonce, origin: parsed.origin };
+  } catch {
+    return null;
+  }
+}
+
+function postMessagePage(message: Record<string, unknown>, targetOrigin: string): Response {
+  return new Response(
+    `<html><body><script>window.opener.postMessage(${JSON.stringify(message)}, ${JSON.stringify(targetOrigin)}); window.close();</script></body></html>`,
+    { headers: { 'Content-Type': 'text/html' } }
+  );
 }
 
 serve(async (req) => {
@@ -30,7 +57,15 @@ serve(async (req) => {
     const redirectUri = `${SUPABASE_URL}/functions/v1/google-calendar?action=callback`;
 
     if (action === 'auth') {
-      const state = crypto.randomUUID();
+      const origin = url.searchParams.get('origin') || '';
+      if (!ALLOWED_ORIGINS.includes(origin)) {
+        return new Response(
+          JSON.stringify({ error: 'Origem não permitida' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const state = encodeState(crypto.randomUUID(), origin);
       const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
       authUrl.searchParams.set('client_id', GOOGLE_CLIENT_ID || '');
       authUrl.searchParams.set('redirect_uri', redirectUri);
@@ -49,19 +84,22 @@ serve(async (req) => {
     if (action === 'callback') {
       const code = url.searchParams.get('code');
       const error = url.searchParams.get('error');
+      const stateParam = url.searchParams.get('state') || '';
+      const decodedState = decodeState(stateParam);
+
+      // Sem state válido não há origem confiável para o postMessage: não envia nada.
+      if (!decodedState) {
+        return new Response('Estado OAuth inválido', { status: 400, headers: { 'Content-Type': 'text/plain' } });
+      }
+
+      const { origin } = decodedState;
 
       if (error) {
-        return new Response(
-          `<html><body><script>window.opener.postMessage({error: ${JSON.stringify(escapeHtml(error))}}, window.location.origin); window.close();</script></body></html>`,
-          { headers: { 'Content-Type': 'text/html' } }
-        );
+        return postMessagePage({ error: escapeHtml(error), state: stateParam }, origin);
       }
 
       if (!code) {
-        return new Response(
-          `<html><body><script>window.opener.postMessage({error: 'No code received'}, window.location.origin); window.close();</script></body></html>`,
-          { headers: { 'Content-Type': 'text/html' } }
-        );
+        return postMessagePage({ error: 'No code received', state: stateParam }, origin);
       }
 
       const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
@@ -80,16 +118,18 @@ serve(async (req) => {
 
       if (tokens.error) {
         const safeError = escapeHtml(tokens.error_description || tokens.error);
-        return new Response(
-          `<html><body><script>window.opener.postMessage({error: ${JSON.stringify(safeError)}}, window.location.origin); window.close();</script></body></html>`,
-          { headers: { 'Content-Type': 'text/html' } }
-        );
+        return postMessagePage({ error: safeError, state: stateParam }, origin);
       }
 
-      // Send tokens via postMessage with restricted origin
-      return new Response(
-        `<html><body><script>window.opener.postMessage({success: true, access_token: ${JSON.stringify(tokens.access_token)}, refresh_token: ${JSON.stringify(tokens.refresh_token || '')}}, window.location.origin); window.close();</script></body></html>`,
-        { headers: { 'Content-Type': 'text/html' } }
+      // Tokens só vão para a origem validada no state
+      return postMessagePage(
+        {
+          success: true,
+          access_token: tokens.access_token,
+          refresh_token: tokens.refresh_token || '',
+          state: stateParam,
+        },
+        origin
       );
     }
 

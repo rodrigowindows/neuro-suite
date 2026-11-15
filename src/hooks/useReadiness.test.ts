@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { useReadiness } from './useReadiness';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,8 +7,26 @@ import {
   registerCountermeasureProtocol,
   clearCountermeasureProtocolToday,
   hasCountermeasureProtocolToday,
+  appendEvent,
+  getRecentEvents,
 } from '@/lib/missionEvents';
-import { resetDemoStage, setStoredDemoStage } from '@/lib/demoScenario';
+import {
+  resetDemoStage,
+  setStoredDemoStage,
+  getStoredDemoStage,
+  markDemoRequested,
+  hasDemoRequested,
+} from '@/lib/demoScenario';
+import { useAuth } from '@/hooks/useAuth';
+
+const demoConfig = vi.hoisted(() => ({ email: '' }));
+
+vi.mock('@/lib/constants', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/constants')>()),
+  get DEMO_ACCOUNT_EMAIL() {
+    return demoConfig.email;
+  },
+}));
 
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: vi.fn(() => ({
@@ -42,6 +60,170 @@ vi.mock('@/integrations/supabase/client', () => ({
     }),
   },
 }));
+
+const DEMO_EMAIL = 'crew.demo@crewvitals.test';
+
+function setAuthUser(email: string | undefined): void {
+  vi.mocked(useAuth).mockReturnValue({
+    user: { id: 'test-user-001', email },
+    loading: false,
+    signOut: vi.fn(),
+  } as any);
+}
+
+function mockDbTelemetry(scan: { stress_level: string; hrv_value: number } | null): void {
+  vi.mocked(supabase.from).mockImplementation((table: string) => {
+    if (table === 'stress_scans') {
+      return {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: scan }),
+      } as any;
+    }
+    return {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { horas_sono: 8 } }),
+    } as any;
+  });
+}
+
+async function flushTelemetry(): Promise<void> {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+}
+
+describe('useReadiness Hook - Conta demo (DEMO_ACCOUNT_EMAIL)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    clearCountermeasureProtocolToday();
+    sessionStorage.clear();
+    localStorage.clear();
+    resetDemoStage();
+    demoConfig.email = DEMO_EMAIL;
+    setAuthUser('astronaut@mission.org');
+    vi.mocked(useWellnessScore).mockReturnValue({ score: null, loading: false });
+    mockDbTelemetry(null);
+  });
+
+  afterEach(() => {
+    demoConfig.email = '';
+    setAuthUser('astronaut@mission.org');
+  });
+
+  it('(a) conta demo + ?demo=1 com dados no banco: Etapa 1 NO-GO', async () => {
+    // Arrange
+    setAuthUser('Crew.Demo@CrewVitals.test');
+    mockDbTelemetry({ stress_level: 'low', hrv_value: 65 });
+    window.history.pushState({}, '', '/dashboard?demo=1');
+
+    // Act
+    const { result } = renderHook(() => useReadiness());
+    await flushTelemetry();
+
+    // Assert
+    expect(supabase.from).toHaveBeenCalledWith('stress_scans');
+    expect(result.current.isDemoActive).toBe(true);
+    expect(result.current.demoStage).toBe(1);
+    expect(result.current.state).toBe('nogo');
+    expect(result.current.label).toBe('NO-GO');
+    expect(result.current.stressLevel).toBe('high');
+    expect(result.current.hrvValue).toBe(28);
+  });
+
+  it('(b) outro usuário com dados no banco: modo real, dados reais vencem a demo', async () => {
+    // Arrange
+    mockDbTelemetry({ stress_level: 'low', hrv_value: 65 });
+    window.history.pushState({}, '', '/dashboard?demo=1');
+
+    // Act
+    const { result } = renderHook(() => useReadiness());
+    await flushTelemetry();
+
+    // Assert
+    expect(result.current.isDemoActive).toBe(false);
+    expect(result.current.hasRealTelemetry).toBe(true);
+    expect(result.current.state).toBe('go');
+    expect(result.current.hrvValue).toBe(65);
+  });
+
+  it('(c) DEMO_ACCOUNT_EMAIL vazio: recurso inerte mesmo para o e-mail da conta demo', async () => {
+    // Arrange
+    demoConfig.email = '';
+    setAuthUser(DEMO_EMAIL);
+    mockDbTelemetry({ stress_level: 'low', hrv_value: 65 });
+    window.history.pushState({}, '', '/dashboard?demo=1');
+
+    // Act
+    const { result } = renderHook(() => useReadiness());
+    await flushTelemetry();
+
+    // Assert
+    expect(result.current.isDemoActive).toBe(false);
+    expect(result.current.state).toBe('go');
+  });
+
+  it('(d) ?demo=reset limpa etapa, protocolo e log, e a URL fica ?demo=1', async () => {
+    // Arrange
+    setStoredDemoStage(3);
+    registerCountermeasureProtocol();
+    appendEvent({ type: 'scan', label: 'BioScore: GO (BioScore 85)' });
+    window.history.pushState({}, '', '/dashboard?demo=reset');
+
+    // Act
+    const { result } = renderHook(() => useReadiness());
+
+    // Assert
+    await waitFor(() => expect(window.location.search).toBe('?demo=1'));
+    expect(window.location.pathname).toBe('/dashboard');
+    expect(result.current.demoStage).toBe(1);
+    expect(result.current.hasProtocolToday).toBe(false);
+    expect(hasCountermeasureProtocolToday()).toBe(false);
+    expect(getRecentEvents()).toHaveLength(0);
+    expect(getStoredDemoStage()).toBe(1);
+  });
+
+  it('(e) login redireciona para /dashboard sem query e a demo continua pela marca de sessão', async () => {
+    // Arrange: visita anterior com ?demo=1 marcou a sessão e a etapa 2 ficou salva
+    markDemoRequested();
+    setStoredDemoStage(2);
+    window.history.pushState({}, '', '/dashboard');
+
+    // Act
+    const { result } = renderHook(() => useReadiness());
+
+    // Assert
+    expect(window.location.search).toBe('');
+    expect(result.current.isDemo).toBe(true);
+    expect(result.current.isDemoActive).toBe(true);
+    expect(result.current.demoStage).toBe(2);
+    expect(result.current.stageBadge).toBe('DEMO 2/3');
+  });
+
+  it('(g) ?demo=off sai da demo e limpa a marca de sessão', async () => {
+    // Arrange
+    markDemoRequested();
+    setStoredDemoStage(3);
+    window.history.pushState({}, '', '/dashboard?demo=off');
+
+    // Act
+    const { result } = renderHook(() => useReadiness());
+
+    // Assert
+    await waitFor(() => expect(hasDemoRequested()).toBe(false));
+    expect(result.current.isDemo).toBe(false);
+    expect(result.current.isDemoActive).toBe(false);
+    expect(result.current.demoStage).toBeNull();
+
+    // Navegação posterior sem query permanece fora da demo
+    window.history.pushState({}, '', '/dashboard');
+    const { result: afterOff } = renderHook(() => useReadiness());
+    expect(afterOff.current.isDemo).toBe(false);
+  });
+});
 
 describe('useReadiness Hook - 3 Etapas Demo, Reset, Ausência Total e Consistência', () => {
   beforeEach(() => {
@@ -259,24 +441,72 @@ describe('useReadiness Hook - 3 Etapas Demo, Reset, Ausência Total e Consistên
   });
 
   describe('Reset do Cenário Demo (?demo=reset)', () => {
-    it('limpa estágio de sessão quando ?demo=reset na URL e restaura etapa 1 com ?demo=1', async () => {
-      // Arrange: Estágio avançado (etapa 3)
+    it('?demo=reset ativa a demo na etapa 1 com protocolo limpo', async () => {
+      // Arrange: Estágio avançado (etapa 3) e protocolo registrado hoje
+      setStoredDemoStage(3);
+      registerCountermeasureProtocol({ breathing: true });
+      window.history.pushState({}, '', '/dashboard?demo=reset');
+
+      // Act
+      const { result } = renderHook(() => useReadiness());
+
+      // Assert
+      await waitFor(() => {
+        expect(result.current.isDemo).toBe(true);
+      });
+      expect(result.current.demoStage).toBe(1);
+      expect(result.current.stageBadge).toBe('DEMO 1/3');
+      expect(result.current.hasProtocolToday).toBe(false);
+      expect(sessionStorage.getItem('crewvitals_demo_stage')).toBeNull();
+    });
+
+    it('depois do reset a URL vira ?demo=1 mantendo o pathname, para que reabrir não repita o reset', async () => {
+      // Arrange
       setStoredDemoStage(3);
       window.history.pushState({}, '', '/dashboard?demo=reset');
 
-      // Act 1: Sem ?demo=1, o reset limpa a sessão e desativa demo
-      const { result: resReset } = renderHook(() => useReadiness());
-      expect(sessionStorage.getItem('crewvitals_demo_stage')).toBeNull();
-      expect(resReset.current.isDemo).toBe(false);
+      // Act
+      renderHook(() => useReadiness());
 
-      // Act 2: Com ?demo=1&reset=1, reinicia na etapa 1
-      window.history.pushState({}, '', '/dashboard?demo=1&reset=1');
-      const { result: resDemoReset } = renderHook(() => useReadiness());
+      // Assert
       await waitFor(() => {
-        expect(resDemoReset.current.demoStage).toBe(1);
+        expect(window.location.search).toBe('?demo=1');
       });
-      expect(resDemoReset.current.isDemo).toBe(true);
-      expect(resDemoReset.current.stageBadge).toBe('DEMO 1/3');
+      expect(window.location.pathname).toBe('/dashboard');
+    });
+
+    it('com ?demo=1&reset=1 reinicia na etapa 1 e troca a URL para ?demo=1', async () => {
+      // Arrange
+      setStoredDemoStage(3);
+      window.history.pushState({}, '', '/dashboard?demo=1&reset=1');
+
+      // Act
+      const { result } = renderHook(() => useReadiness());
+
+      // Assert
+      await waitFor(() => {
+        expect(result.current.demoStage).toBe(1);
+      });
+      expect(result.current.isDemo).toBe(true);
+      expect(result.current.stageBadge).toBe('DEMO 1/3');
+      expect(window.location.search).toBe('?demo=1');
+    });
+
+    it('reabrir o cockpit após o reset não repete a limpeza de etapa', async () => {
+      // Arrange: reset aplicado uma vez
+      window.history.pushState({}, '', '/dashboard?demo=reset');
+      const { unmount } = renderHook(() => useReadiness());
+      unmount();
+      setStoredDemoStage(2);
+
+      // Act: nova montagem com a URL já trocada para ?demo=1
+      const { result } = renderHook(() => useReadiness());
+
+      // Assert
+      await waitFor(() => {
+        expect(result.current.demoStage).toBe(2);
+      });
+      expect(sessionStorage.getItem('crewvitals_demo_stage')).toBe('2');
     });
 
     it('?demo=reset limpa o protocolo registrado hoje', () => {
@@ -289,6 +519,74 @@ describe('useReadiness Hook - 3 Etapas Demo, Reset, Ausência Total e Consistên
 
       // Assert
       expect(hasCountermeasureProtocolToday()).toBe(false);
+    });
+  });
+
+  describe('Persistência da solicitação de demo no login', () => {
+    it('?demo=reset grava crewvitals_demo_requested = 1 no sessionStorage', () => {
+      // Arrange
+      window.history.pushState({}, '', '/dashboard?demo=reset');
+
+      // Act
+      renderHook(() => useReadiness());
+
+      // Assert
+      expect(sessionStorage.getItem('crewvitals_demo_requested')).toBe('1');
+    });
+
+    it('sem ?demo e sem a chave gravada, nada de demo existe', () => {
+      // Arrange
+      window.history.pushState({}, '', '/dashboard');
+
+      // Act
+      const { result } = renderHook(() => useReadiness());
+
+      // Assert
+      expect(result.current.isDemo).toBe(false);
+      expect(result.current.demoStage).toBeNull();
+      expect(result.current.stageBadge).toBeNull();
+    });
+
+    it('com a chave gravada e sem query, a demo liga', async () => {
+      // Arrange: solicitação registrada antes nesta sessão
+      sessionStorage.setItem('crewvitals_demo_requested', '1');
+      window.history.pushState({}, '', '/dashboard');
+
+      // Act
+      const { result } = renderHook(() => useReadiness());
+
+      // Assert
+      await waitFor(() => {
+        expect(result.current.isDemo).toBe(true);
+      });
+      expect(result.current.demoStage).toBe(1);
+      expect(result.current.stageBadge).toBe('DEMO 1/3');
+    });
+
+    it('remontar o cockpit depois de registrar o protocolo mantém a etapa 2', async () => {
+      // Arrange
+      window.history.pushState({}, '', '/dashboard?demo=1');
+      const { result, unmount } = renderHook(() => useReadiness());
+      await waitFor(() => {
+        expect(result.current.demoStage).toBe(1);
+      });
+      act(() => {
+        registerCountermeasureProtocol({ breathing: true });
+      });
+      await waitFor(() => {
+        expect(result.current.demoStage).toBe(2);
+      });
+      unmount();
+
+      // Act
+      const { result: remontado } = renderHook(() => useReadiness());
+
+      // Assert
+      await waitFor(() => {
+        expect(remontado.current.demoStage).toBe(2);
+      });
+      expect(remontado.current.state).toBe('caution');
+      expect(remontado.current.hasProtocolToday).toBe(true);
     });
   });
 

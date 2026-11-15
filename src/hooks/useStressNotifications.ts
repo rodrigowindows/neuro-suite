@@ -22,7 +22,7 @@ export function useStressNotifications(options: UseStressNotificationsOptions = 
 
     // In-app toast
     toast.warning(
-      `⚠️ Estresse crítico detectado: ${consecutiveHighDays} dias consecutivos com estresse alto. Considere fazer uma pausa ou falar com seu gestor.`,
+      `Estresse crítico detectado: ${consecutiveHighDays} dias consecutivos com estresse alto. Considere fazer uma pausa ou falar com seu gestor.`,
       { duration: 10000 },
     );
 

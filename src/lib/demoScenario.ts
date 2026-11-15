@@ -1,5 +1,5 @@
 import { ReadinessStatus, getReadinessStatus } from '@/lib/readiness';
-import { clearCountermeasureProtocolToday } from '@/lib/missionEvents';
+import { clearCountermeasureProtocolToday, clearMissionEvents } from '@/lib/missionEvents';
 
 export type DemoStage = 1 | 2 | 3;
 
@@ -23,13 +23,61 @@ export interface DemoScenarioData {
 }
 
 export const DEMO_STORAGE_KEY = 'crewvitals_demo_stage';
+export const DEMO_REQUESTED_KEY = 'crewvitals_demo_requested';
 export const DEMO_STAGE_CHANGED_EVENT = 'crewvitals:demo-stage-changed';
 
 export function isDemoMode(search?: string): boolean {
   if (typeof window === 'undefined') return false;
   const query = search !== undefined ? search : window.location.search || '';
   const params = new URLSearchParams(query);
-  return params.get('demo') === '1';
+  const demo = params.get('demo');
+  return demo === '1' || demo === 'reset';
+}
+
+export function markDemoRequested(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.setItem(DEMO_REQUESTED_KEY, '1');
+  } catch {
+    // sandbox / quota safe
+  }
+}
+
+export function hasDemoRequested(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    return sessionStorage.getItem(DEMO_REQUESTED_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function clearDemoRequested(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.removeItem(DEMO_REQUESTED_KEY);
+  } catch {
+    // sandbox safe
+  }
+}
+
+export function isDemoOff(search?: string): boolean {
+  if (typeof window === 'undefined') return false;
+  const query = search !== undefined ? search : window.location.search || '';
+  return new URLSearchParams(query).get('demo') === 'off';
+}
+
+export function replaceDemoResetUrl(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.history.replaceState(
+      window.history.state,
+      '',
+      `${window.location.pathname}?demo=1`
+    );
+  } catch {
+    // sandbox safe: URL keeps reset flag, guarded by a per-mount ref in the hook
+  }
 }
 
 export function isDemoReset(search?: string): boolean {
@@ -80,6 +128,7 @@ export function resetDemoStage(): void {
     // sandbox / quota safe
   }
   clearCountermeasureProtocolToday();
+  clearMissionEvents();
   window.dispatchEvent(
     new CustomEvent(DEMO_STAGE_CHANGED_EVENT, { detail: { stage: 1 } })
   );

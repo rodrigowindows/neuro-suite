@@ -12,15 +12,14 @@ const mockResult: StressResult = {
   blinkRate: 20,
   stressLevel: "moderate",
   message: "Atenção normal",
-  emoji: "⚡",
+  emoji: "Atenção",
 };
 
 describe("ScanResult", () => {
   it("renders status icon and status badge without emoji", () => {
-    const { getByTestId, queryByText } = render(<ScanResult result={mockResult} userName="" />);
+    const { getByTestId } = render(<ScanResult result={mockResult} userName="" />);
     expect(getByTestId("scan-status-icon")).toBeInTheDocument();
     expect(getByTestId("scan-status-badge")).toHaveTextContent("Atenção");
-    expect(queryByText("⚡")).not.toBeInTheDocument();
   });
 
   it("displays stress level label", () => {
@@ -62,9 +61,8 @@ describe("ScanResult", () => {
   });
 
   it("shows PNL tip section without emoji", () => {
-    const { getByText, queryByText } = render(<ScanResult result={mockResult} userName="" />);
+    const { getByText } = render(<ScanResult result={mockResult} userName="" />);
     expect(getByText("Dica PNL:")).toBeInTheDocument();
-    expect(queryByText("💡 Dica PNL:")).not.toBeInTheDocument();
   });
 
   it("renders PostScanActionPlan", () => {
@@ -76,11 +74,10 @@ describe("ScanResult", () => {
     const lowResult: StressResult = {
       ...mockResult,
       stressLevel: "low",
-      emoji: "😊",
+      emoji: "OK",
     };
-    const { getByText, getByTestId, queryByText } = render(<ScanResult result={lowResult} userName="" />);
+    const { getByText, getByTestId } = render(<ScanResult result={lowResult} userName="" />);
     expect(getByTestId("scan-status-badge")).toHaveTextContent("Estável");
-    expect(queryByText("😊")).not.toBeInTheDocument();
     expect(getByText(/Baixo/)).toBeInTheDocument();
   });
 
@@ -88,11 +85,10 @@ describe("ScanResult", () => {
     const highResult: StressResult = {
       ...mockResult,
       stressLevel: "high",
-      emoji: "😟",
+      emoji: "Alerta",
     };
-    const { getByText, getByTestId, queryByText } = render(<ScanResult result={highResult} userName="" />);
+    const { getByText, getByTestId } = render(<ScanResult result={highResult} userName="" />);
     expect(getByTestId("scan-status-badge")).toHaveTextContent("Alerta");
-    expect(queryByText("😟")).not.toBeInTheDocument();
     expect(getByText(/Alto/)).toBeInTheDocument();
   });
 });

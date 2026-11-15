@@ -111,7 +111,7 @@ export default function Profile() {
 
       setNewPassword('');
       setConfirmPassword('');
-      toast.success('Senha atualizada com sucesso! 🔒');
+      toast.success('Senha atualizada com sucesso.');
     } catch (err: any) {
       if (err.errors) {
         toast.error(err.errors[0].message);

@@ -95,7 +95,7 @@ export default function ResetPassword() {
                 <div className="mx-auto w-16 h-16 bg-success/10 rounded-full flex items-center justify-center">
                   <CheckCircle className="h-8 w-8 text-success" />
                 </div>
-                <p className="font-display font-bold text-lg">Senha atualizada! ✅</p>
+                <p className="font-display font-bold text-lg">Senha atualizada.</p>
                 <p className="text-sm text-muted-foreground">Redirecionando...</p>
               </motion.div>
             ) : (

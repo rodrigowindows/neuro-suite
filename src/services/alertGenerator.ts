@@ -23,7 +23,7 @@ export function generateAlerts(
     alerts.push({
       id: 'high_stress',
       type: 'critical',
-      title: '🚨 Limite de Estresse Alto Ultrapassado',
+      title: 'Limite de Estresse Alto Ultrapassado',
       description: `${stats.highPercent}% dos scans indicam estresse alto (limite: ${thresholds.highStressPercent}%). Intervenção urgente recomendada.`,
       timestamp: new Date(),
       acknowledged: false,
@@ -34,7 +34,7 @@ export function generateAlerts(
     alerts.push({
       id: 'low_hrv',
       type: 'critical',
-      title: '❤️ HRV Médio Abaixo do Limite',
+      title: 'HRV Médio Abaixo do Limite',
       description: `HRV médio: ${stats.avgHRV}ms (limite: ${thresholds.lowHRVThreshold}ms). Possível sobrecarga do sistema nervoso autônomo.`,
       timestamp: new Date(),
       acknowledged: false,
@@ -45,7 +45,7 @@ export function generateAlerts(
     alerts.push({
       id: 'consecutive_high',
       type: 'warning',
-      title: '⚠️ Estresse Alto Consecutivo',
+      title: 'Estresse Alto Consecutivo',
       description: `${consecutiveHighDays} dias consecutivos com maioria de scans em estresse alto. Risco de burnout.`,
       timestamp: new Date(),
       acknowledged: false,
@@ -57,7 +57,7 @@ export function generateAlerts(
       alerts.push({
         id: 'trend_worsening',
         type: 'warning',
-        title: '📈 Tendência de Piora Detectada',
+        title: 'Tendência de Piora Detectada',
         description: `O estresse alto aumentou ${trend.recentHighPercent - trend.olderHighPercent}% na semana recente.`,
         timestamp: new Date(),
         acknowledged: false,
@@ -68,7 +68,7 @@ export function generateAlerts(
       alerts.push({
         id: 'trend_improving',
         type: 'info',
-        title: '✅ Tendência de Melhora',
+        title: 'Tendência de Melhora',
         description: 'O estresse alto reduziu significativamente. As intervenções estão funcionando!',
         timestamp: new Date(),
         acknowledged: false,
@@ -80,7 +80,7 @@ export function generateAlerts(
     alerts.push({
       id: 'low_engagement',
       type: 'info',
-      title: '📊 Baixo Engajamento',
+      title: 'Baixo Engajamento',
       description: `Apenas ${stats.totalScans} scans nos últimos 7 dias. Incentive o uso regular.`,
       timestamp: new Date(),
       acknowledged: false,

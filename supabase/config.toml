@@ -1,31 +1,35 @@
 project_id = "bphdbcrboygmminicfqv"
 
-[functions.neuro-coach]
-verify_jwt = false
-
-[functions.google-calendar]
-verify_jwt = false
-
+# Chamador envia o token de sessão do usuário (supabase.functions.invoke).
 [functions.ai-insights]
-verify_jwt = false
+verify_jwt = true
 
 [functions.daily-checkin]
-verify_jwt = false
+verify_jwt = true
 
 [functions.proactive-alerts]
-verify_jwt = false
+verify_jwt = true
 
 [functions.cognitive-fatigue]
-verify_jwt = false
+verify_jwt = true
 
 [functions.smart-breaks]
-verify_jwt = false
+verify_jwt = true
 
 [functions.narrative-report]
-verify_jwt = false
-
-[functions.nr1-chatbot]
-verify_jwt = false
+verify_jwt = true
 
 [functions.sentiment-analysis]
+verify_jwt = true
+
+# Chamador (MeetingCheckIn.tsx) envia o access_token da sessão; a publishable key vai só em apikey.
+[functions.neuro-coach]
+verify_jwt = true
+
+# Chamador (useStreamingChat.ts) envia o access_token da sessão; a publishable key vai só em apikey.
+[functions.nr1-chatbot]
+verify_jwt = true
+
+# callback do Google e action=events usam token do Google, não JWT do Supabase
+[functions.google-calendar]
 verify_jwt = false
