@@ -55,6 +55,12 @@ describe("ScanResult", () => {
     expect(getByText("Normal")).toBeInTheDocument();
   });
 
+  it("renders vision model confidence metric", () => {
+    const { getByTestId, getByText } = render(<ScanResult result={mockResult} userName="" />);
+    expect(getByTestId("ai-confidence")).toBeInTheDocument();
+    expect(getByText("Confiança do Modelo de Visão: 94% (valor de demonstração)")).toBeInTheDocument();
+  });
+
   it("shows PNL tip section without emoji", () => {
     const { getByText, queryByText } = render(<ScanResult result={mockResult} userName="" />);
     expect(getByText("Dica PNL:")).toBeInTheDocument();

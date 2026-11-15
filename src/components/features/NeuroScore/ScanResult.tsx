@@ -65,6 +65,7 @@ export default function ScanResult({ result, userName, lastHrvValue }: ScanResul
           Nível {getStressLabel(result.stressLevel)}
         </h3>
         <p className="text-muted-foreground">{result.message}</p>
+        <p className="text-xs font-mono text-muted-foreground mt-1.5" data-testid="ai-confidence">Confiança do Modelo de Visão: 94% (valor de demonstração)</p>
       </div>
 
       <div className={`grid ${result.hrvValue ? 'grid-cols-3' : 'grid-cols-2'} gap-4 pt-4 border-t`}>

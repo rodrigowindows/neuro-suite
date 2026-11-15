@@ -184,7 +184,7 @@ describe('BridgeConsole - Cockpit de 3 Níveis', () => {
       expect(screen.getByText('5.5h')).toBeInTheDocument();
       // PredictiveAlert e badge DEMO presentes
       expect(screen.getByRole('alert')).toBeInTheDocument();
-      expect(screen.getByText('DEMO')).toBeInTheDocument();
+      expect(screen.getAllByText('DEMO').length).toBeGreaterThan(0);
       // Ação primária de NO-GO
       expect(screen.getByRole('button', { name: /Iniciar Protocolo 4-7-8/i })).toBeInTheDocument();
     });
@@ -199,7 +199,7 @@ describe('BridgeConsole - Cockpit de 3 Níveis', () => {
       expect(screen.getByText('14')).toBeInTheDocument();
       expect(screen.getByText('5.5h')).toBeInTheDocument();
       expect(screen.getByRole('alert')).toBeInTheDocument();
-      expect(screen.getByText('DEMO')).toBeInTheDocument();
+      expect(screen.getAllByText('DEMO').length).toBeGreaterThan(0);
     });
 
     it('preserva telemetria real mesmo se demo estiver ativo', async () => {
@@ -217,7 +217,7 @@ describe('BridgeConsole - Cockpit de 3 Níveis', () => {
       expect(screen.getByText('90')).toBeInTheDocument();
       expect(screen.getByText('16')).toBeInTheDocument();
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-      expect(screen.getByText('DEMO')).toBeInTheDocument();
+      expect(screen.getAllByText('DEMO').length).toBeGreaterThan(0);
     });
   });
 
@@ -311,6 +311,38 @@ describe('BridgeConsole - Cockpit de 3 Níveis', () => {
       expect(updateLink).toBeInTheDocument();
       fireEvent.click(updateLink);
       expect(handleNavigate).toHaveBeenCalledWith('neuroscore');
+    });
+  });
+
+  describe('Log de Eventos Recentes (Medical Event Log) - Somente em Demonstração', () => {
+    it('não renderiza o card de log quando isDemo for falso ou omitido', async () => {
+      // Arrange & Act
+      await renderCockpit({ isDemo: false });
+
+      // Assert
+      expect(screen.queryByText('LOG DE EVENTOS RECENTES')).toBeNull();
+      expect(screen.queryByText('LOG DE EVENTOS RECENTES')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/\[Hoje, 10:30\] — Alerta Preditivo: Fadiga Elevada \(BioScore 34\)/i)
+      ).not.toBeInTheDocument();
+    });
+
+    it('renderiza o card de log aeroespacial com selo DEMO e as 3 entradas quando isDemo for verdadeiro', async () => {
+      // Arrange & Act
+      await renderCockpit({ isDemo: true });
+
+      // Assert
+      expect(screen.getByText('LOG DE EVENTOS RECENTES')).toBeInTheDocument();
+      expect(screen.getAllByText('DEMO').length).toBeGreaterThan(0);
+      expect(
+        screen.getByText(/\[Hoje, 10:30\] — Alerta Preditivo: Fadiga Elevada \(BioScore 34\)/i)
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/\[Hoje, 10:35\] — Ação: Contramedida executada \(Respiração 4-7-8\)/i)
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/\[Hoje, 10:40\] — Status atualizado: Estável/i)
+      ).toBeInTheDocument();
     });
   });
 

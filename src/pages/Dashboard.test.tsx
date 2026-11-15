@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Dashboard from './Dashboard';
 import { useUserRole } from '@/hooks/useUserRole';
+import { supabase } from '@/integrations/supabase/client';
 
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: vi.fn(() => ({
@@ -80,6 +81,29 @@ vi.mock('@/integrations/supabase/client', () => ({
 describe('Dashboard Page - Cockpit UX e Navegação Reestruturada', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    window.history.pushState({}, '', '/dashboard');
+    vi.mocked(useUserRole).mockReturnValue({
+      isManager: false,
+      isAdmin: false,
+      loading: false,
+    });
+    vi.mocked(supabase.from).mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      gte: vi.fn().mockReturnThis(),
+      lte: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          stress_level: 'moderate',
+          hrv_value: 48,
+          blink_rate: 21.6,
+          horas_sono: 7.5,
+          treino_realizado: 'ARED',
+        },
+      }),
+    } as any);
   });
 
   it('1. abre imediatamente no Cockpit com título encurtado, sem descrição longa e com SectionTabs', async () => {
@@ -129,8 +153,8 @@ describe('Dashboard Page - Cockpit UX e Navegação Reestruturada', () => {
     expect(screen.getByText(/^BioScore$/i)).toBeInTheDocument();
     expect(screen.getByText(/^Piscadas\/min$/i)).toBeInTheDocument();
     expect(screen.getByText(/^Sono$/i)).toBeInTheDocument();
-    expect(screen.getByText('22')).toBeInTheDocument(); // roundBlinkRate(21.6)
-    expect(screen.getByText('7.5h')).toBeInTheDocument();
+    expect(await screen.findByText('22')).toBeInTheDocument(); // roundBlinkRate(21.6)
+    expect(await screen.findByText('7.5h')).toBeInTheDocument();
   });
 
   it('3. valida ação única primária de NO-GO/ATENÇÃO redirecionando para Contramedidas (neurocoach)', async () => {
@@ -389,5 +413,109 @@ describe('Dashboard Page - Cockpit UX e Navegação Reestruturada', () => {
       ).toBeInTheDocument();
       expect(screen.queryByTestId('breathing-overlay')).not.toBeInTheDocument();
     });
+  });
+
+  it('11. renderiza o MissionStatusWidget no topo do Dashboard indicando status da missão', async () => {
+    // Arrange & Act
+    render(
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <Dashboard />
+      </MemoryRouter>
+    );
+
+    // Assert: O widget de status da missão é renderizado no topo do Dashboard
+    const missionWidget = screen.getByTestId('mission-status-widget');
+    expect(missionWidget).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/Status da Missão: Nominal/i)).toBeInTheDocument();
+    });
+  });
+
+  it('12. quando sem scan (dados nulos), o header exibe "Status da Missão: Sem dados"', async () => {
+    // Arrange: Simula retorno de dados nulos do Supabase para stress_scans
+    vi.mocked(supabase.from).mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      gte: vi.fn().mockReturnThis(),
+      lte: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: null }),
+    } as any);
+
+    // Act
+    render(
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <Dashboard />
+      </MemoryRouter>
+    );
+
+    // Assert: O header exibe "Status da Missão: Sem dados"
+    expect(
+      await screen.findByText(/Status da Missão: Sem dados/i)
+    ).toBeInTheDocument();
+  });
+
+  it('13. quando HRV < 30 mesmo com estresse moderado (NO-GO), o header exibe "Atenção: Fadiga Detectada" (sem contradizer o cockpit)', async () => {
+    // Arrange: Simula retorno de dados com estresse moderado mas HRV crítico (< 30) gerando estado NO-GO
+    vi.mocked(supabase.from).mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      gte: vi.fn().mockReturnThis(),
+      lte: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          stress_level: 'moderate',
+          hrv_value: 25,
+          blink_rate: 22,
+          horas_sono: 6,
+        },
+      }),
+    } as any);
+
+    // Act
+    render(
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <Dashboard />
+      </MemoryRouter>
+    );
+
+    // Assert: O header exibe "Atenção: Fadiga Detectada" alinhado ao cockpit
+    expect(
+      await screen.findByText(/Atenção: Fadiga Detectada/i)
+    ).toBeInTheDocument();
+  });
+
+  it('14. sincroniza Header e Cockpit no modo ?demo=1 sem dados reais: Header exibe "Atenção: Fadiga Detectada" e Cockpit exibe NO-GO', async () => {
+    // Arrange: Simula ausência de dados reais no Supabase e ativa modo demo na URL
+    window.history.pushState({}, '', '/dashboard?demo=1');
+    vi.mocked(supabase.from).mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      gte: vi.fn().mockReturnThis(),
+      lte: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: null }),
+    } as any);
+
+    // Act
+    render(
+      <MemoryRouter initialEntries={['/dashboard?demo=1']}>
+        <Dashboard />
+      </MemoryRouter>
+    );
+
+    // Assert: Header exibe "Atenção: Fadiga Detectada"
+    expect(
+      await screen.findByText(/Atenção: Fadiga Detectada/i)
+    ).toBeInTheDocument();
+
+    // Assert: Cockpit exibe NO-GO
+    expect(
+      await screen.findByText(/NO-GO/i)
+    ).toBeInTheDocument();
   });
 });

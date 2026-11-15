@@ -13,9 +13,11 @@ import StressAlertBanner from '@/components/StressAlertBanner';
 import DashboardContent from '@/components/DashboardContent';
 import ResearchValidationModal from '@/components/ResearchValidationModal';
 import ConnectionStatusWidget from '@/components/ConnectionStatusWidget';
+import MissionStatusWidget from '@/components/MissionStatusWidget';
 import { SectionTabs } from '@/components/SectionTabs';
 import { useStressNotifications } from '@/hooks/useStressNotifications';
 import { supabase } from '@/integrations/supabase/client';
+import { getReadinessStatus } from '@/lib/readiness';
 
 const PAGE_TITLES: Record<string, string> = {
   'bridge-console': 'Cockpit',
@@ -103,6 +105,18 @@ export default function Dashboard() {
     return <DashboardSkeleton />;
   }
 
+  const isDemo =
+    typeof window !== 'undefined' &&
+    new URLSearchParams(window.location?.search || '').get('demo') === '1';
+
+  const hasNoTelemetry = !stressLevel && hrvValue === undefined;
+  const isDemoActive = Boolean(isDemo && hasNoTelemetry);
+
+  const effectiveStress = isDemoActive ? 'high' : stressLevel;
+  const effectiveHrv = isDemoActive ? 28 : hrvValue;
+
+  const readiness = getReadinessStatus(effectiveHrv, effectiveStress || null);
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
@@ -126,6 +140,10 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
+              <MissionStatusWidget
+                isAlert={readiness.state === 'nogo' || stressNotif.isCritical}
+                isUnknown={readiness.state === 'unknown'}
+              />
               <ConnectionStatusWidget />
             </div>
           </header>
@@ -150,8 +168,9 @@ export default function Dashboard() {
               >
                 <DashboardContent
                   activeTab={activeTab}
-                  stressLevel={stressLevel}
-                  hrvValue={hrvValue}
+                  stressLevel={effectiveStress}
+                  hrvValue={effectiveHrv}
+                  isDemo={isDemoActive ? true : isDemo}
                   showMeditation={showMeditation}
                   isFirstVisit={isFirstVisit}
                   isManager={isManager}

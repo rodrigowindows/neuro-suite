@@ -5,7 +5,7 @@ source:
   - .planning/phases/01-nasa-transition/SPEC.md
   - .planning/phases/01-nasa-transition/PLAN.md
 started: 2026-11-14T15:00:00-03:00
-updated: 2026-11-14T15:08:45-03:00
+updated: 2026-11-14T17:30:00-03:00
 ---
 
 ## Current Test
@@ -42,13 +42,17 @@ expected: Chaves internas checkin, neuroscore, gamification, neurocoach, cogniti
 result: pass
 
 ### 8. Suíte de Testes e Compilação de Produção
-expected: npm test executa com 100% de sucesso e npm run build compila sem erros de tipagem.
+expected: npm test executa com 100% de sucesso (220 testes unitários) e npm run build compila sem erros de tipagem.
+result: pass
+
+### 9. Fluxo Pós-Login Bridge Console
+expected: /dashboard abre Bridge Console por padrão; topo exibe Alerta Preditivo ("Atenção: Fadiga elevada. Risco operacional."); centro exibe Status BioScore com taxa de piscadas e HRV; lateral exibe resumo Biometric Log (Sono 7.5h, Treino ARED); botão 'Iniciar Contramedidas (AstroAssist)' redireciona para neurocoach; atalhos rápidos redirecionam para as abas corretas.
 result: pass
 
 ## Summary
 
-total: 8
-passed: 8
+total: 9
+passed: 9
 issues: 0
 pending: 0
 skipped: 0

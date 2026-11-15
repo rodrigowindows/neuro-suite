@@ -99,7 +99,7 @@ export default function BridgeConsole({
   );
 
   const demoState =
-    isDemo && !hasRealTelemetry
+    isDemo && (!hasRealTelemetry || (propStressLevel === 'high' && propHrvValue === 28))
       ? {
           bioScore: 34,
           blinkRate: 14,
@@ -118,9 +118,7 @@ export default function BridgeConsole({
   const effectiveBioScore =
     propBioScore !== undefined && propBioScore !== null
       ? propBioScore
-      : wellnessScore !== undefined && wellnessScore !== null
-      ? wellnessScore
-      : demoState?.bioScore ?? null;
+      : demoState?.bioScore ?? (wellnessScore !== undefined && wellnessScore !== null ? wellnessScore : null);
   const effectiveHorasSono =
     telemetry.horasSono ?? demoState?.horasSono ?? null;
 
@@ -266,26 +264,50 @@ export default function BridgeConsole({
             Iniciar Protocolo 4-7-8
           </Button>
         )}
+      </div>
 
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          {readiness.state !== 'unknown' && (
-            <Button
-              variant="link"
-              className="text-xs text-muted-foreground hover:text-foreground h-auto p-0 underline-offset-4"
-              onClick={() => onNavigateTab?.('neuroscore')}
-            >
-              Atualizar scan
-            </Button>
-          )}
-          {isDemo && (
-            <Badge
-              variant="outline"
-              className="text-[10px] font-mono uppercase tracking-wider border-amber-500/40 text-amber-500"
-            >
+      {/* Log de Eventos Recentes (Medical Event Log) - Somente em modo demonstração */}
+      {isDemo && (
+        <div className="w-full bg-card/40 border border-border/60 rounded-xl p-4 font-mono text-xs space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold font-mono tracking-wider text-muted-foreground uppercase">
+              LOG DE EVENTOS RECENTES
+            </span>
+            <Badge variant="outline" className="text-[10px] font-mono border-amber-500/40 text-amber-500">
               DEMO
             </Badge>
-          )}
+          </div>
+          <p className="text-amber-600 dark:text-amber-400">
+            [Hoje, 10:30] — Alerta Preditivo: Fadiga Elevada (BioScore 34)
+          </p>
+          <p className="text-cyan-600 dark:text-cyan-400">
+            [Hoje, 10:35] — Ação: Contramedida executada (Respiração 4-7-8)
+          </p>
+          <p className="text-emerald-600 dark:text-emerald-400">
+            [Hoje, 10:40] — Status atualizado: Estável
+          </p>
         </div>
+      )}
+
+      {/* Rodapé */}
+      <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
+        {readiness.state !== 'unknown' && (
+          <Button
+            variant="link"
+            className="text-xs text-muted-foreground hover:text-foreground h-auto p-0 underline-offset-4"
+            onClick={() => onNavigateTab?.('neuroscore')}
+          >
+            Atualizar scan
+          </Button>
+        )}
+        {isDemo && (
+          <Badge
+            variant="outline"
+            className="text-[10px] font-mono uppercase tracking-wider border-amber-500/40 text-amber-500"
+          >
+            DEMO
+          </Badge>
+        )}
       </div>
     </div>
   );

@@ -43,6 +43,7 @@ interface DashboardContentProps {
   onTabChange?: (tab: string) => void;
   onStartProtocol?: () => void;
   autoStartBreathing?: boolean;
+  isDemo?: boolean;
 }
 
 export default function DashboardContent({
@@ -57,6 +58,7 @@ export default function DashboardContent({
   onTabChange,
   onStartProtocol,
   autoStartBreathing,
+  isDemo,
 }: DashboardContentProps) {
   const renderContent = () => {
     switch (activeTab) {
@@ -67,6 +69,7 @@ export default function DashboardContent({
             onStartProtocol={onStartProtocol}
             stressLevel={stressLevel}
             hrvValue={hrvValue}
+            isDemo={isDemo}
           />
         );
       case 'checkin':
