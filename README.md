@@ -11,6 +11,17 @@ O **CrewVitals** é uma plataforma de telemetria fisiológica e suporte à decis
 
 ---
 
+## 🚀 Demonstração Pública (Acesso sem Login)
+
+Para avaliação direta da banca examinadora e revisores externos:
+
+- **Link de Acesso Direto:** [https://neuro-suite.lovable.app/demo](https://neuro-suite.lovable.app/demo) (ou rota local `/demo`)
+- **Acesso sem Login:** Demonstração operacional imediata sem exigência de login, senha, cadastro ou autorização de rede.
+- **Dados Simulados:** A rota de demonstração utiliza dados 100% simulados para homologação e inspeção de interface, operando de forma autônoma sem requisições de rede a serviços de backend.
+- **Checklist e Links da Banca:** Consulte o [Checklist de Publicação](docs/publicacao/CHECKLIST-PUBLICACAO.md) e a tabela de [Links Oficiais da Banca](docs/publicacao/LINKS.md).
+
+---
+
 ## 🧩 Módulos Ativos
 
 - **Avaliação de Turno:** Registro e acompanhamento periódico da prontidão física e cognitiva operacional da tripulação, com foco em prontidão operacional e carga de trabalho.
