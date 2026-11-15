@@ -31,7 +31,7 @@ Este relatório consolida a reauditoria técnica formal e independente após a a
 | 15 | Deck da Banca: Exatamente 7 slides sem credenciais | `python-pptx` confirmou `len(prs.slides) == 7` em `CrewVitals-Demo.pptx` | PASSOU |
 | 16 | PDF da Banca: Exatamente 7 páginas | `fitz`/`pymupdf` confirmou `len(doc) == 7` em `CrewVitals-Demo.pdf` | PASSOU |
 | 17 | Roteiro de Vídeo: Duração rigorosamente <= 30 segundos | `docs/apresentacao/ROTEIRO-VIDEO-30S.md` soma 30s (5s + 7s + 7s + 8s + 3s) | PASSOU |
-| 18 | Higiene e Segredos: Ausência de tokens/chaves reais e e-mails pessoais | `git grep -n -i -E "AIza[0-9A-Za-z_-]{20,}|sk-[A-Za-z0-9]{10,}|20001711|professor\.se" -- docs README.md src` | FALHOU (e-mail da conta demo em `src/lib/constants.ts:5`; ver 6.1 e fase 20) |
+| 18 | Higiene e Segredos: Ausência de tokens/chaves reais e e-mails pessoais | `git grep -n -i -E "AIza[0-9A-Za-z_-]{20,}|sk-[A-Za-z0-9]{10,}|2000171[1]|professor[.]se" -- docs README.md src` | PASSOU (auditoria final: saída vazia em `src`, `docs`, `README.md`; fase 20, commit cfcbe26) |
 | 19 | Higiene e Segredos: Análise real de termos "senha/password" em documentação | `git grep -n -i -E "senha|password|AIza|sk-" -- docs README.md` (10 ocorrências puramente informativas/instrucionais) | PASSOU |
 | 20 | Remoção de Emoji Residual no Título do README.md | `## Demonstração Pública (Acesso sem Login)` (sem emoji de foguete) | PASSOU |
 | 21 | Roteiro de Publicação e Links Públicos | `docs/publicacao/CHECKLIST-PUBLICACAO.md` e `LINKS.md` estruturados | PASSOU |
@@ -165,12 +165,12 @@ A verificação automatizada via `python-pptx` e `fitz`/`pymupdf` confirmou a in
 ### 6.1 Varredura de Tokens Reais e E-mails Pessoais
 **Comando:**
 ```bash
-git grep -n -i -E "AIza[0-9A-Za-z_-]{20,}|sk-[A-Za-z0-9]{10,}|20001711|professor\.se" -- docs README.md src
+git grep -n -i -E "AIza[0-9A-Za-z_-]{20,}|sk-[A-Za-z0-9]{10,}|2000171[1]|professor[.]se" -- docs README.md src
 ```
 - **Resultado Real:**
-  - `src/lib/constants.ts:5:export const DEMO_ACCOUNT_EMAIL = '20001711@professor.se.df.gov.br';`
   - Zero ocorrências em `docs/` e `README.md`.
-  - A ocorrência em `src/` é o e-mail funcional da conta compartilhada do v1.1 (domínio de governo), presente no bundle público e no repositório. No v1.2 a banca usa `/demo` e não precisa dessa conta. Resultado do critério "sem e-mails pessoais": FALHOU. Correção: `.planning/prompts-v1.2/20-remover-email-demo.md`. Troca de senha da conta: `docs/seguranca/CHECKLIST-MANUAL.md`, seção 5.
+  - Reauditoria anterior (commit ad3568b) achou o e-mail funcional da conta demo em `src/lib/constants.ts:5` e marcou FALHOU. A fase 20 (commit cfcbe26) definiu `DEMO_ACCOUNT_EMAIL = ''`.
+  - Auditoria final: o grep de e-mail em `src`, `docs` e `README.md` retorna saída vazia; o bundle `dist/assets/*.js` recém-gerado também não contém o e-mail. O e-mail permanece no histórico do git; mitigação: trocar a senha da conta (`docs/seguranca/CHECKLIST-MANUAL.md`, seção 5).
   - Zero chaves `AIza` ou tokens `sk-` encontrados em todo o repositório rastreado.
 
 ### 6.2 Análise Transparente de Ocorrências de "senha" e "password"
@@ -233,7 +233,7 @@ git grep -n -i -E "senha|password|AIza|sk-" -- docs README.md
 | **PUB-09** | Roteiro de vídeo <= 30s cronometrado com tempos por cena e botões reais | **PASSOU** | `ROTEIRO-VIDEO-30S.md` (30s exatos: 5+7+7+8+3s), botões reais |
 | **PUB-10** | Checklist operacional do dono para publicação e links públicos | **PASSOU** | `docs/publicacao/CHECKLIST-PUBLICACAO.md`, `LINKS.md` |
 | **PUB-11** | README com seção de demonstração apontando para `/demo` | **PASSOU** | `README.md:14`, título sem emoji residual |
-| **PUB-12** | Gates verdes, blindados intactos, prova automatizada, UAT consolidado | **PARCIAL: gates PASSOU; higiene de e-mail FALHOU; UAT do dono NÃO VERIFICADO** | Vitest (562/562), TSC (0 erros), Build (0 erros), ESLint (0 erros), Diff blindados vazio |
+| **PUB-12** | Gates verdes, blindados intactos, prova automatizada, UAT consolidado | **PASSOU (gates, blindados, sanitização e prova automatizada); ensaio do dono em janela anônima e log de rede real NÃO VERIFICADO (ação externa)** | Vitest (562/562), TSC (0 erros), Build (0 erros), ESLint (0 erros), Diff blindados vazio |
 
 ---
 
@@ -245,3 +245,31 @@ Os seguintes itens estão documentados em `docs/publicacao/CHECKLIST-PUBLICACAO.
 2. **Inspeção de Rede no Navegador Real:** Abrir Janela Anônima, carregar `/demo`, abrir DevTools (F12) -> aba Network, filtrar por `supabase` e confirmar zero requisições HTTP disparadas.
 3. **Upload de Deck e Vídeo:** Hospedar `CrewVitals-Demo.pptx`, `CrewVitals-Demo.pdf` e o vídeo gravado de 30s em armazenamento público compartilhado ("qualquer pessoa com o link") e preencher a tabela em `docs/publicacao/LINKS.md`.
 4. **Submissão à Banca:** Enviar a URL pública da demo e os links do material conforme as instruções oficiais.
+
+
+---
+
+## 11. Auditoria final (após a fase 20)
+
+Base: commit `cfcbe26`. Executado em 2026-11-15.
+
+| Verificação | Evidência | Resultado |
+|---|---|---|
+| E-mail institucional em `src`, `docs`, `README.md` | `git grep -n -i -E "2000171[1]|professor[.]se" -- src docs README.md`: saída vazia | PASSOU |
+| Chaves de API | `git grep -n -i -E "AIza[0-9A-Za-z_-]{20,}|sk-[A-Za-z0-9]{10,}" -- src docs README.md`: saída vazia | PASSOU |
+| `DEMO_ACCOUNT_EMAIL` | `src/lib/constants.ts:5`: `DEMO_ACCOUNT_EMAIL = ''` | PASSOU |
+| E-mail no bundle de produção | `dist/assets/*.js` sem ocorrência | PASSOU |
+| Testes | 50 arquivos, 562 testes, 0 falhas | PASSOU |
+| `tsc --noEmit` | exit 0 | PASSOU |
+| `eslint` (`useReadiness.ts`, `Demo.tsx`, `constants.ts`) | exit 0 | PASSOU |
+| Build | concluído em 15,27 s | PASSOU |
+| Blindados (`git diff 99aee14..HEAD`) | vazio | PASSOU |
+| Deck e PDF | 7 slides, 7 páginas, 34/14/5,5, 52/14/5,5, 72/18/5,5, sem mojibake, sem "senha" nem "@" | PASSOU |
+| Botões do vídeo | 4 botões citados existem em `Demo.tsx` | PASSOU |
+| Entradas | `Index.tsx:113` e `Auth.tsx:140` apontam para `/demo` | PASSOU |
+| Selo | `Demo.tsx:60-63` | PASSOU |
+| README | seção "Demonstração Pública" sem emoji no título (os headings antigos `Visão Geral`, `Módulos Ativos` etc. mantêm emoji e não são parte do v1.2) | PASSOU |
+| Log de rede real em `/demo` | Chrome automatizado não alcançou `localhost` | NÃO VERIFICADO (dono) |
+| Ensaio em janela anônima em produção; links do deck e do vídeo | dependem de publicar e hospedar | NÃO VERIFICADO (dono) |
+
+Parecer: repositório APROVADO. A submissão depende das três ações do dono acima.

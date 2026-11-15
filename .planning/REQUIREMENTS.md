@@ -89,7 +89,7 @@ Marco "Endurecimento de Segurança e Demo com Conta Compartilhada". Cada requisi
 | PUB-05, PUB-06 | Phase 13 | Complete |
 | PUB-07, PUB-08, PUB-09 | Phase 14 | Complete |
 | PUB-10, PUB-11 | Phase 15 | Complete |
-| PUB-12 | Phase 16 | Parcial (e-mail da conta demo no bundle: fase 20; UAT do dono pendente) |
+| PUB-12 | Phase 16 | Complete (código e sanitização; ensaio do dono pendente fora do código) |
 
 **Coverage:**
 - v1.1 requirements: 27 total
@@ -97,7 +97,7 @@ Marco "Endurecimento de Segurança e Demo com Conta Compartilhada". Cada requisi
 - Pending (ensaio visual): 1 (QA-03)
 - Verificações de produção pendentes, fora da contagem de 27: SEC-01 e SEC-02 (aguardam deploy e ensaio visual)
 - v1.2 requirements: 12 total
-- Complete (código, materiais e UAT): 12 (PUB-01 a PUB-12) reauditados na Fase 19 após correções das Fases 17 e 18
+- Complete (código, materiais e sanitização): 12 (PUB-01 a PUB-12), auditoria final no commit cfcbe26. Pendente fora do código: log de rede real, ensaio em janela anônima, links públicos
 - Pendências de produção do v1.2: Ensaio visual ao vivo em produção pelo dono (documentado em `docs/publicacao/UAT-v1.2.md`)
 - Unmapped: 0
 
@@ -124,7 +124,7 @@ SEC-04 aparece em duas fases porque o contrato tem dois lados (função e recept
 - [x] **PUB-11**: README com seção "Demonstração" apontando para `/demo` e título sem emojis
 
 ### Qualidade (PUB, fases 16 e 18, reauditados na fase 19)
-- [ ] **PUB-12**: Gates verdes (562 testes, tsc e build limpos), ESLint limpo (zero erros de hook), blindados intactos, prova automatizada de zero chamada ao Supabase em `/demo`, UAT consolidado
+- [x] **PUB-12**: Gates verdes (562 testes, tsc e build limpos), ESLint limpo (zero erros de hook), blindados intactos, prova automatizada de zero chamada ao Supabase em `/demo`, UAT consolidado
 
 ---
 *Requirements defined: 2026-11-15*

@@ -2,7 +2,7 @@
 
 ## Defeito encontrado na reauditoria
 
-`src/lib/constants.ts:5` exporta `DEMO_ACCOUNT_EMAIL = '20001711@professor.se.df.gov.br'`, um e-mail funcional de domínio de governo, que vai para o bundle JavaScript público e para o repositório público. No v1.1 a conta compartilhada servia ao login da demo. No v1.2 os juízes usam `/demo` (sem conta), então a constante não é mais necessária para a banca. O comentário do próprio arquivo já diz: "Vazio = recurso de conta demo inerte".
+`src/lib/constants.ts:5` exporta `DEMO_ACCOUNT_EMAIL = '[e-mail institucional removido]'`, um e-mail funcional de domínio de governo, que vai para o bundle JavaScript público e para o repositório público. No v1.1 a conta compartilhada servia ao login da demo. No v1.2 os juízes usam `/demo` (sem conta), então a constante não é mais necessária para a banca. O comentário do próprio arquivo já diz: "Vazio = recurso de conta demo inerte".
 
 ## Arquivos exclusivos
 
@@ -18,7 +18,7 @@
 ## Verificação (cole a saída real no SUMMARY)
 
 ```bash
-git grep -n -i -E "20001711|professor\.se" -- src docs README.md
+git grep -n -i -E "2000171[1]|professor[.]se" -- src docs README.md
 npm test -- --run
 npx tsc --noEmit
 npm run build

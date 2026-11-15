@@ -79,9 +79,9 @@ Status: Gates e codigo 100% validados; aguarda resultados informados de producao
 Last activity: 2026-11-15 — Reexecucao de auditoria completa da Phase 11 (550 testes, tsc, build, diff blindados e greps aprovados)
 
 
-## Marco v1.2 — Demo Pública sem Login (reauditado em 2026-11-15; pendências abertas)
+## Marco v1.2 — Demo Pública sem Login (auditoria final em 2026-11-15)
 
-- **Status:** Código, deck e vídeo reauditados (Fases 12 a 19). Aberto: e-mail da conta demo no bundle (fase 20), log de rede real em `/demo` e ensaio do dono em janela anônima.
+- **Status:** Auditoria final aprovada no repositório (commit cfcbe26): 562 testes, tsc, eslint e build limpos, blindados intactos, e-mail da conta demo removido do código e do bundle. Pendente (dono): log de rede real em `/demo`, ensaio em janela anônima, hospedar deck e vídeo, trocar a senha da conta demo.
 - **Entregas e Correções Validadas:**
   - Rota pública `/demo` sem sessão e sem chamadas Supabase (`useGuestDemoReadiness`, `Demo.tsx`, `Demo.test.tsx`).
   - Botões de acesso na Landing Page (`Index.tsx`) e tela de Login (`Auth.tsx`).

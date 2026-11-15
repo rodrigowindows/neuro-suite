@@ -28,7 +28,7 @@ Aprovado com 100% de sucesso nos gates automatizados, consistência de dados ent
    - PPTX e PDF com acentuação completa em português ("Saúde", "Tripulação", "ATENÇÃO", etc.).
 8. **Segredos e Higiene:**
    - Zero chaves `AIza` ou tokens `sk-`.
-   - Único e-mail retornado pelo grep amplo é `20001711@professor.se.df.gov.br` (conta de demonstração de testes em `src/lib/constants.ts`).
+   - Único e-mail retornado pelo grep amplo é `[e-mail institucional removido]` (conta de demonstração de testes em `src/lib/constants.ts`).
    - Termos "senha" e "password" em `docs/` e `README.md` limitam-se a 10 ocorrências estritamente informativas/instrucionais.
 9. **README.md:**
    - Emoji residual `🚀` removido do título `## Demonstração Pública (Acesso sem Login)`.

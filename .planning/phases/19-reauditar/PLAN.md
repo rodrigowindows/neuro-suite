@@ -12,7 +12,7 @@ Reauditoria técnica independente e formal do marco v1.2 (CrewVitals: Demo Públ
 2. Verificar blindagem: `git diff 99aee14..HEAD --stat -- src/integrations supabase/migrations package.json package-lock.json vite.config.ts` (rigorosamente vazio).
 3. Consistência deck x demo: conferir BioScore, piscadas/min e sono de `demoScenario.ts` contra slides 3 e 4 (PPTX e PDF) e `ROTEIRO-VIDEO-30S.md`; validar existência real de todos os botões citados.
 4. Integridade de acentos: validar renderização UTF-8 sem mojibake ou supressão artificial no PPTX e PDF.
-5. Higiene e segredos: `git grep -n -i -E "AIza[0-9A-Za-z_-]{20,}|sk-[A-Za-z0-9]{10,}|20001711|professor\.se" -- docs README.md src` e análise transparente das ocorrências de `senha|password`.
+5. Higiene e segredos: `git grep -n -i -E "AIza[0-9A-Za-z_-]{20,}|sk-[A-Za-z0-9]{10,}|2000171[1]|professor[.]se" -- docs README.md src` e análise transparente das ocorrências de `senha|password`.
 6. Higiene de títulos: remoção de emoji residual no título de demonstração em `README.md`.
 7. Atualizar `docs/publicacao/UAT-v1.2.md` com resultados reais ehonestos de cada item.
 8. Atualizar governança GSD (`REQUIREMENTS.md` e `STATE.md`).
