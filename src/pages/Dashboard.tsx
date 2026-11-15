@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFeatureScores } from '@/hooks/useFeatureScores';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useUserProfile } from '@/hooks/useUserProfile';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 
@@ -17,11 +17,13 @@ import MissionStatusWidget from '@/components/MissionStatusWidget';
 import { SectionTabs } from '@/components/SectionTabs';
 import { useStressNotifications } from '@/hooks/useStressNotifications';
 import { supabase } from '@/integrations/supabase/client';
-import { getReadinessStatus } from '@/lib/readiness';
+import { useWellnessScore } from '@/hooks/useWellnessScore';
+import { useReadiness, getScanVerdictLabel } from '@/hooks/useReadiness';
+import { appendEvent } from '@/lib/missionEvents';
 
 const PAGE_TITLES: Record<string, string> = {
   'bridge-console': 'Cockpit',
-  checkin: 'Avaliação de Turno',
+  checkin: 'Avaliação de Prontidão',
   neuroscore: 'BioScore',
   gamification: 'Disciplina',
   neurocoach: 'Contramedidas',
@@ -45,6 +47,7 @@ export default function Dashboard() {
   const { scores, refreshScores } = useFeatureScores();
   const { isManager, isAdmin, loading: rolesLoading } = useUserRole();
   const { profile } = useUserProfile();
+  const { score: currentBioScore } = useWellnessScore();
   const [stressLevel, setStressLevel] = useState('');
   const [hrvValue, setHRVValue] = useState<number | undefined>(undefined);
   const [activeTab, setActiveTab] = useState('bridge-console');
@@ -52,6 +55,7 @@ export default function Dashboard() {
   const [showMeditation, setShowMeditation] = useState(false);
   const [isFirstVisit, setIsFirstVisit] = useState(false);
   const stressNotif = useStressNotifications();
+  const readiness = useReadiness({ stressLevel, hrvValue });
 
   useEffect(() => {
     if (activeTab !== 'neurocoach') {
@@ -94,6 +98,19 @@ export default function Dashboard() {
     if (hrv && hrv < 30) setShowMeditation(true);
     setActiveTab('bridge-console');
     refreshScores();
+
+    const scanVerdict = getScanVerdictLabel(hrv, level);
+    const scoreStr = currentBioScore != null ? ` (BioScore ${currentBioScore})` : '';
+    appendEvent({
+      type: 'scan',
+      label: `BioScore: ${scanVerdict}${scoreStr}`,
+      metadata: {
+        verdict: scanVerdict,
+        bioScore: currentBioScore ?? null,
+        stressLevel: level,
+        hrvValue: hrv ?? null,
+      },
+    });
   };
 
   const handleStartProtocol = () => {
@@ -115,9 +132,8 @@ export default function Dashboard() {
   const effectiveStress = isDemoActive ? 'high' : stressLevel;
   const effectiveHrv = isDemoActive ? 28 : hrvValue;
 
-  const readiness = getReadinessStatus(effectiveHrv, effectiveStress || null);
-
   return (
+    <MotionConfig reducedMotion="user">
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar
@@ -129,26 +145,28 @@ export default function Dashboard() {
           isAdmin={isAdmin}
         />
 
-        <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 flex items-center justify-between gap-3 border-b bg-card/60 backdrop-blur-sm px-4 sticky top-0 z-40">
-            <div className="flex items-center gap-3 min-w-0">
-              <SidebarTrigger className="text-muted-foreground hover:text-foreground shrink-0" />
+        <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+          <header className="h-14 flex items-center justify-between gap-2 sm:gap-3 border-b bg-card/60 backdrop-blur-sm px-3 sm:px-4 sticky top-0 z-40">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <SidebarTrigger className="text-muted-foreground hover:text-foreground shrink-0 min-h-[44px] min-w-[44px]" />
               <div className="flex flex-col min-w-0">
                 <h1 className="font-display font-bold text-sm sm:text-base truncate">
                   {PAGE_TITLES[activeTab] || 'Cockpit'}
                 </h1>
               </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 min-w-0">
               <MissionStatusWidget
-                isAlert={readiness.state === 'nogo' || stressNotif.isCritical}
-                isUnknown={readiness.state === 'unknown'}
+                state={readiness.state}
+                label={readiness.label}
+                isDemo={readiness.isDemo}
+                stageBadge={readiness.stageBadge}
               />
               <ConnectionStatusWidget />
             </div>
           </header>
 
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-6xl w-full mx-auto space-y-4">
+          <main className="flex-1 p-2.5 sm:p-4 lg:py-2.5 lg:px-6 max-w-5xl w-full mx-auto space-y-2 sm:space-y-3">
             <SectionTabs activeTab={activeTab} onTabChange={setActiveTab} />
             {stressNotif.isCritical && (
               <StressAlertBanner
@@ -164,13 +182,14 @@ export default function Dashboard() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
                 transition={{ duration: 0.25, ease: 'easeOut' }}
-                className="space-y-6"
+                className="space-y-3 sm:space-y-4"
               >
                 <DashboardContent
                   activeTab={activeTab}
                   stressLevel={effectiveStress}
                   hrvValue={effectiveHrv}
                   isDemo={isDemoActive ? true : isDemo}
+                  readinessLabel={readiness.label}
                   showMeditation={showMeditation}
                   isFirstVisit={isFirstVisit}
                   isManager={isManager}
@@ -184,13 +203,13 @@ export default function Dashboard() {
             </AnimatePresence>
           </main>
 
-          <footer className="border-t bg-card/20 px-4 py-2">
-            <div className="max-w-6xl w-full mx-auto flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
+          <footer className="border-t bg-card/20 px-4 py-1.5 shrink-0">
+            <div className="max-w-5xl w-full mx-auto flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
               <span>Zero-Trust Privacy</span>
               <span>·</span>
               <ResearchValidationModal
                 triggerText="Validação de Pesquisa"
-                triggerClassName="text-[11px] text-muted-foreground hover:text-foreground underline-offset-4 hover:underline p-0 h-auto font-normal inline-flex items-center gap-1"
+                triggerClassName="text-[11px] text-muted-foreground hover:text-foreground underline-offset-4 hover:underline min-h-[44px] inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               />
             </div>
           </footer>
@@ -199,5 +218,6 @@ export default function Dashboard() {
 
       </div>
     </SidebarProvider>
+    </MotionConfig>
   );
 }

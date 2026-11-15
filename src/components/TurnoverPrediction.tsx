@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { UserMinus, Loader2, AlertTriangle, TrendingDown, DollarSign, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useConnectionMode } from '@/hooks/useConnectionMode';
 
 interface Employee {
   id: string;
@@ -33,6 +34,7 @@ interface TurnoverResult {
 export default function TurnoverPrediction() {
   const [result, setResult] = useState<TurnoverResult | null>(null);
   const [loading, setLoading] = useState(false);
+  const { isAutonomous } = useConnectionMode();
   const { toast } = useToast();
 
   const analyze = async () => {
@@ -95,6 +97,34 @@ export default function TurnoverPrediction() {
       const totalEmployees = employees.length;
       const companyHighPercent = Math.round(employees.reduce((a, e) => a + e.highPercent, 0) / totalEmployees);
 
+      if (isAutonomous) {
+        const localResult: TurnoverResult = {
+          overallRisk: companyHighPercent > 40 ? 'high' : companyHighPercent > 20 ? 'moderate' : 'low',
+          overallScore: companyHighPercent,
+          summary: 'Gerado localmente (regras fixas, sem IA em nuvem): Estimativa calculada via limites fixos de telemetria local.',
+          topRisks: ['Fadiga operacional identificada em registros locais'],
+          costEstimate: 'R$ 0 (modo autônomo offline)',
+          retentionActions: [
+            {
+              action: 'Gerado localmente (regras fixas, sem IA em nuvem): Aplicar contramedidas e pausas imediatas',
+              priority: 'high',
+              impact: 'Estabilização de prontidão',
+            },
+          ],
+          employees: employees.map((emp) => ({
+            id: emp.id,
+            riskScore: emp.highPercent,
+            riskLevel: emp.highPercent > 40 ? 'high' : emp.highPercent > 20 ? 'moderate' : 'low',
+            factors: ['Percentual elevado de estresse'],
+            recommendation: 'Gerado localmente (regras fixas, sem IA em nuvem): Intervalo operacional e protocolo 4-7-8',
+            signals: ['Variação de piscadas'],
+          })),
+        };
+        setResult(localResult);
+        toast({ title: 'Análise concluída', description: 'Predição de turnover gerada com sucesso.' });
+        return;
+      }
+
       const { data: aiResult, error } = await supabase.functions.invoke('ai-insights', {
         body: {
           type: 'turnover_prediction',
@@ -110,7 +140,7 @@ export default function TurnoverPrediction() {
       if (error) throw error;
       if (aiResult?.error) throw new Error(aiResult.error);
       setResult(aiResult.result);
-      toast({ title: 'Análise concluída! 📊', description: 'Predição de turnover gerada com sucesso.' });
+      toast({ title: 'Análise concluída', description: 'Predição de turnover gerada com sucesso.' });
     } catch (e: any) {
       toast({ title: 'Erro', description: e.message, variant: 'destructive' });
     } finally {

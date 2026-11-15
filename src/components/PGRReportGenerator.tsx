@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FileText, Download, Loader2, Shield, ClipboardList, Calendar, BarChart3 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useConnectionMode } from '@/hooks/useConnectionMode';
 
 interface PGRReport {
   titulo: string;
@@ -30,6 +31,7 @@ interface PGRReport {
 export default function PGRReportGenerator() {
   const [report, setReport] = useState<PGRReport | null>(null);
   const [loading, setLoading] = useState(false);
+  const { isAutonomous } = useConnectionMode();
   const { toast } = useToast();
 
   const generatePGR = async () => {
@@ -62,6 +64,66 @@ export default function PGRReportGenerator() {
 
       const period = `${thirtyDaysAgo.toLocaleDateString('pt-BR')} a ${new Date().toLocaleDateString('pt-BR')}`;
 
+      if (isAutonomous) {
+        const localReport: PGRReport = {
+          titulo: 'Relatório Técnico PGR (Regras Fixas Locais)',
+          versao: '1.0-autonomo',
+          identificacaoEmpresa: { nota: 'Modo Autônomo da Missão (sem uplink)' },
+          objetivos: ['Gerenciamento operacional contínuo de riscos psicossociais'],
+          fundamentacaoLegal: [
+            {
+              norma: 'NR-1',
+              dispositivo: 'Item 1.5.3',
+              descricao: 'Gerado localmente (regras fixas, sem IA em nuvem): Avaliação preliminar de risco ocupacional.',
+            },
+          ],
+          inventarioRiscos: {
+            fatoresIdentificados: [
+              {
+                fator: 'Carga Mental e Fadiga no Cockpit',
+                fonte: 'Telemetria Biocognitiva Local',
+                classificacao: riskLevel === 'high' ? 'grave' : riskLevel === 'moderate' ? 'moderado' : 'leve',
+                populacaoExposta: `${uniqueUsers.size} tripulante(s)`,
+                medidasControle: 'Gerado localmente (regras fixas, sem IA em nuvem): Protocolo de contramedidas e pausas 4-7-8',
+              },
+            ],
+          },
+          analiseQuantitativa: {
+            resumo: 'Gerado localmente (regras fixas, sem IA em nuvem): Análise quantitativa consolidada via regras locais.',
+            indicadores: [
+              { indicador: 'Total de Scans Locais', valor: String(total), interpretacao: 'Amostragem operacional' },
+              { indicador: 'HRV Médio', valor: `${avgHRV}ms`, interpretacao: 'Índice de tônus parassimpático' },
+            ],
+          },
+          planoAcao: [
+            {
+              acao: 'Gerado localmente (regras fixas, sem IA em nuvem): Manter hidratação e pausas guiadas',
+              responsavel: 'Operador de Voo',
+              prazo: 'Imediato',
+              prioridade: 'Alta',
+              indicadorEficacia: 'Estabilidade de HRV',
+            },
+          ],
+          cronograma: [
+            {
+              fase: 'Turno Atual',
+              periodo: '24 horas',
+              atividades: ['Registro sistemático de fadiga e contramedidas'],
+            },
+          ],
+          monitoramento: {
+            frequencia: 'Diária',
+            indicadores: ['BioScore', 'Percepção de Fadiga'],
+            responsavel: 'Oficial Médico / Sistema Autônomo',
+          },
+          declaracaoLGPD: 'Dados protegidos e tratados localmente na espaçonave.',
+          conclusao: 'Gerado localmente (regras fixas, sem IA em nuvem): Tripulação em condições de prontidão operacional monitorada.',
+        };
+        setReport(localReport);
+        toast({ title: 'PGR gerado', description: 'Documento técnico pronto para download.' });
+        return;
+      }
+
       const { data: result, error } = await supabase.functions.invoke('ai-insights', {
         body: {
           type: 'pgr_report',
@@ -84,7 +146,7 @@ export default function PGRReportGenerator() {
       if (error) throw error;
       if (result?.error) throw new Error(result.error);
       setReport(result.result);
-      toast({ title: 'PGR gerado! 📋', description: 'Documento técnico pronto para download.' });
+      toast({ title: 'PGR gerado', description: 'Documento técnico pronto para download.' });
     } catch (e: any) {
       toast({ title: 'Erro', description: e.message, variant: 'destructive' });
     } finally {

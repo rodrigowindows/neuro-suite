@@ -8,7 +8,7 @@ export interface WellnessBreakdown {
 }
 
 export interface WellnessData {
-  score: number;           // 0-100 overall
+  score: number | null;    // 0-100 overall; null while loading or after a failed fetch
   breakdown: WellnessBreakdown;
   label: string;
   color: string;
@@ -33,36 +33,12 @@ export function getColor(score: number): string {
   return 'hsl(var(--destructive))';
 }
 
-export function computeStressScore(scans: { stress_level: string }[]): number {
-  if (scans.length === 0) return 0;
-  const recent = scans.slice(0, 10); // last 10 scans
-  const points = recent.map(s => {
-    if (s.stress_level === 'low') return 40;
-    if (s.stress_level === 'moderate') return 24;
-    return 8; // high
-  });
-  return Math.round(points.reduce((a, b) => a + b, 0) / points.length);
-}
-
-export function computeConsistencyScore(streak: number, totalScans: number): number {
-  // Streak contributes up to 20 points (max at 14 days)
-  const streakPart = Math.min(streak / 14, 1) * 20;
-  // Total scans contribute up to 10 points (max at 30 scans)
-  const scansPart = Math.min(totalScans / 30, 1) * 10;
-  return Math.round(streakPart + scansPart);
-}
-
-export function computeHrvScore(scans: { hrv_value: number | null }[]): number {
-  const withHrv = scans.filter(s => s.hrv_value != null);
-  if (withHrv.length === 0) return 15; // neutral default
-  const avgHrv = withHrv.reduce((sum, s) => sum + (s.hrv_value ?? 0), 0) / withHrv.length;
-  // HRV 20-80ms range mapped to 0-30 points
-  return Math.round(Math.min(Math.max((avgHrv - 20) / 60, 0), 1) * 30);
-}
+export { computeStressScore, computeConsistencyScore, computeHrvScore } from '@/lib/wellnessScoring';
+import { computeStressScore, computeConsistencyScore, computeHrvScore } from '@/lib/wellnessScoring';
 
 export function useWellnessScore(): WellnessData {
   const [data, setData] = useState<Omit<WellnessData, 'refresh'>>({
-    score: 0,
+    score: null,
     breakdown: { stressScore: 0, consistencyScore: 0, hrvScore: 0 },
     label: 'Sem dados',
     color: 'hsl(var(--muted-foreground))',
@@ -135,7 +111,7 @@ export function useWellnessScore(): WellnessData {
       });
     } catch (err) {
       console.error('useWellnessScore error:', err);
-      setData(prev => ({ ...prev, loading: false }));
+      setData(prev => ({ ...prev, score: null, loading: false }));
     }
   }, []);
 

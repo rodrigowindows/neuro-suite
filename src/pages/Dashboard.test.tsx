@@ -1,9 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Dashboard from './Dashboard';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useWellnessScore } from '@/hooks/useWellnessScore';
 import { supabase } from '@/integrations/supabase/client';
+import { registerCountermeasureProtocol } from '@/lib/missionEvents';
+import { setStoredDemoStage, DemoStage } from '@/lib/demoScenario';
 
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: vi.fn(() => ({
@@ -35,7 +38,8 @@ vi.mock('@/hooks/useFeatureScores', () => ({
   })),
 }));
 
-vi.mock('@/hooks/useWellnessScore', () => ({
+vi.mock('@/hooks/useWellnessScore', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/hooks/useWellnessScore')>()),
   useWellnessScore: vi.fn(() => ({
     score: 85,
     loading: false,
@@ -81,7 +85,13 @@ vi.mock('@/integrations/supabase/client', () => ({
 describe('Dashboard Page - Cockpit UX e Navegação Reestruturada', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
+    sessionStorage.clear();
     window.history.pushState({}, '', '/dashboard');
+    vi.mocked(useWellnessScore).mockReturnValue({
+      score: 85,
+      loading: false,
+    } as any);
     vi.mocked(useUserRole).mockReturnValue({
       isManager: false,
       isAdmin: false,
@@ -126,7 +136,7 @@ describe('Dashboard Page - Cockpit UX e Navegação Reestruturada', () => {
 
     // Assert: Sub-navegação do Cockpit está presente via SectionTabs
     expect(screen.getByRole('tab', { name: /Painel/i })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /Avaliação de Turno/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /Avaliação de Prontidão/i })).toBeInTheDocument();
 
     // Assert: Semáforo de prontidão renderizado no Cockpit
     const statusBlock = await screen.findByRole('status');
@@ -203,7 +213,7 @@ describe('Dashboard Page - Cockpit UX e Navegação Reestruturada', () => {
     expect(missionLogBtn).toBeInTheDocument();
 
     // Assert: Itens antigos não estão mais presentes como botões diretos na sidebar
-    expect(screen.queryByRole('button', { name: /BioScore/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^BioScore$/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Disciplina de Missão/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Biometric Log/i })).not.toBeInTheDocument();
 
@@ -221,14 +231,14 @@ describe('Dashboard Page - Cockpit UX e Navegação Reestruturada', () => {
       </MemoryRouter>
     );
 
-    // Act: Clica na aba "Avaliação de Turno" dentro do Cockpit
-    const checkinTab = screen.getByRole('tab', { name: /Avaliação de Turno/i });
+    // Act: Clica na aba "Avaliação de Prontidão" dentro do Cockpit
+    const checkinTab = screen.getByRole('tab', { name: /Avaliação de Prontidão/i });
     fireEvent.click(checkinTab);
 
-    // Assert: Título do cabeçalho atualiza para Avaliação de Turno
+    // Assert: Título do cabeçalho atualiza para Avaliação de Prontidão
     await waitFor(() => {
       expect(
-        screen.getByRole('heading', { level: 1, name: /Avaliação de Turno/i })
+        screen.getByRole('heading', { level: 1, name: /Avaliação de Prontidão/i })
       ).toBeInTheDocument();
     });
 
@@ -359,7 +369,7 @@ describe('Dashboard Page - Cockpit UX e Navegação Reestruturada', () => {
 
     // Assert: Status inicial
     expect(
-      await screen.findByText(/Uplink da Terra: Ativo \(Latência: 1.2s\)/i)
+      await screen.findByText(/Uplink da Terra: Ativo/i)
     ).toBeInTheDocument();
 
     const toggleBtn = screen.getByTestId('connection-status-toggle');
@@ -370,7 +380,7 @@ describe('Dashboard Page - Cockpit UX e Navegação Reestruturada', () => {
 
     // Assert: Modo Autônomo ativo
     expect(
-      await screen.findByText(/Modo Autônomo Ativado \(Edge Computing\)/i)
+      await screen.findByText(/Modo Autônomo \(Edge Computing\) Ativado/i)
     ).toBeInTheDocument();
   });
 
@@ -427,12 +437,16 @@ describe('Dashboard Page - Cockpit UX e Navegação Reestruturada', () => {
     const missionWidget = screen.getByTestId('mission-status-widget');
     expect(missionWidget).toBeInTheDocument();
     await waitFor(() => {
-      expect(screen.getByText(/Status da Missão: Nominal/i)).toBeInTheDocument();
+      expect(screen.getByText(/Status da Missão: Atenção/i)).toBeInTheDocument();
     });
   });
 
-  it('12. quando sem scan (dados nulos), o header exibe "Status da Missão: Sem dados"', async () => {
+  it('12. quando sem scan (dados nulos), o header exibe "Status da Missão: Aguardando scan"', async () => {
     // Arrange: Simula retorno de dados nulos do Supabase para stress_scans
+    vi.mocked(useWellnessScore).mockReturnValue({
+      score: null,
+      loading: false,
+    } as any);
     vi.mocked(supabase.from).mockReturnValue({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -450,9 +464,15 @@ describe('Dashboard Page - Cockpit UX e Navegação Reestruturada', () => {
       </MemoryRouter>
     );
 
-    // Assert: O header exibe "Status da Missão: Sem dados"
+    // Assert: O header exibe "Status da Missão: Aguardando scan" e o cockpit exibe veredito AGUARDANDO SCAN
     expect(
-      await screen.findByText(/Status da Missão: Sem dados/i)
+      await screen.findByText(/Status da Missão: Aguardando scan/i)
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText('AGUARDANDO SCAN')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /Realizar BioScore|Iniciar Scan de Prontidão/i })
     ).toBeInTheDocument();
   });
 
@@ -482,9 +502,15 @@ describe('Dashboard Page - Cockpit UX e Navegação Reestruturada', () => {
       </MemoryRouter>
     );
 
-    // Assert: O header exibe "Atenção: Fadiga Detectada" alinhado ao cockpit
+    // Assert: O header exibe "Atenção: Fadiga Detectada" e o cockpit exibe NO-GO
     expect(
       await screen.findByText(/Atenção: Fadiga Detectada/i)
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText(/NO-GO - FADIGA \(NÃO APTO\)/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /Iniciar Protocolo 4-7-8/i })
     ).toBeInTheDocument();
   });
 
@@ -513,9 +539,221 @@ describe('Dashboard Page - Cockpit UX e Navegação Reestruturada', () => {
       await screen.findByText(/Atenção: Fadiga Detectada/i)
     ).toBeInTheDocument();
 
-    // Assert: Cockpit exibe NO-GO
+    // Assert: Cockpit exibe NO-GO e métricas fixas de demonstração
     expect(
       await screen.findByText(/NO-GO/i)
     ).toBeInTheDocument();
+    expect(screen.getByText('34')).toBeInTheDocument();
+    expect(screen.getByText('14')).toBeInTheDocument();
+    expect(screen.getByText('5.5h')).toBeInTheDocument();
+    expect(screen.getAllByText('DEMO').length).toBeGreaterThan(0);
+  });
+
+  it('15. sincroniza Header e Cockpit no estado GO: Header exibe "Status da Missão: Nominal" e Cockpit exibe "GO - APTO PARA O TURNO"', async () => {
+    // Arrange: Telemetria saudável no Supabase
+    vi.mocked(supabase.from).mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      gte: vi.fn().mockReturnThis(),
+      lte: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          stress_level: 'low',
+          hrv_value: 65,
+          blink_rate: 16,
+          horas_sono: 8,
+        },
+      }),
+    } as any);
+
+    // Act
+    render(
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <Dashboard />
+      </MemoryRouter>
+    );
+
+    // Assert: Header exibe Nominal e Cockpit exibe GO
+    expect(
+      await screen.findByText(/Status da Missão: Nominal/i)
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText(/GO - APTO PARA O TURNO/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /Iniciar Turno/i })
+    ).toBeInTheDocument();
+  });
+});
+
+describe('Dashboard Page - prefers-reduced-motion', () => {
+  const originalMatchMedia = window.matchMedia;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    sessionStorage.clear();
+    window.history.pushState({}, '', '/dashboard');
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: query === '(prefers-reduced-motion: reduce)',
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+    vi.mocked(useWellnessScore).mockReturnValue({ score: 85, loading: false } as any);
+    vi.mocked(useUserRole).mockReturnValue({ isManager: false, isAdmin: false, loading: false });
+    mockLastScan({ stress_level: 'moderate', hrv_value: 48 });
+  });
+
+  afterEach(() => {
+    window.matchMedia = originalMatchMedia;
+  });
+
+  it('renderiza o Cockpit sem erro com prefers-reduced-motion: reduce ativo', async () => {
+    // Arrange: matchMedia mockado (ver beforeEach) para prefers-reduced-motion: reduce
+
+    // Act
+    renderDashboardAt('/dashboard');
+
+    // Assert: o conteúdo do Cockpit permanece renderizado sob MotionConfig reducedMotion="user"
+    expect(
+      await screen.findByRole('heading', { level: 1, name: /^Cockpit$/i })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /Painel/i })).toBeInTheDocument();
+    expect(await screen.findByText(/ATENÇÃO - VIGILÂNCIA/i)).toBeInTheDocument();
+  });
+});
+
+type TelemetryRow = { stress_level: string; hrv_value: number } | null;
+
+function mockLastScan(row: TelemetryRow): void {
+  vi.mocked(supabase.from).mockReturnValue({
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    gte: vi.fn().mockReturnThis(),
+    lte: vi.fn().mockReturnThis(),
+    order: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnThis(),
+    maybeSingle: vi.fn().mockResolvedValue({ data: row }),
+  } as any);
+}
+
+function renderDashboardAt(path: string) {
+  return render(
+    <MemoryRouter initialEntries={[path]}>
+      <Dashboard />
+    </MemoryRouter>
+  );
+}
+
+describe('Dashboard Page - Header e Cockpit derivados do mesmo state', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    sessionStorage.clear();
+    window.history.pushState({}, '', '/dashboard');
+    vi.mocked(useWellnessScore).mockReturnValue({ score: 85, loading: false } as any);
+    vi.mocked(useUserRole).mockReturnValue({ isManager: false, isAdmin: false, loading: false });
+  });
+
+  it.each<{
+    caso: string;
+    row: TelemetryRow;
+    url: string;
+    demoStage?: DemoStage;
+    protocolo?: boolean;
+    header: string;
+    cockpit: RegExp;
+    badge?: string;
+  }>([
+    {
+      caso: 'unknown (sem scan)',
+      row: null,
+      url: '/dashboard',
+      header: 'Status da Missão: Aguardando scan',
+      cockpit: /^AGUARDANDO SCAN$/,
+    },
+    {
+      caso: 'caution (estresse moderado)',
+      row: { stress_level: 'moderate', hrv_value: 48 },
+      url: '/dashboard',
+      header: 'Status da Missão: Atenção',
+      cockpit: /^ATENÇÃO - VIGILÂNCIA$/,
+    },
+    {
+      caso: 'nogo (estresse alto)',
+      row: { stress_level: 'high', hrv_value: 40 },
+      url: '/dashboard',
+      header: 'Atenção: Fadiga Detectada',
+      cockpit: /^NO-GO - FADIGA \(NÃO APTO\)$/,
+    },
+    {
+      caso: 'go (telemetria saudável)',
+      row: { stress_level: 'low', hrv_value: 65 },
+      url: '/dashboard',
+      header: 'Status da Missão: Nominal',
+      cockpit: /^GO - APTO PARA O TURNO$/,
+    },
+    {
+      caso: 'nogo com protocolo registrado',
+      row: { stress_level: 'high', hrv_value: 40 },
+      url: '/dashboard',
+      protocolo: true,
+      header: 'Atenção: Fadiga Detectada',
+      cockpit: /^NO-GO - PROTOCOLO REGISTRADO$/,
+    },
+    {
+      caso: 'demo etapa 1',
+      row: null,
+      url: '/dashboard?demo=1',
+      demoStage: 1,
+      header: 'Atenção: Fadiga Detectada',
+      cockpit: /^NO-GO - FADIGA \(NÃO APTO\)$/,
+      badge: 'DEMO 1/3',
+    },
+    {
+      caso: 'demo etapa 2',
+      row: null,
+      url: '/dashboard?demo=1',
+      demoStage: 2,
+      header: 'Status da Missão: Atenção',
+      cockpit: /^ATENÇÃO - VIGILÂNCIA$/,
+      badge: 'DEMO 2/3',
+    },
+    {
+      caso: 'demo etapa 3',
+      row: null,
+      url: '/dashboard?demo=1',
+      demoStage: 3,
+      header: 'Status da Missão: Nominal',
+      cockpit: /^GO - APTO PARA O TURNO$/,
+      badge: 'DEMO 3/3',
+    },
+  ])('$caso: header e cockpit exibem o mesmo state', async ({ row, url, demoStage, protocolo, header, cockpit, badge }) => {
+    // Arrange
+    mockLastScan(row);
+    window.history.pushState({}, '', url);
+    if (demoStage) setStoredDemoStage(demoStage);
+    if (protocolo) registerCountermeasureProtocol();
+
+    // Act
+    renderDashboardAt(url);
+
+    // Assert
+    await waitFor(() => {
+      expect(screen.getByTestId('mission-status-text')).toHaveTextContent(header);
+    });
+    expect(await screen.findByText(cockpit)).toBeInTheDocument();
+    if (badge) {
+      expect(screen.getByTestId('mission-status-stage')).toHaveTextContent(badge);
+    } else {
+      expect(screen.queryByTestId('mission-status-stage')).not.toBeInTheDocument();
+    }
   });
 });

@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bell, AlertTriangle, CheckCircle, Settings, TrendingUp, Brain, Users, Loader2, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useConnectionMode } from '@/hooks/useConnectionMode';
 import { Badge } from '@/components/ui/badge';
 import { useStressData } from '@/hooks/useStressData';
 import type { AlertThresholds } from '@/types/stress';
@@ -35,6 +36,7 @@ export default function HRAlerts() {
   });
   const [showSettings, setShowSettings] = useState(false);
   const [proactiveLoading, setProactiveLoading] = useState(false);
+  const { isAutonomous } = useConnectionMode();
   const { toast } = useToast();
 
   const { stats, trend, consecutiveHighDays, loading } = useStressData({ days: 7 });
@@ -53,6 +55,21 @@ export default function HRAlerts() {
   const runProactiveAnalysis = async () => {
     setProactiveLoading(true);
     try {
+      if (isAutonomous) {
+        setProactiveAlerts([]);
+        setAiSummary('Gerado localmente (regras fixas, sem IA em nuvem): Análise proativa baseada em limites determinísticos de fadiga local.');
+        setTeamStats({
+          totalMonitored: alerts.length,
+          atRiskCount: alerts.filter(a => a.severity === 'high' || a.severity === 'critical').length,
+          totalScans: alerts.length,
+        });
+        toast({
+          title: 'Análise concluída',
+          description: 'Análise de alertas gerada localmente.',
+        });
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('proactive-alerts', {
         body: { action: 'analyze' },
       });

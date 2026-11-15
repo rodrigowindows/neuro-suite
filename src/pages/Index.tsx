@@ -33,7 +33,7 @@ const stats = [
 ];
 
 const modules = [
-  { icon: CalendarCheck, title: 'Avaliação de Turno', desc: 'Triagem operacional de 30s com IA que gera recomendações personalizadas baseadas na prontidão e carga cognitiva do astronauta.', tag: 'Tripulação' },
+  { icon: CalendarCheck, title: 'Avaliação de Prontidão', desc: 'Triagem operacional de 30s com IA que gera recomendações personalizadas baseadas na prontidão e carga cognitiva do astronauta.', tag: 'Tripulação' },
   { icon: Activity, title: 'BioScore', desc: 'Análise facial via câmeras da nave detecta fadiga e estima variabilidade cardíaca para calcular o estado cognitivo.', tag: 'Tripulação' },
   { icon: MessageCircle, title: 'AstroAssist IA', desc: 'Coach de prontidão operacional com suporte psicológico adaptado ao nível de estresse e isolamento da missão.', tag: 'Tripulação' },
   { icon: Trophy, title: 'Disciplina de Missão', desc: 'Ciclos concluídos, protocolos em dia e sequência de monitoramento que transformam o cuidado com a saúde em hábito motivador durante a missão.', tag: 'Tripulação' },

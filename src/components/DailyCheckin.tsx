@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useConnectionMode } from '@/hooks/useConnectionMode';
+import { enqueue } from '@/lib/offlineOutbox';
+import { appendEvent } from '@/lib/missionEvents';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -58,6 +61,7 @@ type SentimentAnalysis = {
 
 export default function DailyCheckin() {
   const { user } = useAuth();
+  const { isAutonomous } = useConnectionMode();
   const [step, setStep] = useState<Step>('mood');
   const [mood, setMood] = useState('');
   const [energy, setEnergy] = useState([3]);
@@ -98,6 +102,18 @@ export default function DailyCheckin() {
 
     setAnalyzingSentiment(true);
     try {
+      if (isAutonomous) {
+        const localSentiment: SentimentAnalysis = {
+          sentiment: energy[0] >= 4 ? 0.7 : energy[0] === 3 ? 0.1 : -0.5,
+          wellbeingLevel: energy[0] >= 4 ? 'high' : energy[0] === 3 ? 'medium' : energy[0] === 2 ? 'low' : 'critical',
+          concerns: energy[0] <= 2 ? ['Fadiga operacional'] : [],
+          message: 'Gerado localmente (regras fixas, sem IA em nuvem): Prontidão avaliada por regras locais.',
+          needsAttention: energy[0] <= 2,
+        };
+        setSentimentAnalysis(localSentiment);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('sentiment-analysis', {
         body: { note: text, mood, energyLevel: energy[0] },
       });
@@ -111,7 +127,7 @@ export default function DailyCheckin() {
     } finally {
       setAnalyzingSentiment(false);
     }
-  }, [mood, energy]);
+  }, [mood, energy, isAutonomous]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -136,6 +152,31 @@ export default function DailyCheckin() {
     if (!user) return;
     setLoading(true);
 
+    if (isAutonomous) {
+      const localAiMsg = 'Gerado localmente (regras fixas, sem IA em nuvem): Avaliação de prontidão registrada via regras operacionais.';
+      enqueue({
+        table: 'daily_checkins',
+        op: 'insert',
+        payload: {
+          user_id: user.id,
+          mood,
+          energy_level: energy[0],
+          note: note.trim() || null,
+          ai_response: localAiMsg,
+          created_at: new Date().toISOString(),
+        },
+      });
+      setAiResponse(localAiMsg);
+      setStep('done');
+      setLoading(false);
+      appendEvent({
+        type: 'assessment',
+        label: `Avaliação de Prontidão concluída (Energia: ${energy[0]}/5)`,
+      });
+      toast.success('Registro salvo localmente — será enviado ao restabelecer o uplink');
+      return;
+    }
+
     try {
       // Call AI for micro-response
       const { data: fnData, error: fnError } = await supabase.functions.invoke('daily-checkin', {
@@ -155,9 +196,13 @@ export default function DailyCheckin() {
 
       if (error) throw error;
 
-      setAiResponse(aiMsg || 'Avaliação de turno registrada. Continue com foco na operação.');
+      setAiResponse(aiMsg || 'Avaliação de prontidão registrada. Continue com foco na operação.');
       setStep('done');
-      toast.success('Avaliação de turno registrada!');
+      appendEvent({
+        type: 'assessment',
+        label: `Avaliação de Prontidão concluída (Energia: ${energy[0]}/5)`,
+      });
+      toast.success('Avaliação de prontidão registrada!');
     } catch (err: any) {
       console.error(err);
       // Save without AI response
@@ -167,9 +212,13 @@ export default function DailyCheckin() {
         energy_level: energy[0],
         note: note.trim() || null,
       });
-      setAiResponse('Avaliação de turno registrada. Continue com foco na operação.');
+      setAiResponse('Avaliação de prontidão registrada. Continue com foco na operação.');
       setStep('done');
-      toast.success('Avaliação de turno registrada!');
+      appendEvent({
+        type: 'assessment',
+        label: `Avaliação de Prontidão concluída (Energia: ${energy[0]}/5)`,
+      });
+      toast.success('Avaliação de prontidão registrada!');
     } finally {
       setLoading(false);
     }
@@ -203,7 +252,7 @@ export default function DailyCheckin() {
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-            Avaliação de Turno
+            Avaliação de Prontidão
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -222,7 +271,7 @@ export default function DailyCheckin() {
             </div>
           )}
           <Button variant="outline" size="sm" onClick={handleNewCheckin} className="w-full">
-            Nova avaliação de turno
+            Nova avaliação de prontidão
           </Button>
         </CardContent>
       </Card>
@@ -239,7 +288,7 @@ export default function DailyCheckin() {
           <div>
             <CardTitle className="flex items-center gap-2 text-base">
               <Sun className="h-5 w-5 text-amber-500" />
-              Avaliação de Turno
+              Avaliação de Prontidão
             </CardTitle>
             <CardDescription className="text-xs mt-0.5">
               <Clock className="inline h-3 w-3 mr-1" />
@@ -330,13 +379,13 @@ export default function DailyCheckin() {
               className="space-y-3"
             >
               <p className="text-sm font-medium text-foreground/80">
-                Quer compartilhar algo? <span className="text-muted-foreground font-normal">(opcional)</span>
+                Registre observações para o sistema <span className="text-muted-foreground font-normal">(Opcional)</span>
               </p>
               <div className="relative">
                 <Textarea
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  placeholder="Ex: Reunião pesada de manhã, mas café ajudou..."
+                  placeholder="Ex: sono fragmentado, carga alta na EVA simulada..."
                   className="resize-none text-sm"
                   rows={3}
                   maxLength={200}
@@ -432,7 +481,7 @@ export default function DailyCheckin() {
               </div>
               <div className="space-y-1">
                 <p className="font-semibold text-sm">
-                  Avaliação de turno registrada!
+                  Avaliação de prontidão registrada!
                 </p>
                 <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
                   <span className="font-medium text-foreground">

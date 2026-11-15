@@ -9,10 +9,11 @@ import {
 } from '@/components/ui/tooltip';
 import { Satellite, SatelliteDish } from 'lucide-react';
 import { toast } from 'sonner';
-import { useToast } from '@/hooks/use-toast';
+import { useConnectionMode } from '@/hooks/useConnectionMode';
+import { getOutboxCount, flush, OUTBOX_SYNC_EVENT } from '@/lib/offlineOutbox';
+import { supabase } from '@/integrations/supabase/client';
 
-const STORAGE_KEY = 'mars_mission_connection_mode';
-const SYNC_EVENT = 'mars-connection-sync';
+export { STORAGE_KEY, SYNC_EVENT } from '@/hooks/useConnectionMode';
 
 export interface ConnectionStatusWidgetProps {
   className?: string;
@@ -23,70 +24,52 @@ export default function ConnectionStatusWidget({
   className = '',
   showSubtext = true,
 }: ConnectionStatusWidgetProps) {
-  const { toast: uiToast } = useToast();
-  const [isAutonomous, setIsAutonomous] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem(STORAGE_KEY) === 'autonomous';
-    }
-    return false;
-  });
+  const { isAutonomous, toggleConnection: rawToggle } = useConnectionMode();
+  const [queueCount, setQueueCount] = useState<number>(() => getOutboxCount());
 
   useEffect(() => {
-    const handleSync = (e: Event) => {
-      const customEvent = e as CustomEvent<{ isAutonomous: boolean }>;
-      if (customEvent.detail && typeof customEvent.detail.isAutonomous === 'boolean') {
-        setIsAutonomous(customEvent.detail.isAutonomous);
+    const handleOutboxSync = (e: Event) => {
+      const customEvent = e as CustomEvent<{ count: number }>;
+      if (customEvent.detail && typeof customEvent.detail.count === 'number') {
+        setQueueCount(customEvent.detail.count);
+      } else {
+        setQueueCount(getOutboxCount());
       }
     };
 
-    window.addEventListener(SYNC_EVENT, handleSync);
+    window.addEventListener(OUTBOX_SYNC_EVENT, handleOutboxSync);
     return () => {
-      window.removeEventListener(SYNC_EVENT, handleSync);
+      window.removeEventListener(OUTBOX_SYNC_EVENT, handleOutboxSync);
     };
   }, []);
 
   const toggleConnection = useCallback(() => {
-    setIsAutonomous((prev) => {
-      const nextState = !prev;
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(STORAGE_KEY, nextState ? 'autonomous' : 'online');
-        window.dispatchEvent(
-          new CustomEvent(SYNC_EVENT, { detail: { isAutonomous: nextState } })
-        );
-      }
+    const next = rawToggle();
 
-      if (nextState) {
-        // Estado 2: Simulação de Queda / Espaço Profundo
-        const msg =
-          'Comunicação com a Terra interrompida. Sistema alternou para processamento autônomo local.';
-        try {
-          toast.info(msg);
-        } catch {
-          // fallback
-        }
-        try {
-          uiToast({ description: msg });
-        } catch {
-          // fallback
-        }
+    if (next) {
+      toast.info('Conexão com a Terra perdida. Processamento local assumido.');
+    } else {
+      const pendingCount = getOutboxCount();
+      if (pendingCount === 0) {
+        toast.success('Uplink restabelecido. Sincronização retomada.');
       } else {
-        // Estado 1: Online restabelecido
-        const msg = 'Uplink com a Terra restabelecido. Sincronização em nuvem operacional.';
-        try {
-          toast.success(msg);
-        } catch {
-          // fallback
-        }
-        try {
-          uiToast({ description: msg });
-        } catch {
-          // fallback
-        }
+        flush(supabase).then((res) => {
+          if (res.flushed > 0) {
+            toast.success(
+              `Uplink restabelecido. ${res.flushed} ${
+                res.flushed === 1 ? 'registro sincronizado' : 'registros sincronizados'
+              }.`
+            );
+          } else {
+            toast.success('Uplink restabelecido. Sincronização retomada.');
+          }
+        }).catch((err) => {
+          console.error('Erro ao sincronizar outbox:', err);
+          toast.success('Uplink restabelecido. Sincronização retomada.');
+        });
       }
-
-      return nextState;
-    });
-  }, [uiToast]);
+    }
+  }, [rawToggle]);
 
   return (
     <TooltipProvider delayDuration={150}>
@@ -95,40 +78,51 @@ export default function ConnectionStatusWidget({
         data-testid="mars-connection-widget"
       >
         <div className="flex flex-col items-end text-right min-w-0">
-          {/* Badge de Status */}
+          {/* Badge de Status e Chip de Fila */}
           {isAutonomous ? (
-            <Badge
-              variant="outline"
-              data-testid="connection-status-badge"
-              className="border-amber-500/40 bg-gradient-to-r from-amber-500/15 to-sky-500/15 text-amber-500 dark:text-amber-300 font-mono text-[11px] sm:text-xs font-semibold px-2 py-0.5 gap-1.5 shadow-sm transition-all"
-            >
-              <span className="relative flex h-2 w-2 shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
-              </span>
-              <span className="truncate">Modo Autônomo Ativado (Edge Computing)</span>
-            </Badge>
+            <div className="flex items-center gap-1.5 justify-end flex-wrap">
+              <Badge
+                variant="outline"
+                data-testid="connection-status-badge"
+                aria-live="polite"
+                className="border-amber-500/40 bg-gradient-to-r from-amber-500/15 to-sky-500/15 text-amber-700 dark:text-amber-300 font-mono text-[11px] sm:text-xs font-semibold px-2 py-0.5 gap-1.5 shadow-sm transition-all"
+              >
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="motion-safe:animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+                </span>
+                <span className="truncate max-w-[140px] sm:max-w-none">Modo Autônomo (Edge Computing) Ativado</span>
+              </Badge>
+              <Badge
+                variant="outline"
+                data-testid="offline-outbox-chip"
+                className="font-mono text-[10px] px-1.5 py-0.5 border-amber-500/40 text-amber-700 dark:text-amber-300 bg-amber-500/15 shrink-0"
+              >
+                {queueCount} {queueCount === 1 ? 'registro em fila' : 'registros em fila'}
+              </Badge>
+            </div>
           ) : (
             <Badge
               variant="outline"
               data-testid="connection-status-badge"
+              aria-live="polite"
               className="border-emerald-500/30 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-mono text-[11px] sm:text-xs font-semibold px-2 py-0.5 gap-1.5 shadow-sm transition-all"
             >
               <span className="relative flex h-2 w-2 shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="motion-safe:animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
               </span>
-              <span className="truncate">Uplink da Terra: Ativo (Latência: 1.2s)</span>
+              <span className="truncate max-w-[140px] sm:max-w-none">Uplink da Terra: Ativo</span>
             </Badge>
           )}
 
-          {/* Subtexto Informativo */}
+          {/* Subtexto Informativo legível no mobile */}
           {showSubtext && (
             <span
               data-testid="connection-status-subtext"
-              className={`text-[10px] hidden md:block max-w-[360px] truncate leading-tight mt-0.5 transition-colors ${
+              className={`text-[10px] block max-w-[160px] sm:max-w-[360px] truncate leading-tight mt-0.5 transition-colors ${
                 isAutonomous
-                  ? 'text-amber-600/90 dark:text-amber-400/90 font-medium'
+                  ? 'text-amber-700/90 dark:text-amber-400/90 font-medium'
                   : 'text-muted-foreground'
               }`}
               title={
@@ -157,22 +151,22 @@ export default function ConnectionStatusWidget({
                   ? 'Reconectar uplink com a Terra'
                   : 'Simular interrupção de comunicação (Modo Autônomo)'
               }
-              className={`h-8 px-2 sm:px-2.5 gap-1.5 border transition-all shrink-0 ${
+              className={`min-h-[44px] min-w-[44px] h-11 px-2.5 sm:px-3 gap-1.5 border transition-all shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
                 isAutonomous
-                  ? 'border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 dark:text-amber-300'
+                  ? 'border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300'
                   : 'border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
               }`}
             >
               {isAutonomous ? (
                 <>
-                  <SatelliteDish className="h-3.5 w-3.5 animate-pulse text-amber-500 dark:text-amber-300" />
+                  <SatelliteDish className="h-4 w-4 text-amber-700 dark:text-amber-300" />
                   <span className="text-[11px] font-mono font-medium hidden sm:inline">
-                    Simulação Ativa
+                    Reconectar
                   </span>
                 </>
               ) : (
                 <>
-                  <Satellite className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <Satellite className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                   <span className="text-[11px] font-mono font-medium hidden sm:inline">
                     Simular Queda
                   </span>

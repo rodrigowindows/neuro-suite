@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { FileText, Download, Shield, AlertTriangle, CheckCircle, Sparkles, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useConnectionMode } from '@/hooks/useConnectionMode';
 import ExportPDFButton from './ExportPDFButton';
 import NR1ComplianceScoreCard from './NR1ComplianceScoreCard';
 import PGRReportGenerator from './PGRReportGenerator';
@@ -35,6 +36,7 @@ export default function NR1Report() {
   const [generating, setGenerating] = useState(false);
   const [aiInsights, setAiInsights] = useState<NR1AIInsights | null>(null);
   const [loadingAI, setLoadingAI] = useState(false);
+  const { isAutonomous } = useConnectionMode();
   useEffect(() => {
     loadReportData();
   }, []);
@@ -331,6 +333,17 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
             onClick={async () => {
               setLoadingAI(true);
               try {
+                if (isAutonomous) {
+                  setAiInsights({
+                    riskClassification: 'Risco Operacional Monitorado',
+                    legalAnalysis: 'Gerado localmente (regras fixas, sem IA em nuvem): Análise de conformidade preliminar calculada por regras fixas locais da nave.',
+                    requiredActions: ['Manter registro sistemático de telemetrias', 'Aplicar pausas ativas regulares'],
+                    complianceGaps: [],
+                    executiveText: 'Gerado localmente (regras fixas, sem IA em nuvem): Indicadores em conformidade com as diretrizes operacionais locais.',
+                  });
+                  return;
+                }
+
                 const { data, error } = await supabase.functions.invoke('ai-insights', {
                   body: {
                     type: 'nr1_insights',
@@ -359,7 +372,7 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
             className="w-full gap-2"
           >
             {loadingAI ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4 text-accent" />}
-            {loadingAI ? 'Gerando análise jurídica...' : '✨ Gerar Insights Segurança de Missão com IA'}
+            {loadingAI ? 'Gerando análise jurídica...' : 'Gerar Insights Segurança de Missão com IA'}
           </Button>
 
           {aiInsights && (

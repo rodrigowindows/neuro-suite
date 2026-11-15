@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
+import { useConnectionMode } from '@/hooks/useConnectionMode';
+import { enqueue } from '@/lib/offlineOutbox';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,6 +34,7 @@ const passwordSchema = z.object({
 export default function Profile() {
   const { user, loading, signOut } = useAuth();
   const { profile, loading: profileLoading } = useUserProfile();
+  const { isAutonomous } = useConnectionMode();
   const navigate = useNavigate();
 
   const [fullName, setFullName] = useState('');
@@ -60,6 +63,20 @@ export default function Profile() {
       const validated = profileSchema.parse({ fullName, preferredName });
       setIsSaving(true);
 
+      if (isAutonomous) {
+        enqueue({
+          table: 'profiles',
+          op: 'update',
+          filter: { column: 'id', value: user!.id },
+          payload: {
+            full_name: validated.fullName || null,
+            preferred_name: validated.preferredName || null,
+          },
+        });
+        toast.success('Registro salvo localmente — será enviado ao restabelecer o uplink');
+        return;
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -69,7 +86,7 @@ export default function Profile() {
         .eq('id', user!.id);
 
       if (error) throw error;
-      toast.success('Perfil atualizado com sucesso! ✅');
+      toast.success('Perfil atualizado com sucesso.');
     } catch (err: any) {
       if (err.errors) {
         toast.error(err.errors[0].message);

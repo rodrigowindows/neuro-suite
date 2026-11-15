@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import { Trophy, Flame, Award, Star, Zap, Target } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useConnectionMode } from '@/hooks/useConnectionMode';
+import { enqueue } from '@/lib/offlineOutbox';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge as BadgeUI } from '@/components/ui/badge';
 import type { AchievementBadge } from '@/types/stress';
@@ -39,6 +42,7 @@ function renderBadgeIcon(icon: string, id: string) {
 
 export default function Gamification({ stressLevel, hrvValue }: GamificationProps) {
   const { user } = useAuth();
+  const { isAutonomous } = useConnectionMode();
   const [currentStreak, setCurrentStreak] = useState(0);
   const [longestStreak, setLongestStreak] = useState(0);
   const [badges, setBadges] = useState<AchievementBadge[]>([]);
@@ -133,6 +137,46 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
       }
 
       const badgesJson = JSON.parse(JSON.stringify(newBadges));
+
+      if (isAutonomous) {
+        if (currentProgress?.id) {
+          enqueue({
+            table: 'user_progress',
+            op: 'update',
+            filter: { column: 'id', value: currentProgress.id },
+            payload: {
+              current_streak: newStreak,
+              longest_streak: newLongestStreak,
+              last_scan_date: today,
+              badges: badgesJson,
+              total_scans: newTotalScans,
+            },
+          });
+        } else {
+          enqueue({
+            table: 'user_progress',
+            op: 'insert',
+            payload: {
+              user_id: user.id,
+              current_streak: newStreak,
+              longest_streak: newLongestStreak,
+              last_scan_date: today,
+              badges: badgesJson,
+              total_scans: newTotalScans,
+            },
+          });
+        }
+        setCurrentStreak(newStreak);
+        setLongestStreak(newLongestStreak);
+        setBadges(newBadges);
+        setTotalScans(newTotalScans);
+        if (earnedNewBadge) {
+          setShowNewBadge(true);
+          setTimeout(() => setShowNewBadge(false), 5000);
+        }
+        toast.success('Registro salvo localmente — será enviado ao restabelecer o uplink');
+        return;
+      }
 
       const { error } = currentProgress?.id
         ? await supabase.from('user_progress').update({

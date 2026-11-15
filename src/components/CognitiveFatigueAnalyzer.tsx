@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Brain, AlertTriangle, CheckCircle, Loader2, Eye, Zap, Database, Heart } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useConnectionMode } from '@/hooks/useConnectionMode';
 import ResearchValidationModal from '@/components/ResearchValidationModal';
 
 interface FatigueAnalysis {
@@ -36,6 +37,7 @@ const levelConfig: Record<string, { color: string; icon: any; label: string }> =
 
 export default function CognitiveFatigueAnalyzer({ stressLevel }: CognitiveFatigueAnalyzerProps) {
   const { toast } = useToast();
+  const { isAutonomous } = useConnectionMode();
   const [text, setText] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<FatigueAnalysis | null>(null);
@@ -48,6 +50,30 @@ export default function CognitiveFatigueAnalyzer({ stressLevel }: CognitiveFatig
 
     setIsAnalyzing(true);
     try {
+      if (isAutonomous) {
+        const localScore = stressLevel === 'high' ? 78 : stressLevel === 'moderate' ? 48 : 22;
+        const localLevel = stressLevel === 'high' ? 'high' : stressLevel === 'moderate' ? 'moderate' : 'low';
+        const localData: FatigueAnalysis = {
+          fatigueLevel: localLevel,
+          fatigueScore: localScore,
+          indicators: ['Cadência textual avaliada por regras heurísticas locais'],
+          cognitiveAreas: {
+            attention: stressLevel === 'high' ? 55 : 85,
+            memory: stressLevel === 'high' ? 60 : 90,
+            processing: stressLevel === 'high' ? 50 : 85,
+            emotional: stressLevel === 'high' ? 50 : 80,
+          },
+          recommendation: 'Gerado localmente (regras fixas, sem IA em nuvem): Mantenha hidratação e pausas operacionais programadas.',
+          alert: stressLevel === 'high',
+          alertMessage: stressLevel === 'high' ? 'Fadiga cognitiva elevada detectada por regras locais da nave.' : undefined,
+        };
+        setAnalysis(localData);
+        if (localData.alert) {
+          toast({ title: 'Alerta de Fadiga', description: localData.alertMessage || 'Fadiga cognitiva detectada.', variant: 'destructive' });
+        }
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('cognitive-fatigue', {
         body: { text, stressLevel },
       });

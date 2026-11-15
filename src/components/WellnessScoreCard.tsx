@@ -145,7 +145,7 @@ export default function WellnessScoreCard({ compact = false }: WellnessScoreCard
         <div className={compact ? 'flex items-center gap-4' : 'flex flex-col sm:flex-row items-center gap-6'}>
           {/* Gauge */}
           <div className="flex-shrink-0">
-            <RadialGauge score={score} color={color} size={compact ? 100 : 140} />
+            <RadialGauge score={score ?? 0} color={color} size={compact ? 100 : 140} />
           </div>
 
           {/* Details */}

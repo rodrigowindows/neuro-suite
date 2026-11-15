@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, act, within } from '@testing-library/react';
+import { toast } from 'sonner';
+import { hasCountermeasureProtocolToday } from '@/lib/missionEvents';
 import NeuroCoach from './index';
 
 describe('AstroAssist - Prescrição de Contramedidas', () => {
@@ -363,6 +365,57 @@ describe('AstroAssist - Prescrição de Contramedidas', () => {
       expect(screen.getByTestId('breathing-circle')).toBeInTheDocument();
       expect(screen.getByText('Inspire pelo nariz (4s)')).toBeInTheDocument();
       expect(screen.getByTestId('overlay-countdown')).toHaveTextContent('3:00');
+    });
+  });
+
+  describe('6. Registro de Execução de Contramedidas & Barramento de Eventos', () => {
+    it('bloqueia o registro com mensagem de erro quando 0 contramedidas estiverem marcadas', () => {
+      // Arrange
+      const errorSpy = vi.spyOn(toast, 'error').mockImplementation(() => '' as any);
+      const successSpy = vi.spyOn(toast, 'success').mockImplementation(() => '' as any);
+      render(<NeuroCoach stressLevel="high" />);
+
+      const registerBtn = screen.getByRole('button', {
+        name: /Registrar Execução de Contramedidas/i,
+      });
+      expect(registerBtn).toBeInTheDocument();
+
+      // Act: Clica no botão sem marcar nenhuma contramedida
+      fireEvent.click(registerBtn);
+
+      // Assert: Bloqueia e emite toast de erro exato
+      expect(errorSpy).toHaveBeenCalledWith('Marque ao menos uma contramedida executada.');
+      expect(successSpy).not.toHaveBeenCalled();
+      expect(hasCountermeasureProtocolToday()).toBe(false);
+
+      errorSpy.mockRestore();
+      successSpy.mockRestore();
+    });
+
+    it('registra com sucesso, emite o toast exato "Protocolo registrado. Status atualizado." e persiste no barramento', () => {
+      // Arrange
+      const errorSpy = vi.spyOn(toast, 'error').mockImplementation(() => '' as any);
+      const successSpy = vi.spyOn(toast, 'success').mockImplementation(() => '' as any);
+      render(<NeuroCoach stressLevel="high" />);
+
+      const checkbox1 = screen.getByRole('checkbox', {
+        name: /Ação 1 \(Respiração\): Executar ciclo 4-7-8 por 3 minutos\./i,
+      });
+      const registerBtn = screen.getByRole('button', {
+        name: /Registrar Execução de Contramedidas/i,
+      });
+
+      // Act: Marca ao menos uma contramedida e registra
+      fireEvent.click(checkbox1);
+      fireEvent.click(registerBtn);
+
+      // Assert: Toast com texto exato e persistência confirmada
+      expect(successSpy).toHaveBeenCalledWith('Protocolo registrado. Status atualizado.');
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(hasCountermeasureProtocolToday()).toBe(true);
+
+      errorSpy.mockRestore();
+      successSpy.mockRestore();
     });
   });
 });

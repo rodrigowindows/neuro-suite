@@ -25,7 +25,7 @@
 
     /* Neutrals */
     --muted: 210 15% 94%;
-    --muted-foreground: 215 12% 48%;
+    --muted-foreground: 215 16% 38%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 220 20% 12%;
@@ -90,7 +90,7 @@
     --popover-foreground: 210 15% 92%;
 
     --muted: 220 18% 16%;
-    --muted-foreground: 210 10% 55%;
+    --muted-foreground: 210 12% 65%;
 
     --border: 220 18% 18%;
     --input: 220 18% 18%;
@@ -150,5 +150,16 @@
   .text-gradient {
     @apply bg-clip-text text-transparent;
     background-image: var(--gradient-accent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

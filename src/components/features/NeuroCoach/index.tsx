@@ -7,6 +7,8 @@ import { Progress } from '@/components/ui/progress';
 import { AlertTriangle, Wind, Droplets, Moon, CheckCircle2, RotateCcw, ShieldCheck, Clock, Download, X, Sparkles, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { registerCountermeasureProtocol, appendEvent } from '@/lib/missionEvents';
+import { useConnectionMode } from '@/hooks/useConnectionMode';
 
 interface NeuroCoachProps {
   stressLevel?: string;
@@ -25,6 +27,7 @@ export default function NeuroCoach({
   onNavigateTab,
   autoStartBreathing = false,
 }: NeuroCoachProps) {
+  const { isAutonomous } = useConnectionMode();
   const todayKey = `crewvitals_countermeasures_${new Date().toISOString().split('T')[0]}`;
 
   const [countermeasures, setCountermeasures] = useState<CountermeasureState>(() => {
@@ -140,7 +143,24 @@ export default function NeuroCoach({
   }
 
   const handleRegister = () => {
-    toast.success('Contramedidas registradas com sucesso no diário de bordo!');
+    if (completedCount === 0) {
+      toast.error('Marque ao menos uma contramedida executada.');
+      return;
+    }
+    registerCountermeasureProtocol(countermeasures);
+
+    const activeItems: string[] = [];
+    if (countermeasures.breathing) activeItems.push('Respiração 4-7-8');
+    if (countermeasures.hydration) activeItems.push('Hidratação');
+    if (countermeasures.rest) activeItems.push('Descanso');
+    const detail = activeItems.length > 0 ? activeItems.join(', ') : 'Protocolo 4-7-8';
+
+    appendEvent({
+      type: 'protocol',
+      label: `Contramedida registrada (${detail})`,
+    });
+
+    toast.success('Protocolo registrado. Status atualizado.');
   };
 
   const handleReset = () => {
@@ -192,9 +212,16 @@ Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas)
                 Sistema de Suporte à Decisão (DSS) para Mitigação de Carga e Fadiga Operacional
               </CardDescription>
             </div>
-            <Badge variant="outline" className="text-xs px-2.5 py-1">
-              Diretrizes NASA HRP
-            </Badge>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant="outline" className="text-xs px-2.5 py-1">
+                Diretrizes NASA HRP
+              </Badge>
+              {isAutonomous && (
+                <Badge variant="secondary" className="text-xs px-2.5 py-1 text-amber-600 dark:text-amber-300 border-amber-500/30">
+                  Gerado localmente (regras fixas, sem IA em nuvem)
+                </Badge>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">

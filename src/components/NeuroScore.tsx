@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Scan, Activity, CheckCircle, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useConnectionMode } from '@/hooks/useConnectionMode';
+import { enqueue } from '@/lib/offlineOutbox';
 import WebcamCapture from './WebcamCapture';
 import PostScanActionPlan from './PostScanActionPlan';
 import StressTrendChart from './StressTrendChart';
@@ -27,6 +29,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
     message: string;
   } | null>(null);
   const [userName, setUserName] = useState<string>('');
+  const { isAutonomous } = useConnectionMode();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -122,12 +125,26 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await supabase.from('stress_scans').insert({
-          user_id: user.id,
-          blink_rate: blinkRate,
-          stress_level: stressLevel,
-          hrv_value: hrvValue || null,
-        });
+        if (isAutonomous) {
+          enqueue({
+            table: 'stress_scans',
+            op: 'insert',
+            payload: {
+              user_id: user.id,
+              blink_rate: blinkRate,
+              stress_level: stressLevel,
+              hrv_value: hrvValue || null,
+              created_at: new Date().toISOString(),
+            },
+          });
+        } else {
+          await supabase.from('stress_scans').insert({
+            user_id: user.id,
+            blink_rate: blinkRate,
+            stress_level: stressLevel,
+            hrv_value: hrvValue || null,
+          });
+        }
       }
     } catch (error) {
       console.error('Erro ao salvar scan:', error);
@@ -135,10 +152,17 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
 
     onScoreComplete(stressLevel, hrvValue);
 
-    toast({
-      title: 'Scan completo!',
-      description: `Nível de estresse: ${stressLevel === 'low' ? 'Baixo' : stressLevel === 'moderate' ? 'Moderado' : 'Alto'}${hrvValue ? ` • HRV: ${hrvValue}ms` : ''}`,
-    });
+    if (isAutonomous) {
+      toast({
+        title: 'Registro salvo localmente — será enviado ao restabelecer o uplink',
+        description: `Nível de estresse: ${stressLevel === 'low' ? 'Baixo' : stressLevel === 'moderate' ? 'Moderado' : 'Alto'}${hrvValue ? ` • HRV: ${hrvValue}ms` : ''}`,
+      });
+    } else {
+      toast({
+        title: 'Scan completo!',
+        description: `Nível de estresse: ${stressLevel === 'low' ? 'Baixo' : stressLevel === 'moderate' ? 'Moderado' : 'Alto'}${hrvValue ? ` • HRV: ${hrvValue}ms` : ''}`,
+      });
+    }
   };
 
   const handleScanComplete = () => {

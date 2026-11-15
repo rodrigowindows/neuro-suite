@@ -35,6 +35,9 @@ interface DashboardContentProps {
   activeTab: string;
   stressLevel: string;
   hrvValue?: number;
+  blinkRate?: number;
+  bioScore?: number;
+  horasSono?: number | null;
   showMeditation: boolean;
   isFirstVisit: boolean;
   isManager: boolean;
@@ -44,12 +47,16 @@ interface DashboardContentProps {
   onStartProtocol?: () => void;
   autoStartBreathing?: boolean;
   isDemo?: boolean;
+  readinessLabel?: string;
 }
 
 export default function DashboardContent({
   activeTab,
   stressLevel,
   hrvValue,
+  blinkRate,
+  bioScore,
+  horasSono,
   showMeditation,
   isFirstVisit,
   isManager,
@@ -59,6 +66,7 @@ export default function DashboardContent({
   onStartProtocol,
   autoStartBreathing,
   isDemo,
+  readinessLabel,
 }: DashboardContentProps) {
   const renderContent = () => {
     switch (activeTab) {
@@ -69,6 +77,9 @@ export default function DashboardContent({
             onStartProtocol={onStartProtocol}
             stressLevel={stressLevel}
             hrvValue={hrvValue}
+            blinkRate={blinkRate}
+            bioScore={bioScore}
+            horasSono={horasSono}
             isDemo={isDemo}
           />
         );
@@ -116,8 +127,18 @@ export default function DashboardContent({
         return <CognitiveFatigueAnalyzer stressLevel={stressLevel || undefined} />;
       case 'smart-breaks':
         return <SmartBreakAssistant stressLevel={stressLevel || undefined} hrvValue={hrvValue} />;
-      case 'mission-log':
-        return <MissionLog />;
+      case 'mission-log': {
+        const isDemoActive = Boolean(isDemo && !stressLevel && hrvValue === undefined);
+        const effectiveStress = isDemoActive ? 'high' : stressLevel;
+        const effectiveHrv = isDemoActive ? 28 : hrvValue;
+        return (
+          <MissionLog
+            cockpitVerdict={readinessLabel}
+            stressLevel={effectiveStress}
+            hrvValue={effectiveHrv}
+          />
+        );
+      }
       case 'ai-insights':
         return isManager ? <AIInsightsDashboard /> : null;
       case 'alerts':

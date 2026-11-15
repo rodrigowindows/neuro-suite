@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Coffee, Wind, Dumbbell, Eye, Users, Loader2, Clock, AlertTriangle, Timer } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useConnectionMode } from '@/hooks/useConnectionMode';
 
 interface BreakSuggestion {
   name: string;
@@ -46,6 +47,7 @@ interface SmartBreakAssistantProps {
 
 export default function SmartBreakAssistant({ stressLevel, hrvValue }: SmartBreakAssistantProps) {
   const { toast } = useToast();
+  const { isAutonomous } = useConnectionMode();
   const [mood, setMood] = useState('');
   const [energy, setEnergy] = useState('');
   const [lastBreak, setLastBreak] = useState('');
@@ -59,6 +61,36 @@ export default function SmartBreakAssistant({ stressLevel, hrvValue }: SmartBrea
   const getSuggestions = async () => {
     setIsLoading(true);
     try {
+      if (isAutonomous) {
+        const localResponse: BreakResponse = {
+          currentAssessment: 'Gerado localmente (regras fixas, sem IA em nuvem): Avaliação operacional baseada no nível de estresse atual.',
+          urgency: stressLevel === 'high' ? 'high' : stressLevel === 'moderate' ? 'medium' : 'low',
+          suggestions: [
+            {
+              name: 'Ciclo 4-7-8 Guiado',
+              duration: '3 min',
+              type: 'breathing',
+              instructions: [
+                'Inspire suavemente pelo nariz por 4 segundos',
+                'Retenha o ar nos pulmões por 7 segundos',
+                'Expire lentamente pela boca por 8 segundos',
+              ],
+              science: 'Gerado localmente (regras fixas, sem IA em nuvem): Estimulação parassimpática vagal.',
+            },
+            {
+              name: 'Pausa Ergonômica e Hidratação',
+              duration: '2 min',
+              type: 'physical',
+              instructions: ['Beba 250ml de água', 'Alongue pescoço e trapézios'],
+              science: 'Gerado localmente (regras fixas, sem IA em nuvem): Alívio de tensão cervical.',
+            },
+          ],
+          quickTip: 'Gerado localmente (regras fixas, sem IA em nuvem): Descanse a visão focando um ponto distante.',
+        };
+        setResponse(localResponse);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('smart-breaks', {
         body: {
           stressLevel,

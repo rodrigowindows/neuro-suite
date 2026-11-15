@@ -143,7 +143,7 @@ Dê um feedback construtivo baseado em PNL: o que foi bem, o que melhorar, e uma
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Brain className="h-5 w-5 text-primary" />
-          Avaliação de Turno de Reunião com IA
+          Avaliação de Prontidão de Reunião com IA
         </CardTitle>
         <CardDescription>Feedback baseado em PNL antes e depois das reuniões</CardDescription>
       </CardHeader>

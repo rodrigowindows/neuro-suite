@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useConnectionMode } from '@/hooks/useConnectionMode';
 
 interface ActionTask {
   time: string;
@@ -28,10 +29,38 @@ interface PostScanActionPlanProps {
 export default function PostScanActionPlan({ stressLevel, blinkRate, hrvValue }: PostScanActionPlanProps) {
   const [plan, setPlan] = useState<ActionPlan | null>(null);
   const [loading, setLoading] = useState(false);
+  const { isAutonomous } = useConnectionMode();
 
   const generatePlan = async () => {
     setLoading(true);
     try {
+      if (isAutonomous) {
+        const localPlan: ActionPlan = {
+          title: 'Plano Operacional Autônomo',
+          urgency: stressLevel === 'high' ? 'high' : stressLevel === 'moderate' ? 'medium' : 'low',
+          tasks: [
+            {
+              time: 'Imediato',
+              action: stressLevel === 'high'
+                ? 'Executar ciclo de respiração 4-7-8 por 3 minutos e hidratação com 500ml de água.'
+                : 'Manter hidratação nominal e postura de foco no cockpit.',
+              duration: '3 min',
+              science: 'Gerado localmente (regras fixas, sem IA em nuvem)',
+            },
+            {
+              time: 'Próxima Hora',
+              action: 'Pausa visual de 20 segundos e alinhamento de prioridades operacionais.',
+              duration: '2 min',
+              science: 'Gerado localmente (regras fixas, sem IA em nuvem)',
+            },
+          ],
+          avoidList: ['Sobrecarga sensorial simultânea', 'Cafeína em excesso'],
+          mantra: 'Gerado localmente (regras fixas, sem IA em nuvem): Estabilidade fisiológica precede a precisão operacional.',
+        };
+        setPlan(localPlan);
+        return;
+      }
+
       // Get recent history
       const { data: { user } } = await supabase.auth.getUser();
       let recentHistory = 'primeiro scan';

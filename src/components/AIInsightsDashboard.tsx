@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Brain, TrendingUp, FileText, MessageSquare, Sparkles, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useConnectionMode } from '@/hooks/useConnectionMode';
 
 interface BurnoutPrediction {
   riskScore: number;
@@ -38,6 +39,7 @@ export default function AIInsightsDashboard() {
   const [summary, setSummary] = useState<WeeklySummary | null>(null);
   const [sentiment, setSentiment] = useState<SentimentResult | null>(null);
   const [loading, setLoading] = useState<Record<string, boolean>>({});
+  const { isAutonomous } = useConnectionMode();
   const { toast } = useToast();
 
   const getStressData = async () => {
@@ -106,6 +108,39 @@ export default function AIInsightsDashboard() {
   };
 
   const callAI = async (type: string, data: any) => {
+    if (isAutonomous) {
+      if (type === 'burnout_prediction') {
+        return {
+          riskScore: Math.min(100, Math.round((data.highPercent || 20) * 1.2)),
+          riskLevel: data.consecutiveHighDays >= 2 ? 'high' : (data.highPercent || 0) > 30 ? 'moderate' : 'low',
+          prediction: 'Gerado localmente (regras fixas, sem IA em nuvem): Análise de tendência baseada em contagem de scans com estresse elevado.',
+          factors: ['Fadiga operacional identificada nos registros locais'],
+          recommendation: 'Gerado localmente (regras fixas, sem IA em nuvem): Priorize hidratação e pausas guiadas 4-7-8.',
+          timeframe: 'Próximos 7 dias',
+        };
+      }
+      if (type === 'weekly_summary') {
+        return {
+          narrative: 'Gerado localmente (regras fixas, sem IA em nuvem): Resumo semanal sintetizado a partir de medições locais de prontidão e HRV.',
+          highlights: ['Medições consistentes com protocolos de prontidão'],
+          keyInsight: 'Gerado localmente (regras fixas, sem IA em nuvem): Estabilidade observada nos dados locais.',
+          recommendations: ['Manter rotina de contramedidas e hidratação.'],
+        };
+      }
+      if (type === 'sentiment_analysis') {
+        return {
+          overallSentiment: 'neutral',
+          score: 50,
+          summary: 'Gerado localmente (regras fixas, sem IA em nuvem): Sentimento monitorado via regras fixas.',
+          concerns: [],
+          recommendations: ['Continuar monitoramento regular.'],
+        };
+      }
+      return {
+        summary: 'Gerado localmente (regras fixas, sem IA em nuvem)',
+      };
+    }
+
     const { data: result, error } = await supabase.functions.invoke('ai-insights', {
       body: { type, data },
     });
