@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
-import { useReadiness } from './useReadiness';
+import { useReadiness, useGuestDemoReadiness } from './useReadiness';
 import { supabase } from '@/integrations/supabase/client';
 import { useWellnessScore } from '@/hooks/useWellnessScore';
 import {
@@ -684,7 +684,7 @@ describe('useReadiness Hook - 3 Etapas Demo, Reset, Ausência Total e Consistên
     });
   });
 
-  describe('Modo Visitante Anônimo (guestDemo)', () => {
+  describe('Modo Visitante Anônimo (useGuestDemoReadiness)', () => {
     beforeEach(() => {
       resetDemoStage();
       setAuthUser(undefined);
@@ -693,7 +693,7 @@ describe('useReadiness Hook - 3 Etapas Demo, Reset, Ausência Total e Consistên
 
     it('inicializa em etapa 1 (NO-GO, BioScore 34) sem chamar getUser nem from do Supabase', () => {
       // Arrange & Act
-      const { result } = renderHook(() => useReadiness({ guestDemo: true }));
+      const { result } = renderHook(() => useGuestDemoReadiness());
 
       // Assert
       expect(result.current.isDemo).toBe(true);
@@ -711,7 +711,7 @@ describe('useReadiness Hook - 3 Etapas Demo, Reset, Ausência Total e Consistên
 
     it('registra contramedida e avança para etapa 2 (ATENÇÃO, BioScore 52)', () => {
       // Arrange
-      const { result } = renderHook(() => useReadiness({ guestDemo: true }));
+      const { result } = renderHook(() => useGuestDemoReadiness());
       expect(result.current.demoStage).toBe(1);
 
       // Act
@@ -731,7 +731,7 @@ describe('useReadiness Hook - 3 Etapas Demo, Reset, Ausência Total e Consistên
 
     it('simulateScan avança para etapa 3 (GO, BioScore 72) e resetDemo retorna para etapa 1', () => {
       // Arrange
-      const { result } = renderHook(() => useReadiness({ guestDemo: true }));
+      const { result } = renderHook(() => useGuestDemoReadiness());
 
       // Act: avança scan
       act(() => {

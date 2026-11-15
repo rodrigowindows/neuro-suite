@@ -4,7 +4,8 @@ import { MemoryRouter } from 'react-router-dom';
 import Demo from './Demo';
 import { supabase } from '@/integrations/supabase/client';
 import { AuthProvider } from '@/hooks/useAuth';
-import { resetDemoStage } from '@/lib/demoScenario';
+import { resetDemoStage, getDemoScenarioData } from '@/lib/demoScenario';
+import { roundBlinkRate } from '@/lib/biometricDisplay';
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
@@ -142,5 +143,36 @@ describe('Demo Page (/demo) - Demonstração Pública sem Login e sem Rede', () 
     expect(supabase.from).not.toHaveBeenCalled();
     expect(supabase.auth.getUser).not.toHaveBeenCalled();
     expect(supabase.functions.invoke).not.toHaveBeenCalled();
+  });
+
+  it('valida BioScore, piscadas inteiras (roundBlinkRate) e sono nas 3 etapas contra getDemoScenarioData(1|2|3) (AAA)', () => {
+    // Arrange
+    const scenario1 = getDemoScenarioData(1);
+    const scenario2 = getDemoScenarioData(2);
+    const scenario3 = getDemoScenarioData(3);
+    renderDemoPage();
+
+    // Assert - Etapa 1
+    expect(screen.getByText(String(scenario1.bioScore))).toBeInTheDocument();
+    expect(screen.getByText(String(roundBlinkRate(scenario1.blinkRate)))).toBeInTheDocument();
+    expect(screen.getByText(`${scenario1.horasSono}h`)).toBeInTheDocument();
+
+    // Act - Transição para Etapa 2 (Ação Primária: Iniciar Protocolo 4-7-8)
+    const protocolBtn = screen.getByRole('button', { name: /Iniciar Protocolo 4-7-8/i });
+    fireEvent.click(protocolBtn);
+
+    // Assert - Etapa 2
+    expect(screen.getByText(String(scenario2.bioScore))).toBeInTheDocument();
+    expect(screen.getByText(String(roundBlinkRate(scenario2.blinkRate)))).toBeInTheDocument();
+    expect(screen.getByText(`${scenario2.horasSono}h`)).toBeInTheDocument();
+
+    // Act - Transição para Etapa 3 (Simular novo scan)
+    const simulateBtns = screen.getAllByRole('button', { name: /Simular novo scan/i });
+    fireEvent.click(simulateBtns[0]);
+
+    // Assert - Etapa 3
+    expect(screen.getByText(String(scenario3.bioScore))).toBeInTheDocument();
+    expect(screen.getByText(String(roundBlinkRate(scenario3.blinkRate)))).toBeInTheDocument();
+    expect(screen.getByText(`${scenario3.horasSono}h`)).toBeInTheDocument();
   });
 });

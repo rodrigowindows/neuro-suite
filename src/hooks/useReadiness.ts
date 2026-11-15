@@ -41,7 +41,10 @@ export interface UseReadinessOptions {
   horasSono?: number | null;
   bioScore?: number | null;
   isDemo?: boolean;
-  guestDemo?: boolean;
+  locationSearch?: string;
+}
+
+export interface UseGuestDemoReadinessOptions {
   locationSearch?: string;
 }
 
@@ -79,7 +82,9 @@ export function getScanVerdictLabel(
   return getReadinessStatus(hrv, stress).label;
 }
 
-function useGuestReadiness(options: UseReadinessOptions): UseReadinessReturn {
+export function useGuestDemoReadiness(
+  options: UseGuestDemoReadinessOptions = {}
+): UseReadinessReturn {
   const isResetUrl = isDemoReset(options.locationSearch);
   const resetAppliedRef = useRef(false);
 
@@ -174,7 +179,7 @@ function useGuestReadiness(options: UseReadinessOptions): UseReadinessReturn {
   };
 }
 
-function useStandardReadiness(options: UseReadinessOptions = {}): UseReadinessReturn {
+export function useReadiness(options: UseReadinessOptions = {}): UseReadinessReturn {
   const { user } = useAuth();
   const { score: wellnessScore } = useWellnessScore();
   const [dbTelemetry, setDbTelemetry] = useState<{
@@ -450,12 +455,5 @@ function useStandardReadiness(options: UseReadinessOptions = {}): UseReadinessRe
     setStage,
     refresh: loadTelemetryFromDb,
   };
-}
-
-export function useReadiness(options: UseReadinessOptions = {}): UseReadinessReturn {
-  if (options.guestDemo) {
-    return useGuestReadiness(options);
-  }
-  return useStandardReadiness(options);
 }
 

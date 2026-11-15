@@ -5,14 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import PredictiveAlert from '@/components/PredictiveAlert';
 import { roundBlinkRate } from '@/lib/biometricDisplay';
-import { useReadiness } from '@/hooks/useReadiness';
+import { useGuestDemoReadiness } from '@/hooks/useReadiness';
 import {
   appendEvent,
   registerCountermeasureProtocol,
 } from '@/lib/missionEvents';
 
 export default function Demo() {
-  const readiness = useReadiness({ guestDemo: true });
+  const readiness = useGuestDemoReadiness();
   const [protocolNotice, setProtocolNotice] = useState<string | null>(null);
 
   const handleStartProtocol = () => {
