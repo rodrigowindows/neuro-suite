@@ -1,6 +1,8 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, act } from '@testing-library/react';
 import NeuroScore from './index';
+import { LangProvider } from '@/i18n';
 
 const { mockStressSelect } = vi.hoisted(() => ({
   mockStressSelect: vi.fn().mockReturnThis(),
@@ -58,5 +60,33 @@ describe('features/NeuroScore - leitura de stress_scans', () => {
     // Assert
     expect(mockStressSelect).toHaveBeenCalledWith(expectedColumns);
     expect(mockStressSelect).not.toHaveBeenCalledWith('*');
+  });
+
+  it('renders in English under LangProvider initialLang="en"', async () => {
+    let rendered: ReturnType<typeof render> | null = null;
+    await act(async () => {
+      rendered = render(
+        <LangProvider initialLang="en">
+          <NeuroScore onScoreComplete={vi.fn()} />
+        </LangProvider>
+      );
+    });
+
+    expect(rendered!.getByText('BioScore — Stress Detection')).toBeInTheDocument();
+    expect(rendered!.getByText(/Webcam blink rate \+ HRV analysis/)).toBeInTheDocument();
+    expect(rendered!.getByText('Start Scan (60s)')).toBeInTheDocument();
+    expect(rendered!.queryByText('BioScore — Detecção de Estresse')).not.toBeInTheDocument();
+    expect(rendered!.queryByText('Iniciar Scan (60s)')).not.toBeInTheDocument();
+  });
+
+  it('renders in Portuguese by default outside provider', async () => {
+    let rendered: ReturnType<typeof render> | null = null;
+    await act(async () => {
+      rendered = render(<NeuroScore onScoreComplete={vi.fn()} />);
+    });
+
+    expect(rendered!.getByText('BioScore — Detecção de Estresse')).toBeInTheDocument();
+    expect(rendered!.getByText(/Análise de taxa de piscadas \+ HRV/)).toBeInTheDocument();
+    expect(rendered!.getByText('Iniciar Scan (60s)')).toBeInTheDocument();
   });
 });

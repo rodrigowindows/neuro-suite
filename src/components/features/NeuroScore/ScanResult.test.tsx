@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render } from "@testing-library/react";
 import ScanResult from "./ScanResult";
 import { StressResult } from "@/services/stressCalculator";
+import { LangProvider } from "@/i18n";
 
 // Mock PostScanActionPlan to isolate ScanResult tests
 vi.mock("@/components/PostScanActionPlan", () => ({
@@ -90,5 +91,45 @@ describe("ScanResult", () => {
     const { getByText, getByTestId } = render(<ScanResult result={highResult} userName="" />);
     expect(getByTestId("scan-status-badge")).toHaveTextContent("Alerta");
     expect(getByText(/Alto/)).toBeInTheDocument();
+  });
+
+  it("renders full English interface under LangProvider initialLang='en'", () => {
+    const resultWithHrv: StressResult = {
+      blinkRate: 18.4,
+      stressLevel: "low",
+      hrvValue: 62,
+      message: "Foco otimizado, produtividade alta",
+      emoji: "OK",
+    };
+
+    const { getByText, getByTestId, queryByText } = render(
+      <LangProvider initialLang="en">
+        <ScanResult result={resultWithHrv} userName="Sarah" />
+      </LangProvider>
+    );
+
+    // Badges & headings
+    expect(getByTestId("scan-status-badge")).toHaveTextContent("Stable");
+    expect(getByText(/Low Level/)).toBeInTheDocument();
+    expect(getByText(/Sarah/)).toBeInTheDocument();
+
+    // Message translated
+    expect(getByText("Optimized focus, high productivity")).toBeInTheDocument();
+
+    // Confidence disclaimer
+    expect(getByText("Vision Model Confidence: 94% (demonstration value)")).toBeInTheDocument();
+    expect(queryByText("Confiança do Modelo de Visão: 94% (valor de demonstração)")).not.toBeInTheDocument();
+
+    // Metrics
+    expect(getByText("Blink rate")).toBeInTheDocument();
+    expect(getByText("18 blinks/min")).toBeInTheDocument();
+    expect(queryByText("18 piscadas/min")).not.toBeInTheDocument();
+    expect(getByText("Diagnostic")).toBeInTheDocument();
+    expect(getByText("Optimal")).toBeInTheDocument();
+
+    // NLP Tip
+    expect(getByText("NLP Tip:")).toBeInTheDocument();
+    expect(queryByText("Dica PNL:")).not.toBeInTheDocument();
+    expect(getByText(/Anchor a successful memory/)).toBeInTheDocument();
   });
 });

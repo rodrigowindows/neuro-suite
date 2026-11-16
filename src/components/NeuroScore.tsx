@@ -8,11 +8,19 @@ import { Scan, Activity, CheckCircle, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useConnectionMode } from '@/hooks/useConnectionMode';
+import { useI18n } from '@/i18n';
 import { enqueue } from '@/lib/offlineOutbox';
 import WebcamCapture from './WebcamCapture';
 import PostScanActionPlan from './PostScanActionPlan';
 import StressTrendChart from './StressTrendChart';
 import { roundBlinkRate } from '@/lib/biometricDisplay';
+import {
+  calculateStressLevel,
+  getStressDisplay,
+  getStressLabel,
+  getDiagnosticLabel,
+  getPnlTip,
+} from '@/services/stressCalculator';
 
 interface NeuroScoreProps {
   onScoreComplete: (stressLevel: string, hrvValue?: number) => void;
@@ -24,13 +32,14 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
   const [lastHrvValue, setLastHrvValue] = useState<number | undefined>(undefined);
   const [result, setResult] = useState<{
     blinkRate: number;
-    stressLevel: string;
+    stressLevel: 'low' | 'moderate' | 'high';
     hrvValue?: number;
     message: string;
   } | null>(null);
   const [userName, setUserName] = useState<string>('');
   const { isAutonomous } = useConnectionMode();
   const { toast } = useToast();
+  const { t } = useI18n();
 
   useEffect(() => {
     const loadUserDataAndScan = async () => {
@@ -56,10 +65,10 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
             .maybeSingle();
 
           if (data) {
-            const { message } = getStressDisplay(data.stress_level);
+            const { message } = getStressDisplay(data.stress_level, t);
             setResult({
               blinkRate: data.blink_rate,
-              stressLevel: data.stress_level,
+              stressLevel: data.stress_level as 'low' | 'moderate' | 'high',
               hrvValue: data.hrv_value ?? undefined,
               message,
             });
@@ -72,13 +81,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
     };
 
     loadUserDataAndScan();
-  }, []);
-
-  const getStressDisplay = (level: string) => {
-    if (level === 'moderate') return { message: 'Atenção normal, sugira pausas para evitar burnout' };
-    if (level === 'high') return { message: 'Fadiga detectada. Risco de erro operacional' };
-    return { message: 'Foco otimizado, produtividade alta' };
-  };
+  }, [t]);
 
   const startScan = () => {
     setIsScanning(true);
@@ -96,28 +99,13 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
   };
 
   const handleBlinkDetected = async (blinkRate: number, hrvValue?: number) => {
-    let stressLevel = 'low';
-    let { message } = getStressDisplay('low');
-
-    if (blinkRate >= 15 && blinkRate <= 25) {
-      stressLevel = 'moderate';
-      ({ message } = getStressDisplay('moderate'));
-    } else if (blinkRate > 25) {
-      stressLevel = 'high';
-      ({ message } = getStressDisplay('high'));
-    }
-
-    // Validação cruzada: HRV<30ms + piscadas>25/min = alerta alto
-    if (hrvValue && hrvValue < 30 && blinkRate > 25) {
-      stressLevel = 'high';
-      message = 'Alerta estresse: HRV baixo + piscadas altas (validação cruzada)';
-    }
+    const stressResult = calculateStressLevel(blinkRate, hrvValue, t);
 
     setResult({
-      blinkRate: Math.round(blinkRate * 10) / 10,
-      stressLevel,
+      blinkRate: stressResult.blinkRate,
+      stressLevel: stressResult.stressLevel,
       hrvValue,
-      message,
+      message: stressResult.message,
     });
     setLastHrvValue(hrvValue);
 
@@ -132,7 +120,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
             payload: {
               user_id: user.id,
               blink_rate: blinkRate,
-              stress_level: stressLevel,
+              stress_level: stressResult.stressLevel,
               hrv_value: hrvValue || null,
               created_at: new Date().toISOString(),
             },
@@ -141,7 +129,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
           await supabase.from('stress_scans').insert({
             user_id: user.id,
             blink_rate: blinkRate,
-            stress_level: stressLevel,
+            stress_level: stressResult.stressLevel,
             hrv_value: hrvValue || null,
           });
         }
@@ -150,17 +138,23 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
       console.error('Erro ao salvar scan:', error);
     }
 
-    onScoreComplete(stressLevel, hrvValue);
+    onScoreComplete(stressResult.stressLevel, hrvValue);
+
+    const hrvSuffix = hrvValue ? t('bioscore.toast.hrvSuffix', { hrv: hrvValue }) : '';
+    const description = t('bioscore.toast.desc', {
+      level: getStressLabel(stressResult.stressLevel, t),
+      hrv: hrvSuffix,
+    });
 
     if (isAutonomous) {
       toast({
-        title: 'Registro salvo localmente — será enviado ao restabelecer o uplink',
-        description: `Nível de estresse: ${stressLevel === 'low' ? 'Baixo' : stressLevel === 'moderate' ? 'Moderado' : 'Alto'}${hrvValue ? ` • HRV: ${hrvValue}ms` : ''}`,
+        title: t('bioscore.toast.offlineTitle'),
+        description,
       });
     } else {
       toast({
-        title: 'Scan completo!',
-        description: `Nível de estresse: ${stressLevel === 'low' ? 'Baixo' : stressLevel === 'moderate' ? 'Moderado' : 'Alto'}${hrvValue ? ` • HRV: ${hrvValue}ms` : ''}`,
+        title: t('bioscore.toast.onlineTitle'),
+        description,
       });
     }
   };
@@ -176,10 +170,10 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
-            BioScore — Detecção de Estresse
+            {t('bioscore.title')}
           </CardTitle>
           <CardDescription>
-            Análise de taxa de piscadas + HRV via webcam para estimar estresse (baseado em neurociência)
+            {t('bioscore.description')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -192,7 +186,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
           {isScanning && (
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Progresso do scan</span>
+                <span>{t('bioscore.scan.progress')}</span>
                 <span className="font-medium">{Math.round(progress)}%</span>
               </div>
               <Progress value={progress} className="h-2" />
@@ -205,11 +199,11 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
                 <TooltipTrigger asChild>
                   <Button onClick={startScan} className="w-full h-12 sm:h-auto text-sm sm:text-base" size="lg">
                     <Scan className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                    {result ? 'Realizar novo scan' : 'Iniciar Scan (60s)'}
+                    {result ? t('bioscore.btn.newScan') : t('bioscore.btn.startScan')}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Posicione seu rosto na webcam e fique natural por 60 segundos.</p>
+                  <p>{t('bioscore.tooltip.position')}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -241,49 +235,46 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
                     className="text-xs uppercase tracking-wider"
                   >
                     {result.stressLevel === 'high'
-                      ? 'Alerta'
+                      ? t('bioscore.badge.alert')
                       : result.stressLevel === 'moderate'
-                      ? 'Atenção'
-                      : 'Estável'}
+                      ? t('bioscore.badge.caution')
+                      : t('bioscore.badge.stable')}
                   </Badge>
                 </div>
                 <h3 className="text-2xl font-bold">
                   {userName && <span>{userName}, </span>}
-                  {result.stressLevel === 'low' && 'Nível Baixo'}
-                  {result.stressLevel === 'moderate' && 'Nível Moderado'}
-                  {result.stressLevel === 'high' && 'Nível Alto'}
+                  {t('bioscore.result.levelHeading', { level: getStressLabel(result.stressLevel, t) })}
                 </h3>
                 <p className="text-muted-foreground">{result.message}</p>
               </div>
 
               <div className={`grid ${result.hrvValue ? 'grid-cols-3' : 'grid-cols-2'} gap-4 pt-4 border-t`}>
                 <div className="text-center">
-                  <p className="text-sm text-muted-foreground">Taxa de piscadas</p>
-                  <p className="text-2xl font-bold text-primary">{roundBlinkRate(result.blinkRate)} piscadas/min</p>
+                  <p className="text-sm text-muted-foreground">{t('bioscore.metric.blinkRate')}</p>
+                  <p className="text-2xl font-bold text-primary">
+                    {t('bioscore.metric.blinkRateValue', { rate: roundBlinkRate(result.blinkRate) })}
+                  </p>
                 </div>
                 {result.hrvValue && (
                   <div className="text-center">
-                    <p className="text-sm text-muted-foreground">HRV</p>
-                    <p className="text-2xl font-bold text-accent">{result.hrvValue}<span className="text-sm">ms</span></p>
+                    <p className="text-sm text-muted-foreground">{t('bioscore.metric.hrv')}</p>
+                    <p className="text-2xl font-bold text-accent">
+                      {result.hrvValue}
+                      <span className="text-sm">{t('bioscore.metric.hrvUnit')}</span>
+                    </p>
                   </div>
                 )}
                 <div className="text-center">
-                  <p className="text-sm text-muted-foreground">Diagnóstico</p>
+                  <p className="text-sm text-muted-foreground">{t('bioscore.metric.diagnostic')}</p>
                   <p className="text-2xl font-bold text-secondary">
-                    {result.stressLevel === 'low' && 'Ótimo'}
-                    {result.stressLevel === 'moderate' && 'Normal'}
-                    {result.stressLevel === 'high' && 'Alerta'}
+                    {getDiagnosticLabel(result.stressLevel, t)}
                   </p>
                 </div>
               </div>
 
               <div className="p-4 bg-primary/5 rounded-lg">
-                <p className="text-sm font-medium mb-2">Dica PNL:</p>
-                <p className="text-sm text-muted-foreground">
-                  {result.stressLevel === 'low' && 'Ancore uma memória de sucesso para manter prontidão operacional.'}
-                  {result.stressLevel === 'moderate' && 'Pratique respiração 4-7-8 para reequilíbrio rápido.'}
-                  {result.stressLevel === 'high' && 'Pause agora: 2min de respiração profunda + reframe mental (PNL).'}
-                </p>
+                <p className="text-sm font-medium mb-2">{t('bioscore.pnl.label')}</p>
+                <p className="text-sm text-muted-foreground">{getPnlTip(result.stressLevel, t)}</p>
               </div>
 
               <PostScanActionPlan
@@ -296,7 +287,6 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
         </CardContent>
       </Card>
 
-      {/* Trend Chart */}
       <StressTrendChart />
     </div>
   );

@@ -1,8 +1,13 @@
 import { Skeleton } from '@/components/ui/skeleton';
+import { useI18n } from '@/i18n';
 
 export default function DashboardSkeleton() {
+  const { t } = useI18n();
+
   return (
-    <div className="min-h-screen flex w-full bg-background">
+    <div className="min-h-screen flex w-full bg-background" aria-busy="true">
+      <span className="sr-only">{t('dashboard.loading')}</span>
+
       {/* Sidebar skeleton */}
       <div className="w-[260px] border-r bg-sidebar-background p-3 space-y-4 hidden md:block">
         <div className="flex items-center gap-2.5 px-1 mb-6">

@@ -1,13 +1,24 @@
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Minus, Activity, Brain, Flame, Heart } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useWellnessScore } from '@/hooks/useWellnessScore';
+import { useWellnessScore, getLabel } from '@/hooks/useWellnessScore';
+import { useI18n } from '@/i18n';
 
 interface WellnessScoreCardProps {
   compact?: boolean;
 }
 
-function RadialGauge({ score, color, size = 140 }: { score: number; color: string; size?: number }) {
+function RadialGauge({
+  score,
+  color,
+  size = 140,
+  of100Label,
+}: {
+  score: number;
+  color: string;
+  size?: number;
+  of100Label: string;
+}) {
   const strokeWidth = size >= 120 ? 10 : 7;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -49,14 +60,20 @@ function RadialGauge({ score, color, size = 140 }: { score: number; color: strin
           {score}
         </motion.span>
         <span className="text-[10px] text-muted-foreground font-medium tracking-wide uppercase">
-          de 100
+          {of100Label}
         </span>
       </div>
     </div>
   );
 }
 
-function BreakdownBar({ label, value, max, icon: Icon, color }: {
+function BreakdownBar({
+  label,
+  value,
+  max,
+  icon: Icon,
+  color,
+}: {
   label: string;
   value: number;
   max: number;
@@ -92,14 +109,15 @@ const TrendIcon = ({ trend }: { trend: 'up' | 'down' | 'stable' }) => {
   return <Minus className="h-4 w-4 text-muted-foreground" />;
 };
 
-const trendLabel: Record<string, string> = {
-  up: 'Melhorando',
-  down: 'Piorando',
-  stable: 'Estável',
+const trendKey: Record<string, string> = {
+  up: 'bioscore.wellness.trend.up',
+  down: 'bioscore.wellness.trend.down',
+  stable: 'bioscore.wellness.trend.stable',
 };
 
 export default function WellnessScoreCard({ compact = false }: WellnessScoreCardProps) {
-  const { score, breakdown, label, color, trend, totalScans, loading } = useWellnessScore();
+  const { score, breakdown, color, trend, totalScans, loading } = useWellnessScore();
+  const { t } = useI18n();
 
   if (loading) {
     return (
@@ -117,15 +135,19 @@ export default function WellnessScoreCard({ compact = false }: WellnessScoreCard
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-base">
             <Activity className="h-5 w-5 text-primary" />
-            Score de Bem-Estar
+            {t('bioscore.wellness.title')}
           </CardTitle>
         </CardHeader>
         <CardContent className="text-center py-8">
-          <p className="text-muted-foreground text-sm">Complete seu primeiro NeuroScore para gerar seu indicador de bem-estar</p>
+          <p className="text-muted-foreground text-sm">
+            {t('bioscore.wellness.empty')}
+          </p>
         </CardContent>
       </Card>
     );
   }
+
+  const displayLabel = score !== null ? getLabel(score, t) : t('bioscore.wellness.label.noData');
 
   return (
     <Card className="shadow-soft border-primary/20 bg-gradient-card overflow-hidden">
@@ -133,11 +155,11 @@ export default function WellnessScoreCard({ compact = false }: WellnessScoreCard
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base">
             <Activity className="h-5 w-5 text-primary" />
-            Score de Bem-Estar
+            {t('bioscore.wellness.title')}
           </CardTitle>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <TrendIcon trend={trend} />
-            <span>{trendLabel[trend]}</span>
+            <span>{t(trendKey[trend] || trendKey.stable)}</span>
           </div>
         </div>
       </CardHeader>
@@ -145,7 +167,12 @@ export default function WellnessScoreCard({ compact = false }: WellnessScoreCard
         <div className={compact ? 'flex items-center gap-4' : 'flex flex-col sm:flex-row items-center gap-6'}>
           {/* Gauge */}
           <div className="flex-shrink-0">
-            <RadialGauge score={score ?? 0} color={color} size={compact ? 100 : 140} />
+            <RadialGauge
+              score={score ?? 0}
+              color={color}
+              size={compact ? 100 : 140}
+              of100Label={t('bioscore.wellness.of100')}
+            />
           </div>
 
           {/* Details */}
@@ -155,28 +182,28 @@ export default function WellnessScoreCard({ compact = false }: WellnessScoreCard
                 className="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold"
                 style={{ backgroundColor: `${color}20`, color }}
               >
-                {label}
+                {displayLabel}
               </span>
             </div>
 
             {!compact && (
               <div className="space-y-2.5">
                 <BreakdownBar
-                  label="Nível de Estresse"
+                  label={t('bioscore.wellness.breakdown.stress')}
                   value={breakdown.stressScore}
                   max={40}
                   icon={Brain}
                   color="hsl(185, 65%, 38%)"
                 />
                 <BreakdownBar
-                  label="Consistência"
+                  label={t('bioscore.wellness.breakdown.consistency')}
                   value={breakdown.consistencyScore}
                   max={30}
                   icon={Flame}
                   color="hsl(var(--accent))"
                 />
                 <BreakdownBar
-                  label="Variabilidade Cardíaca"
+                  label={t('bioscore.wellness.breakdown.hrv')}
                   value={breakdown.hrvScore}
                   max={30}
                   icon={Heart}

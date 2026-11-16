@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Loader2 } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useConnectionMode } from '@/hooks/useConnectionMode';
+import { useI18n } from '@/i18n';
 
 interface ActionTask {
   time: string;
@@ -28,34 +29,36 @@ interface PostScanActionPlanProps {
 
 export default function PostScanActionPlan({ stressLevel, blinkRate, hrvValue }: PostScanActionPlanProps) {
   const [plan, setPlan] = useState<ActionPlan | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const { isAutonomous } = useConnectionMode();
+  const { t } = useI18n();
 
-  const generatePlan = async () => {
+  // Keep generatePlan available for autonomous / trigger flows
+  const _generatePlan = async () => {
     setLoading(true);
     try {
       if (isAutonomous) {
         const localPlan: ActionPlan = {
-          title: 'Plano Operacional Autônomo',
+          title: t('bioscore.plan.title'),
           urgency: stressLevel === 'high' ? 'high' : stressLevel === 'moderate' ? 'medium' : 'low',
           tasks: [
             {
-              time: 'Imediato',
+              time: t('bioscore.plan.timeImmediate'),
               action: stressLevel === 'high'
-                ? 'Executar ciclo de respiração 4-7-8 por 3 minutos e hidratação com 500ml de água.'
-                : 'Manter hidratação nominal e postura de foco no cockpit.',
-              duration: '3 min',
-              science: 'Gerado localmente (regras fixas, sem IA em nuvem)',
+                ? t('bioscore.plan.actionHigh')
+                : t('bioscore.plan.actionNominal'),
+              duration: t('bioscore.plan.duration3Min'),
+              science: t('bioscore.plan.scienceLocal'),
             },
             {
-              time: 'Próxima Hora',
-              action: 'Pausa visual de 20 segundos e alinhamento de prioridades operacionais.',
-              duration: '2 min',
-              science: 'Gerado localmente (regras fixas, sem IA em nuvem)',
+              time: t('bioscore.plan.timeNextHour'),
+              action: t('bioscore.plan.actionVisual'),
+              duration: t('bioscore.plan.duration2Min'),
+              science: t('bioscore.plan.scienceLocal'),
             },
           ],
-          avoidList: ['Sobrecarga sensorial simultânea', 'Cafeína em excesso'],
-          mantra: 'Gerado localmente (regras fixas, sem IA em nuvem): Estabilidade fisiológica precede a precisão operacional.',
+          avoidList: [t('bioscore.plan.avoidSensory'), t('bioscore.plan.avoidCaffeine')],
+          mantra: t('bioscore.plan.mantra'),
         };
         setPlan(localPlan);
         return;
@@ -88,7 +91,7 @@ export default function PostScanActionPlan({ stressLevel, blinkRate, hrvValue }:
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       setPlan(data.result);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Erro ao gerar plano:', e);
     } finally {
       setLoading(false);
@@ -113,7 +116,7 @@ export default function PostScanActionPlan({ stressLevel, blinkRate, hrvValue }:
               {plan.title}
             </p>
             <Button variant="ghost" size="sm" className="text-[10px] h-6" onClick={() => setPlan(null)}>
-              Fechar
+              {t('bioscore.plan.close')}
             </Button>
           </div>
 
@@ -122,14 +125,16 @@ export default function PostScanActionPlan({ stressLevel, blinkRate, hrvValue }:
               <div className="shrink-0 w-16 text-[10px] font-semibold text-primary uppercase">{task.time}</div>
               <div className="flex-1">
                 <p className="text-xs font-medium">{task.action}</p>
-                <p className="text-[10px] text-muted-foreground">Duração: {task.duration} • Base: {task.science}</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {t('bioscore.plan.durationBase', { duration: task.duration, science: task.science })}
+                </p>
               </div>
             </div>
           ))}
 
           {plan.avoidList?.length > 0 && (
             <div className="text-[10px] text-muted-foreground">
-              <span className="font-semibold">Evite: </span>
+              <span className="font-semibold">{t('bioscore.plan.avoid')}</span>
               {plan.avoidList.join(' • ')}
             </div>
           )}

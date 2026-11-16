@@ -14,34 +14,37 @@ import DashboardContent from '@/components/DashboardContent';
 import ResearchValidationModal from '@/components/ResearchValidationModal';
 import ConnectionStatusWidget from '@/components/ConnectionStatusWidget';
 import MissionStatusWidget from '@/components/MissionStatusWidget';
+import LanguageToggle from '@/components/LanguageToggle';
 import { SectionTabs } from '@/components/SectionTabs';
 import { useStressNotifications } from '@/hooks/useStressNotifications';
 import { supabase } from '@/integrations/supabase/client';
 import { useWellnessScore } from '@/hooks/useWellnessScore';
 import { useReadiness, getScanVerdictLabel } from '@/hooks/useReadiness';
 import { appendEvent } from '@/lib/missionEvents';
+import { useI18n } from '@/i18n';
 
-const PAGE_TITLES: Record<string, string> = {
-  'bridge-console': 'Cockpit',
-  checkin: 'Avaliação de Prontidão',
-  neuroscore: 'BioScore',
-  gamification: 'Disciplina',
-  neurocoach: 'Contramedidas',
-  leadership: 'Liderança',
-  'cognitive-fatigue': 'Métricas de Carga',
-  'smart-breaks': 'Pausas',
-  'mission-log': 'Histórico de Voo',
-  'ai-insights': 'IA Insights',
-  alerts: 'Alertas Comando',
-  roi: 'ROI',
-  nr1: 'Segurança',
-  'narrative-reports': 'Relatórios IA',
-  'nr1-chatbot': 'Chatbot Segurança',
-  integrations: 'Integrações',
-  'dashboard-rh': 'Painel de Comando',
+const PAGE_TITLE_KEYS: Record<string, string> = {
+  'bridge-console': 'dashboard.title.cockpit',
+  checkin: 'dashboard.title.readinessAssessment',
+  neuroscore: 'dashboard.title.bioScore',
+  gamification: 'dashboard.title.discipline',
+  neurocoach: 'dashboard.title.countermeasures',
+  leadership: 'dashboard.title.leadership',
+  'cognitive-fatigue': 'dashboard.title.workloadMetrics',
+  'smart-breaks': 'dashboard.title.breaks',
+  'mission-log': 'dashboard.title.flightLog',
+  'ai-insights': 'dashboard.title.aiInsights',
+  alerts: 'dashboard.title.commandAlerts',
+  roi: 'dashboard.title.roi',
+  nr1: 'dashboard.title.safety',
+  'narrative-reports': 'dashboard.title.aiReports',
+  'nr1-chatbot': 'dashboard.title.safetyChatbot',
+  integrations: 'dashboard.title.integrations',
+  'dashboard-rh': 'dashboard.title.commandPanel',
 };
 
 export default function Dashboard() {
+  const { t } = useI18n();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { scores, refreshScores } = useFeatureScores();
@@ -89,7 +92,7 @@ export default function Dashboard() {
       }
     };
     loadLastScan();
-  }, [user?.id]);
+  }, [user]);
 
   const handleStressLevelComplete = (level: string, hrv?: number) => {
     setStressLevel(level);
@@ -127,6 +130,8 @@ export default function Dashboard() {
   const effectiveStress = isDemoActive ? readiness.stressLevel ?? '' : stressLevel;
   const effectiveHrv = isDemoActive ? readiness.hrvValue ?? undefined : hrvValue;
 
+  const currentTitle = PAGE_TITLE_KEYS[activeTab] ? t(PAGE_TITLE_KEYS[activeTab]) : 'Cockpit';
+
   return (
     <MotionConfig reducedMotion="user">
     <SidebarProvider>
@@ -141,16 +146,17 @@ export default function Dashboard() {
         />
 
         <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
-          <header className="h-14 flex items-center justify-between gap-2 sm:gap-3 border-b bg-card/60 backdrop-blur-sm px-3 sm:px-4 sticky top-0 z-40">
+          <header className="min-h-14 h-auto py-1 sm:py-0 flex items-center justify-between gap-2 sm:gap-3 border-b bg-card/60 backdrop-blur-sm px-3 sm:px-4 sticky top-0 z-40">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <SidebarTrigger className="text-muted-foreground hover:text-foreground shrink-0 min-h-[44px] min-w-[44px]" />
               <div className="flex flex-col min-w-0">
                 <h1 className="font-display font-bold text-sm sm:text-base truncate">
-                  {PAGE_TITLES[activeTab] || 'Cockpit'}
+                  {currentTitle}
                 </h1>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 min-w-0 flex-wrap justify-end">
+              <LanguageToggle />
               <MissionStatusWidget
                 state={readiness.state}
                 label={readiness.label}
@@ -200,10 +206,10 @@ export default function Dashboard() {
 
           <footer className="border-t bg-card/20 px-4 py-1.5 shrink-0">
             <div className="max-w-5xl w-full mx-auto flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
-              <span>Zero-Trust Privacy</span>
+              <span>{t('dashboard.footer.privacy')}</span>
               <span>·</span>
               <ResearchValidationModal
-                triggerText="Validação de Pesquisa"
+                triggerText={t('dashboard.footer.researchValidation')}
                 triggerClassName="text-[11px] text-muted-foreground hover:text-foreground underline-offset-4 hover:underline min-h-[44px] inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               />
             </div>

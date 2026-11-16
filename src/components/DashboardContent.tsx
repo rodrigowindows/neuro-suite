@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react';
+import { useI18n } from '@/i18n';
 
 const BridgeConsole = lazy(() => import('@/components/BridgeConsole'));
 const NeuroScore = lazy(() => import('@/components/features/NeuroScore'));
@@ -24,9 +25,11 @@ const NR1ComplianceChatbot = lazy(() => import('@/components/NR1ComplianceChatbo
 const MissionLog = lazy(() => import('@/components/MissionLog'));
 
 function LazyFallback() {
+  const { t } = useI18n();
   return (
-    <div className="flex items-center justify-center py-16">
+    <div className="flex flex-col items-center justify-center py-16 gap-2">
       <div className="animate-spin h-8 w-8 border-[3px] border-primary border-t-transparent rounded-full" />
+      <span className="sr-only">{t('dashboard.loading')}</span>
     </div>
   );
 }
@@ -68,6 +71,8 @@ export default function DashboardContent({
   isDemo,
   readinessLabel,
 }: DashboardContentProps) {
+  const { t } = useI18n();
+
   const renderContent = () => {
     switch (activeTab) {
       case 'bridge-console':
@@ -110,8 +115,8 @@ export default function DashboardContent({
           </>
         ) : (
           <div className="text-center py-16 text-muted-foreground">
-            <p className="text-lg font-medium">Complete o BioScore primeiro</p>
-            <p className="text-sm mt-1">Faça um scan para desbloquear a gamificação</p>
+            <p className="text-lg font-medium">{t('dashboard.content.completeBioScoreFirst')}</p>
+            <p className="text-sm mt-1">{t('dashboard.content.scanToUnlockGamification')}</p>
           </div>
         );
       case 'neurocoach':

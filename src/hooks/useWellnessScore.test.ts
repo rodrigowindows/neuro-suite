@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { translate } from "@/i18n";
 import {
   getLabel,
   getColor,
@@ -25,6 +26,23 @@ describe("getLabel", () => {
   it("returns Crítico for score < 20", () => {
     expect(getLabel(0)).toBe("Crítico");
     expect(getLabel(19)).toBe("Crítico");
+  });
+
+  it("supports bilingual labels with t", () => {
+    const tEn = (key: string) => translate("en", key);
+    const tPt = (key: string) => translate("pt", key);
+
+    expect(getLabel(85, tEn)).toBe("Excellent");
+    expect(getLabel(65, tEn)).toBe("Good");
+    expect(getLabel(45, tEn)).toBe("Moderate");
+    expect(getLabel(25, tEn)).toBe("Caution");
+    expect(getLabel(10, tEn)).toBe("Critical");
+
+    expect(getLabel(85, tPt)).toBe("Excelente");
+    expect(getLabel(65, tPt)).toBe("Bom");
+    expect(getLabel(45, tPt)).toBe("Moderado");
+    expect(getLabel(25, tPt)).toBe("Atenção");
+    expect(getLabel(10, tPt)).toBe("Crítico");
   });
 });
 

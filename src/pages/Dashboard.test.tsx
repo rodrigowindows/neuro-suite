@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, no-misleading-character-class */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
@@ -8,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { registerCountermeasureProtocol } from '@/lib/missionEvents';
 import { setStoredDemoStage, DemoStage } from '@/lib/demoScenario';
 import { useAuth } from '@/hooks/useAuth';
+import { LangProvider } from '@/i18n';
 
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: vi.fn(() => ({
@@ -816,3 +818,100 @@ describe('Dashboard Page - Header e Cockpit derivados do mesmo state', () => {
     }
   });
 });
+
+describe('Dashboard Page - Internacionalização (i18n)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    sessionStorage.clear();
+    window.history.pushState({}, '', '/dashboard');
+    vi.mocked(useWellnessScore).mockReturnValue({ score: 85, loading: false } as any);
+    vi.mocked(useUserRole).mockReturnValue({ isManager: false, isAdmin: false, loading: false });
+    mockLastScan({ stress_level: 'moderate', hrv_value: 48 });
+  });
+
+  it('com LangProvider initialLang="en" o título da seção e o seletor aparecem em inglês; trocar para PT atualiza o título sem recarregar', async () => {
+    // Arrange
+    render(
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <LangProvider initialLang="en">
+          <Dashboard />
+        </LangProvider>
+      </MemoryRouter>
+    );
+
+    // Assert 1: Cockpit title is rendered in English
+    const heading = await screen.findByRole('heading', { level: 1 });
+    expect(heading).toHaveTextContent('Cockpit');
+
+    // Assert 2: Language selector group is accessible and EN button is pressed
+    const langGroup = screen.getByRole('group', { name: 'Language' });
+    expect(langGroup).toBeInTheDocument();
+    const enBtn = screen.getByRole('button', { name: 'EN' });
+    const ptBtn = screen.getByRole('button', { name: 'PT' });
+    expect(enBtn).toHaveAttribute('aria-pressed', 'true');
+    expect(ptBtn).toHaveAttribute('aria-pressed', 'false');
+
+    // Act 1: Navigate to another section via sidebar (e.g. Countermeasures / neurocoach)
+    const countermeasuresBtn = screen.getByRole('button', { name: /^Countermeasures$/i });
+    fireEvent.click(countermeasuresBtn);
+
+    // Assert 3: Title is in English ("Countermeasures")
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { level: 1, name: 'Countermeasures' })
+      ).toBeInTheDocument();
+    });
+
+    // Act 2: Click on PT button in the LanguageToggle
+    fireEvent.click(ptBtn);
+
+    // Assert 4: Title immediately updates to Portuguese ("Contramedidas") without reloading
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { level: 1, name: 'Contramedidas' })
+      ).toBeInTheDocument();
+    });
+    expect(screen.queryByRole('heading', { level: 1, name: 'Countermeasures' })).not.toBeInTheDocument();
+    expect(ptBtn).toHaveAttribute('aria-pressed', 'true');
+    expect(enBtn).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('group', { name: 'Idioma' })).toBeInTheDocument();
+
+    // Act 3: Click back to EN button
+    fireEvent.click(enBtn);
+
+    // Assert 5: Title returns to English
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { level: 1, name: 'Countermeasures' })
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('renderiza o rodapé e modal de pesquisa em inglês quando em EN e em português quando em PT', async () => {
+    // Arrange
+    render(
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <LangProvider initialLang="en">
+          <Dashboard />
+        </LangProvider>
+      </MemoryRouter>
+    );
+
+    // Assert EN modal trigger and footer
+    expect(screen.getByText('Zero-Trust Privacy')).toBeInTheDocument();
+    expect(screen.getByText('Research Validation')).toBeInTheDocument();
+    expect(screen.queryByText('Validação de Pesquisa')).not.toBeInTheDocument();
+
+    // Open modal in EN
+    const researchBtn = await screen.findByRole('button', {
+      name: /Research & Validation \(NASA \/ Harvard\)/i,
+    });
+    fireEvent.click(researchBtn);
+
+    // Assert modal title and content in English
+    expect(await screen.findByText('Scientific Basis and Operational Evidence (Research & Validation)')).toBeInTheDocument();
+    expect(screen.getByText('Mission Risk Coverage')).toBeInTheDocument();
+  });
+});
+

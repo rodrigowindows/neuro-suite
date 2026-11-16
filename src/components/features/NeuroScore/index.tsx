@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useConnectionMode } from '@/hooks/useConnectionMode';
+import { useI18n } from '@/i18n';
 import { enqueue } from '@/lib/offlineOutbox';
 import { calculateStressLevel, getStressDisplay, getStressLabel } from '@/services/stressCalculator';
 import type { StressResult } from '@/services/stressCalculator';
@@ -27,6 +28,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
   const { profile } = useUserProfile();
   const { isAutonomous } = useConnectionMode();
   const { toast } = useToast();
+  const { t } = useI18n();
 
   // Load last scan on mount
   useEffect(() => {
@@ -44,7 +46,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
           .maybeSingle();
 
         if (data) {
-          const { emoji, message } = getStressDisplay(data.stress_level);
+          const { emoji, message } = getStressDisplay(data.stress_level, t);
           setResult({
             blinkRate: data.blink_rate,
             stressLevel: data.stress_level as StressResult['stressLevel'],
@@ -60,7 +62,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
     };
 
     loadLastScan();
-  }, []);
+  }, [t]);
 
   const startScan = () => {
     setIsScanning(true);
@@ -78,7 +80,7 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
   };
 
   const handleBlinkDetected = async (blinkRate: number, hrvValue?: number) => {
-    const stressResult = calculateStressLevel(blinkRate, hrvValue);
+    const stressResult = calculateStressLevel(blinkRate, hrvValue, t);
     setResult(stressResult);
     setLastHrvValue(hrvValue);
 
@@ -113,15 +115,21 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
 
     onScoreComplete(stressResult.stressLevel, hrvValue);
 
+    const hrvSuffix = hrvValue ? t('bioscore.toast.hrvSuffix', { hrv: hrvValue }) : '';
+    const description = t('bioscore.toast.desc', {
+      level: getStressLabel(stressResult.stressLevel, t),
+      hrv: hrvSuffix,
+    });
+
     if (isAutonomous) {
       toast({
-        title: 'Registro salvo localmente — será enviado ao restabelecer o uplink',
-        description: `Nível de estresse: ${getStressLabel(stressResult.stressLevel)}${hrvValue ? ` • HRV: ${hrvValue}ms` : ''}`,
+        title: t('bioscore.toast.offlineTitle'),
+        description,
       });
     } else {
       toast({
-        title: 'Scan completo!',
-        description: `Nível de estresse: ${getStressLabel(stressResult.stressLevel)}${hrvValue ? ` • HRV: ${hrvValue}ms` : ''}`,
+        title: t('bioscore.toast.onlineTitle'),
+        description,
       });
     }
   };
@@ -137,10 +145,10 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
-            BioScore — Detecção de Estresse
+            {t('bioscore.title')}
           </CardTitle>
           <CardDescription>
-            Análise de taxa de piscadas + HRV via webcam para estimar estresse (baseado em neurociência)
+            {t('bioscore.description')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -158,11 +166,11 @@ export default function NeuroScore({ onScoreComplete }: NeuroScoreProps) {
                 <TooltipTrigger asChild>
                   <Button onClick={startScan} className="w-full h-12 sm:h-auto text-sm sm:text-base" size="lg">
                     <Scan className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                    {result ? 'Realizar novo scan' : 'Iniciar Scan (60s)'}
+                    {result ? t('bioscore.btn.newScan') : t('bioscore.btn.startScan')}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Posicione seu rosto na webcam e fique natural por 60 segundos.</p>
+                  <p>{t('bioscore.tooltip.position')}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

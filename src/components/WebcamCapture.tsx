@@ -1,6 +1,8 @@
 import { useRef, useEffect, useState } from 'react';
 import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 import { AlertCircle, ArrowDown, CameraOff } from 'lucide-react';
+import { useI18n } from '@/i18n';
+import { roundBlinkRate } from '@/lib/biometricDisplay';
 import HRVMonitor from './HRVMonitor';
 
 interface WebcamCaptureProps {
@@ -10,6 +12,7 @@ interface WebcamCaptureProps {
 }
 
 export default function WebcamCapture({ onBlinkDetected, isScanning, onScanComplete }: WebcamCaptureProps) {
+  const { t } = useI18n();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [faceLandmarker, setFaceLandmarker] = useState<FaceLandmarker | null>(null);
@@ -54,13 +57,13 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
         
         setFaceLandmarker(landmarker);
       } catch (err) {
-        setError('Erro ao inicializar detecção facial');
+        setError(t('bioscore.webcam.errorInit'));
         console.error(err);
       }
     };
 
     initMediaPipe();
-  }, []);
+  }, [isMobile, t]);
 
   // Detectar visibilidade da página (background mode) - continua processamento
   useEffect(() => {
@@ -100,7 +103,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
           videoRef.current.srcObject = stream;
         }
       } catch (err) {
-        setError('Erro ao acessar câmera. Permita o acesso.');
+        setError(t('bioscore.webcam.errorCamera'));
         console.error(err);
       }
     };
@@ -114,10 +117,10 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
     return () => {
       stopWebcam();
     };
-  }, [isScanning]);
+  }, [isScanning, t]);
 
   // Calcular EAR (Eye Aspect Ratio) - Fórmula correta
-  const calculateEAR = (landmarks: any) => {
+  const calculateEAR = (landmarks: Array<{ x: number; y: number; z: number }>) => {
     // Índices corretos dos landmarks dos olhos do MediaPipe
     // Left eye: outer corner, top1, top2, inner corner, bottom1, bottom2
     const leftEye = [33, 160, 158, 133, 144, 153];
@@ -277,6 +280,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
         intervalRef.current = undefined;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isScanning, faceLandmarker]);
 
   const handleHRVDetected = (hrv: number, heartRate: number) => {
@@ -310,8 +314,8 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
           <div className="absolute inset-0 flex items-center justify-center bg-black/90">
             <div className="text-center text-white px-4 space-y-2">
               <CameraOff className="h-12 w-12 mx-auto mb-3 text-white/70" />
-              <p className="text-xl font-bold">Câmera Desligada</p>
-              <p className="text-sm text-white/70">Clique em "Iniciar Scan" para ativar</p>
+              <p className="text-xl font-bold">{t('bioscore.webcam.cameraOffTitle')}</p>
+              <p className="text-sm text-white/70">{t('bioscore.webcam.cameraOffDesc')}</p>
             </div>
           </div>
         )}
@@ -322,14 +326,14 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
             {/* Indicador de câmera ligada */}
             <div className="absolute top-2 left-2 px-3 py-1 bg-green-500 text-white text-xs rounded-full flex items-center gap-2 font-bold shadow-lg">
               <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
-              Câmera Ligada
+              {t('bioscore.webcam.cameraOn')}
             </div>
             
             {/* Background mode indicator */}
             {isBackgroundMode && (
               <div className="absolute top-2 right-2 px-3 py-1 bg-blue-500/90 text-white text-xs rounded-full flex items-center gap-1 animate-pulse">
                 <div className="w-2 h-2 bg-white rounded-full" />
-                Rodando em background
+                {t('bioscore.webcam.background')}
               </div>
             )}
             
@@ -338,8 +342,8 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
               <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
                 <div className="text-center space-y-2 p-4">
                   <ArrowDown className="h-8 w-8 text-yellow-400 mx-auto animate-bounce" />
-                  <p className="text-white text-sm font-medium">Ajuste sua posição</p>
-                  <p className="text-white/70 text-xs">Posicione seu rosto na câmera</p>
+                  <p className="text-white text-sm font-medium">{t('bioscore.webcam.adjustPosition')}</p>
+                  <p className="text-white/70 text-xs">{t('bioscore.webcam.facePrompt')}</p>
                 </div>
               </div>
             )}
@@ -348,7 +352,7 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
             {lowLightWarning && (
               <div className="absolute bottom-2 left-2 right-2 px-3 py-2 bg-orange-500/90 text-white text-xs rounded-lg flex items-center gap-2">
                 <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                <span>Iluminação baixa? Aproxime-se da luz!</span>
+                <span>{t('bioscore.webcam.lowLight')}</span>
               </div>
             )}
           </>
@@ -367,19 +371,21 @@ export default function WebcamCapture({ onBlinkDetected, isScanning, onScanCompl
         <div className="text-center space-y-3">
           <div className="grid grid-cols-2 gap-4">
             <div className="p-3 bg-primary/10 rounded-lg">
-              <p className="text-xs text-muted-foreground mb-1">Piscadas</p>
+              <p className="text-xs text-muted-foreground mb-1">{t('bioscore.webcam.blinks')}</p>
               <p className="text-2xl font-bold text-primary">{blinkCount}</p>
             </div>
             <div className="p-3 bg-secondary/10 rounded-lg">
-              <p className="text-xs text-muted-foreground mb-1">Taxa atual</p>
-              <p className="text-2xl font-bold text-foreground">{Math.round(currentBlinkRate)} piscadas/min</p>
+              <p className="text-xs text-muted-foreground mb-1">{t('bioscore.webcam.currentRate')}</p>
+              <p className="text-2xl font-bold text-foreground">
+                {t('bioscore.webcam.rateValue', { rate: roundBlinkRate(currentBlinkRate) })}
+              </p>
             </div>
           </div>
           
           <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
             <div className={`w-2 h-2 rounded-full ${faceDetected ? 'bg-green-500' : 'bg-red-500'}`} />
-            {faceDetected ? 'Face detectada • ' : 'Posicione seu rosto • '}
-            {isBackgroundMode ? 'Pode minimizar janela' : 'Trabalhe normalmente'}
+            {faceDetected ? t('bioscore.webcam.faceDetected') : t('bioscore.webcam.positionFace')}
+            {isBackgroundMode ? t('bioscore.webcam.canMinimize') : t('bioscore.webcam.workNormally')}
           </div>
         </div>
       )}

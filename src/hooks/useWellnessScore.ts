@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useI18n } from '@/i18n';
 
 export interface WellnessBreakdown {
   stressScore: number;    // 0-40 points (lower stress = higher score)
@@ -18,7 +19,14 @@ export interface WellnessData {
   refresh: () => Promise<void>;
 }
 
-export function getLabel(score: number): string {
+export function getLabel(score: number, t?: (key: string) => string): string {
+  if (t) {
+    if (score >= 80) return t('bioscore.wellness.label.excellent');
+    if (score >= 60) return t('bioscore.wellness.label.good');
+    if (score >= 40) return t('bioscore.wellness.label.moderate');
+    if (score >= 20) return t('bioscore.wellness.label.caution');
+    return t('bioscore.wellness.label.critical');
+  }
   if (score >= 80) return 'Excelente';
   if (score >= 60) return 'Bom';
   if (score >= 40) return 'Moderado';
@@ -37,6 +45,7 @@ export { computeStressScore, computeConsistencyScore, computeHrvScore } from '@/
 import { computeStressScore, computeConsistencyScore, computeHrvScore } from '@/lib/wellnessScoring';
 
 export function useWellnessScore(): WellnessData {
+  const { t } = useI18n();
   const [data, setData] = useState<Omit<WellnessData, 'refresh'>>({
     score: null,
     breakdown: { stressScore: 0, consistencyScore: 0, hrvScore: 0 },
@@ -103,7 +112,7 @@ export function useWellnessScore(): WellnessData {
       setData({
         score: scans.length === 0 ? 0 : score,
         breakdown: { stressScore, consistencyScore, hrvScore },
-        label: scans.length === 0 ? 'Sem dados' : getLabel(score),
+        label: scans.length === 0 ? t('bioscore.wellness.label.noData') : getLabel(score, t),
         color: scans.length === 0 ? 'hsl(var(--muted-foreground))' : getColor(score),
         trend,
         totalScans,
@@ -113,7 +122,7 @@ export function useWellnessScore(): WellnessData {
       console.error('useWellnessScore error:', err);
       setData(prev => ({ ...prev, score: null, loading: false }));
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     compute();

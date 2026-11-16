@@ -1,6 +1,8 @@
+import React from "react";
 import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
 import ScanProgress from "./ScanProgress";
+import { LangProvider } from "@/i18n";
 
 describe("ScanProgress", () => {
   it("renders progress percentage", () => {
@@ -23,8 +25,27 @@ describe("ScanProgress", () => {
     expect(getByText("100%")).toBeInTheDocument();
   });
 
-  it("displays label text", () => {
+  it("displays label text in Portuguese by default", () => {
     const { getByText } = render(<ScanProgress progress={25} />);
+    expect(getByText("Progresso do scan")).toBeInTheDocument();
+  });
+
+  it("renders English label under LangProvider initialLang='en'", () => {
+    const { getByText, queryByText } = render(
+      <LangProvider initialLang="en">
+        <ScanProgress progress={25} />
+      </LangProvider>
+    );
+    expect(getByText("Scan progress")).toBeInTheDocument();
+    expect(queryByText("Progresso do scan")).not.toBeInTheDocument();
+  });
+
+  it("renders Portuguese label under LangProvider initialLang='pt'", () => {
+    const { getByText } = render(
+      <LangProvider initialLang="pt">
+        <ScanProgress progress={25} />
+      </LangProvider>
+    );
     expect(getByText("Progresso do scan")).toBeInTheDocument();
   });
 });

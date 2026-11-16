@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { translate } from "@/i18n";
 import {
   calculateStressLevel,
   getStressDisplay,
@@ -202,5 +203,54 @@ describe("getPnlTip", () => {
 
   it("returns pause tip for high", () => {
     expect(getPnlTip("high")).toContain("Pause");
+  });
+});
+
+describe("bilingual support with t", () => {
+  const tEn = (key: string, vars?: Record<string, string | number>) => translate("en", key, vars);
+  const tPt = (key: string, vars?: Record<string, string | number>) => translate("pt", key, vars);
+
+  it("translates getStressDisplay in English and Portuguese", () => {
+    expect(getStressDisplay("low", tEn)).toEqual({
+      emoji: "OK",
+      message: "Optimized focus, high productivity",
+    });
+    expect(getStressDisplay("moderate", tEn)).toEqual({
+      emoji: "Caution",
+      message: "Normal focus, take breaks to prevent burnout",
+    });
+    expect(getStressDisplay("high", tEn)).toEqual({
+      emoji: "Alert",
+      message: "Fatigue detected. Risk of operational error",
+    });
+
+    expect(getStressDisplay("moderate", tPt)).toEqual({
+      emoji: "Atenção",
+      message: "Atenção normal, sugira pausas para evitar burnout",
+    });
+  });
+
+  it("translates calculateStressLevel messages in English", () => {
+    const normal = calculateStressLevel(10, undefined, tEn);
+    expect(normal.message).toBe("Optimized focus, high productivity");
+    expect(normal.emoji).toBe("OK");
+
+    const crossValidation = calculateStressLevel(30, 20, tEn);
+    expect(crossValidation.message).toBe("Stress alert: Low HRV + high blink rate (cross-validation)");
+    expect(crossValidation.emoji).toBe("Critical");
+  });
+
+  it("translates labels and tips in English", () => {
+    expect(getStressLabel("low", tEn)).toBe("Low");
+    expect(getStressLabel("moderate", tEn)).toBe("Moderate");
+    expect(getStressLabel("high", tEn)).toBe("High");
+
+    expect(getDiagnosticLabel("low", tEn)).toBe("Optimal");
+    expect(getDiagnosticLabel("moderate", tEn)).toBe("Normal");
+    expect(getDiagnosticLabel("high", tEn)).toBe("Alert");
+
+    expect(getPnlTip("low", tEn)).toContain("Anchor");
+    expect(getPnlTip("moderate", tEn)).toContain("Practice 4-7-8");
+    expect(getPnlTip("high", tEn)).toContain("Pause now");
   });
 });

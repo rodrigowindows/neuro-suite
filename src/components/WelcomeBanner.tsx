@@ -2,17 +2,21 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useI18n } from '@/i18n';
 
 interface WelcomeBannerProps {
   displayName: string;
 }
 
 export default function WelcomeBanner({ displayName }: WelcomeBannerProps) {
+  const { t } = useI18n();
   const [dismissed, setDismissed] = useState(false);
 
   if (dismissed) return null;
 
-  const greeting = displayName ? `Olá, ${displayName}!` : 'Bem-vindo ao CrewVitals!';
+  const greeting = displayName
+    ? t('dashboard.welcome.greetingNamed', { name: displayName })
+    : t('dashboard.welcome.greetingGeneric');
 
   return (
     <AnimatePresence>
@@ -26,6 +30,7 @@ export default function WelcomeBanner({ displayName }: WelcomeBannerProps) {
         <Button
           variant="ghost"
           size="icon"
+          aria-label={t('dashboard.welcome.dismiss')}
           className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-foreground"
           onClick={() => setDismissed(true)}
         >
@@ -39,7 +44,7 @@ export default function WelcomeBanner({ displayName }: WelcomeBannerProps) {
           <div>
             <h3 className="font-display font-bold text-sm text-foreground">{greeting}</h3>
             <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-              Comece fazendo seu primeiro <strong>BioScore</strong> — um scan facial rápido que estima seu nível de estresse usando neurociência. É seguro, privado e leva menos de 30 segundos.
+              {t('dashboard.welcome.descriptionBefore')}<strong>BioScore</strong>{t('dashboard.welcome.descriptionAfter')}
             </p>
           </div>
         </div>
