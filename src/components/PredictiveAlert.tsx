@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge';
+import { useI18n } from '@/i18n';
 
 export interface PredictiveAlertProps {
   onMitigate?: () => void;
@@ -9,6 +10,8 @@ export default function PredictiveAlert({
   onMitigate,
   bioScore,
 }: PredictiveAlertProps) {
+  const { t } = useI18n();
+
   return (
     <div
       role="alert"
@@ -22,15 +25,17 @@ export default function PredictiveAlert({
           variant="outline"
           className="text-[10px] font-mono uppercase tracking-wider py-0 px-1.5 h-4 text-muted-foreground border-border/80"
         >
-          Demonstração
+          {t('predictive.badge')}
         </Badge>
         <span className="font-medium text-foreground">
-          {typeof bioScore === 'number' ? `BioScore ${bioScore} — ` : ''}
-          Risco de erro em tarefas de precisão nas próximas 4 h — suspender acoplagem/EVA.
+          {typeof bioScore === 'number'
+            ? t('predictive.bioscorePrefix', { score: bioScore })
+            : ''}
+          {t('predictive.message')}
         </span>
       </div>
       <span className="text-[11px] text-muted-foreground/80 shrink-0">
-        Cenário demonstrativo — não é uma previsão clínica validada.
+        {t('predictive.disclaimer')}
       </span>
     </div>
   );
