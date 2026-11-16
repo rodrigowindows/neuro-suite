@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
-import MissionLog from './MissionLog';
+import MissionLog, {
+  formatLocalizedEventDate,
+  formatCockpitVerdict,
+  formatEventText,
+} from './MissionLog';
+import { LangProvider } from '@/i18n';
 import { getFatigueStorageKey, FATIGUE_DIVERGENCE_MESSAGE } from '@/lib/perceivedFatigue';
 import {
   SYMPTOM_OPTIONS,
@@ -9,7 +14,7 @@ import {
   getSymptomsStorageKey,
   getDailySymptoms,
 } from '@/lib/symptoms';
-import { getRecentEvents } from '@/lib/missionEvents';
+import { getRecentEvents, appendEvent } from '@/lib/missionEvents';
 import { getOutboxCount, getOutbox, clearOutbox } from '@/lib/offlineOutbox';
 import { getReadinessStatus } from '@/lib/readiness';
 
@@ -726,6 +731,204 @@ describe('MissionLog (AAA Pattern)', () => {
       // Assert
       expect(screen.queryByText(FATIGUE_DIVERGENCE_MESSAGE)).not.toBeInTheDocument();
       expect(getReadinessStatus).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('11. Utilitarios de formatacao multilíngue (AAA)', () => {
+    it('formatLocalizedEventDate formata datas conforme o idioma (Hoje/Today, Ontem/Yesterday e DD/MM vs MM/DD)', () => {
+      // Arrange
+      const ref = new Date('2026-11-15T12:00:00Z');
+      const today = new Date('2026-11-15T09:30:00Z');
+      const yesterday = new Date('2026-11-14T18:15:00Z');
+      const older = new Date('2026-11-10T14:20:00Z');
+
+      // Act & Assert - PT
+      expect(formatLocalizedEventDate(today, 'pt', ref)).toContain('Hoje,');
+      expect(formatLocalizedEventDate(yesterday, 'pt', ref)).toContain('Ontem,');
+      expect(formatLocalizedEventDate(older, 'pt', ref)).toContain('10/11,');
+
+      // Act & Assert - EN
+      expect(formatLocalizedEventDate(today, 'en', ref)).toContain('Today,');
+      expect(formatLocalizedEventDate(yesterday, 'en', ref)).toContain('Yesterday,');
+      expect(formatLocalizedEventDate(older, 'en', ref)).toContain('11/10,');
+    });
+
+    it('formatCockpitVerdict mapeia vereditos em portugues para ingles sem alterar o prop', () => {
+      // Arrange & Act & Assert
+      expect(formatCockpitVerdict('ATENÇÃO', 'en')).toBe('CAUTION - WATCH');
+      expect(formatCockpitVerdict('ATENÇÃO', 'pt')).toBe('ATENÇÃO');
+      expect(formatCockpitVerdict('GO', 'en')).toBe('GO - FIT FOR SHIFT');
+      expect(formatCockpitVerdict('GO', 'pt')).toBe('GO');
+      expect(formatCockpitVerdict('NO-GO', 'en')).toBe('NO-GO - FATIGUE (NOT FIT)');
+      expect(formatCockpitVerdict('NO-GO', 'pt')).toBe('NO-GO');
+      expect(formatCockpitVerdict('AGUARDANDO SCAN', 'en')).toBe('AWAITING SCAN');
+      expect(formatCockpitVerdict('AGUARDANDO SCAN', 'pt')).toBe('AGUARDANDO SCAN');
+      expect(formatCockpitVerdict('SEM DADOS', 'en')).toBe('NO DATA');
+      expect(formatCockpitVerdict('SEM DADOS', 'pt')).toBe('SEM DADOS');
+    });
+
+    it('formatEventText deriva eventos em EN a partir de type + metadata mantendo fallback em PT', () => {
+      // Arrange
+      const mockT = (key: string, vars?: Record<string, string | number>) => {
+        if (key === 'missionlog.event.scanCompleted') {
+          return `Scan completed: BioScore ${vars?.score}, HRV ${vars?.hrv} ms`;
+        }
+        if (key === 'missionlog.event.fatigueLogged') {
+          return `Perceived fatigue: ${vars?.level}`;
+        }
+        if (key === 'missionlog.event.symptomsReported') {
+          return `Symptoms reported: ${vars?.list}`;
+        }
+        if (key === 'missionlog.symptom.fever') return 'fever or chills';
+        if (key === 'missionlog.symptom.headache') return 'headache';
+        if (key === 'missionlog.fatigue.3') return '3 - Moderate fatigue';
+        return key;
+      };
+
+      const scanEvt = {
+        id: '1',
+        type: 'scan',
+        label: 'Scan realizado: BioScore 72, HRV 62 ms',
+        at: '2026-11-15T10:00:00Z',
+        metadata: { score: 72, hrv: 62 },
+      };
+
+      const fatigueEvt = {
+        id: '2',
+        type: 'perceived_fatigue',
+        label: 'Fadiga percebida: 3 - Fadiga moderada',
+        at: '2026-11-15T10:05:00Z',
+        metadata: { fadiga: 3 },
+      };
+
+      const symptomsEvt = {
+        id: '3',
+        type: 'symptoms_logged',
+        label: 'Sintomas reportados: febre ou calafrios, dor de cabeça',
+        at: '2026-11-15T10:10:00Z',
+        metadata: { symptoms: ['febre ou calafrios', 'dor de cabeça'] },
+      };
+
+      const customEvt = {
+        id: '4',
+        type: 'custom_alert',
+        label: 'Custom alert text',
+        at: '2026-11-15T10:15:00Z',
+      };
+
+      // Assert - PT preserva label original
+      expect(formatEventText(scanEvt, 'pt', mockT)).toBe('Scan realizado: BioScore 72, HRV 62 ms');
+      expect(formatEventText(fatigueEvt, 'pt', mockT)).toBe('Fadiga percebida: 3 - Fadiga moderada');
+      expect(formatEventText(symptomsEvt, 'pt', mockT)).toBe('Sintomas reportados: febre ou calafrios, dor de cabeça');
+
+      // Assert - EN deriva dinamicamente
+      expect(formatEventText(scanEvt, 'en', mockT)).toBe('Scan completed: BioScore 72, HRV 62 ms');
+      expect(formatEventText(fatigueEvt, 'en', mockT)).toBe('Perceived fatigue: 3 - Moderate fatigue');
+      expect(formatEventText(symptomsEvt, 'en', mockT)).toBe('Symptoms reported: fever or chills, headache');
+      expect(formatEventText(customEvt, 'en', mockT)).toBe('Custom alert text');
+    });
+  });
+
+  describe('12. Componente MissionLog sob LangProvider (EN e PT) (AAA)', () => {
+    it('renderiza todos os textos principais em Ingles quando sob LangProvider initialLang="en"', async () => {
+      // Arrange & Act
+      await act(async () => {
+        render(
+          <LangProvider initialLang="en">
+            <MissionLog cockpitVerdict="ATENÇÃO" />
+          </LangProvider>
+        );
+      });
+
+      // Assert: Títulos e rótulos em inglês
+      expect(screen.getByRole('heading', { level: 3, name: 'Biometric Log' })).toBeInTheDocument();
+      expect(screen.getByLabelText(/Sleep Hours/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Exercise Completed Today/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Perceived Fatigue Level/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Save Entry' })).toBeInTheDocument();
+      expect(screen.getByText('Symptoms today')).toBeInTheDocument();
+      expect(screen.getByText('Personal Baseline')).toBeInTheDocument();
+      expect(screen.getByText('Last Saved Entry')).toBeInTheDocument();
+      expect(screen.getByText('Downlink Package')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Generate Downlink Package' })).toBeInTheDocument();
+      expect(screen.getByText('Mission Event Timeline')).toBeInTheDocument();
+
+      // Assert: Veredito do Cockpit traduzido
+      const verdictBadge = screen.getByTestId('cockpit-verdict-badge');
+      expect(verdictBadge).toHaveTextContent('CAUTION - WATCH');
+
+      // Assert: Textos antigos em português NÃO aparecem no DOM
+      expect(screen.queryByText('Horas de Sono')).toBeNull();
+      expect(screen.queryByText('Exercício Realizado Hoje')).toBeNull();
+      expect(screen.queryByText('Salvar Registro')).toBeNull();
+      expect(screen.queryByText('Linha de Base Pessoal')).toBeNull();
+      expect(screen.queryByText('Último Registro Salvo')).toBeNull();
+      expect(screen.queryByText('Pacote de Downlink')).toBeNull();
+      expect(screen.queryByText('Gerar Pacote de Downlink')).toBeNull();
+      expect(screen.queryByText('Linha do Tempo da Missão')).toBeNull();
+      expect(screen.queryByText('ATENÇÃO')).toBeNull();
+    });
+
+    it('renderiza todos os textos em Portugues quando sob LangProvider initialLang="pt"', async () => {
+      // Arrange & Act
+      await act(async () => {
+        render(
+          <LangProvider initialLang="pt">
+            <MissionLog cockpitVerdict="ATENÇÃO" />
+          </LangProvider>
+        );
+      });
+
+      // Assert: Títulos e rótulos em português
+      expect(screen.getByLabelText(/Horas de Sono/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Exercício Realizado Hoje/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Salvar Registro' })).toBeInTheDocument();
+      expect(screen.getByText('Linha de Base Pessoal')).toBeInTheDocument();
+      expect(screen.getByText('Último Registro Salvo')).toBeInTheDocument();
+      expect(screen.getByText('Pacote de Downlink')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Gerar Pacote de Downlink' })).toBeInTheDocument();
+      expect(screen.getByText('Linha do Tempo da Missão')).toBeInTheDocument();
+
+      // Assert: Veredito do Cockpit em português
+      const verdictBadge = screen.getByTestId('cockpit-verdict-badge');
+      expect(verdictBadge).toHaveTextContent('ATENÇÃO');
+    });
+
+    it('filtra eventos na timeline por tipo e formata em EN dinamicamente', async () => {
+      // Arrange
+      appendEvent({
+        type: 'scan',
+        label: 'Scan realizado: BioScore 72, HRV 62 ms',
+        metadata: { score: 72, hrv: 62 },
+      });
+      appendEvent({
+        type: 'perceived_fatigue',
+        label: 'Fadiga percebida: 3 - Fadiga moderada',
+        metadata: { fadiga: 3 },
+      });
+
+      // Act
+      await act(async () => {
+        render(
+          <LangProvider initialLang="en">
+            <MissionLog />
+          </LangProvider>
+        );
+      });
+
+      // Assert: Eventos renderizados em EN
+      expect(screen.getByText('Scan completed: BioScore 72, HRV 62 ms')).toBeInTheDocument();
+      expect(screen.getByText('Perceived fatigue: 3 - Moderate fatigue')).toBeInTheDocument();
+
+      // Act: Clica no filtro "Scans"
+      const scanFilterBtn = screen.getByRole('button', { name: 'Scans' });
+      await act(async () => {
+        fireEvent.click(scanFilterBtn);
+      });
+
+      // Assert: Apenas scan visivel
+      expect(screen.getByText('Scan completed: BioScore 72, HRV 62 ms')).toBeInTheDocument();
+      expect(screen.queryByText('Perceived fatigue: 3 - Moderate fatigue')).toBeNull();
     });
   });
 });
