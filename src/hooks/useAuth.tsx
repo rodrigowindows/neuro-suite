@@ -1,7 +1,9 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useI18n } from '@/i18n';
 
 interface AuthContextType {
   user: User | null;
@@ -9,6 +11,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName?: string, preferredName?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  resetPassword?: (email: string) => Promise<{ error: unknown }>;
   loading: boolean;
 }
 
@@ -19,6 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { t } = useI18n();
 
   useEffect(() => {
     // Set up auth state listener
@@ -57,14 +61,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (error) {
       toast({
-        title: 'Erro no cadastro',
+        title: t('account.auth.signUpErrorTitle'),
         description: error.message,
         variant: 'destructive',
       });
     } else {
       toast({
-        title: 'Cadastro realizado!',
-        description: 'Você já pode fazer login.',
+        title: t('account.auth.signUpSuccessTitle'),
+        description: t('account.auth.signUpSuccessDescription'),
       });
     }
 
@@ -79,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (error) {
       toast({
-        title: 'Erro no login',
+        title: t('account.auth.signInErrorTitle'),
         description: error.message,
         variant: 'destructive',
       });
@@ -91,13 +95,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     await supabase.auth.signOut();
     toast({
-      title: 'Logout realizado',
-      description: 'Até logo.',
+      title: t('account.auth.signOutTitle'),
+      description: t('account.auth.signOutDescription'),
     });
   };
 
+  const resetPassword = async (email: string) => {
+    const redirectUrl = `${window.location.origin}/reset-password`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectUrl,
+    });
+
+    if (error) {
+      toast({
+        title: t('account.auth.resetPasswordErrorTitle'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    } else {
+      toast({
+        title: t('account.auth.resetPasswordSuccessTitle'),
+        description: t('account.auth.resetPasswordSuccessDescription'),
+      });
+    }
+
+    return { error };
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, signUp, signIn, signOut, loading }}>
+    <AuthContext.Provider value={{ user, session, signUp, signIn, signOut, resetPassword, loading }}>
       {children}
     </AuthContext.Provider>
   );

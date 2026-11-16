@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, Shield, Users, Crown, UserCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { AppRole } from '@/hooks/useUserRole';
+import { useI18n } from '@/i18n';
 
 interface UserWithRole {
   id: string;
@@ -25,6 +26,7 @@ export default function AdminPanel() {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [updatingUser, setUpdatingUser] = useState<string | null>(null);
@@ -73,7 +75,7 @@ export default function AdminPanel() {
       setUsers(combined);
     } catch (err) {
       console.error(err);
-      toast.error('Erro ao carregar usuários');
+      toast.error(t('account.admin.toastLoadError'));
     } finally {
       setLoadingUsers(false);
     }
@@ -81,7 +83,7 @@ export default function AdminPanel() {
 
   const handleRoleChange = async (userId: string, newRole: AppRole) => {
     if (userId === user?.id) {
-      toast.error('Você não pode alterar seu próprio papel');
+      toast.error(t('account.admin.toastCannotChangeOwnRole'));
       return;
     }
     setUpdatingUser(userId);
@@ -99,11 +101,11 @@ export default function AdminPanel() {
         .insert({ user_id: userId, role: newRole });
       if (insErr) throw insErr;
 
-      toast.success(`Papel atualizado para ${newRole}`);
+      toast.success(t('account.admin.toastRoleUpdated', { role: newRole }));
       await loadUsers();
     } catch (err) {
       console.error(err);
-      toast.error('Erro ao atualizar papel');
+      toast.error(t('account.admin.toastUpdateRoleError'));
     } finally {
       setUpdatingUser(null);
     }
@@ -145,8 +147,8 @@ export default function AdminPanel() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="font-display font-bold text-sm sm:text-base">Painel Admin</h1>
-          <p className="text-[11px] text-muted-foreground hidden sm:block">Gerenciamento de roles e usuários</p>
+          <h1 className="font-display font-bold text-sm sm:text-base">{t('account.admin.title')}</h1>
+          <p className="text-[11px] text-muted-foreground hidden sm:block">{t('account.admin.subtitle')}</p>
         </div>
       </header>
 
@@ -154,9 +156,9 @@ export default function AdminPanel() {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4">
           {[
-            { label: 'Total Usuários', value: users.length, icon: Users, color: 'text-primary' },
-            { label: 'Gestores', value: users.filter(u => u.roles.includes('manager') || u.roles.includes('admin')).length, icon: Shield, color: 'text-accent' },
-            { label: 'Admins', value: users.filter(u => u.roles.includes('admin')).length, icon: Crown, color: 'text-destructive' },
+            { label: t('account.admin.statsTotalUsers'), value: users.length, icon: Users, color: 'text-primary' },
+            { label: t('account.admin.statsManagers'), value: users.filter(u => u.roles.includes('manager') || u.roles.includes('admin')).length, icon: Shield, color: 'text-accent' },
+            { label: t('account.admin.statsAdmins'), value: users.filter(u => u.roles.includes('admin')).length, icon: Crown, color: 'text-destructive' },
           ].map((s, i) => (
             <motion.div key={s.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
               <Card>
@@ -177,9 +179,9 @@ export default function AdminPanel() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              Usuários
+              {t('account.admin.tableTitle')}
             </CardTitle>
-            <CardDescription>Gerencie os papéis de cada colaborador</CardDescription>
+            <CardDescription>{t('account.admin.tableDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             {loadingUsers ? (
@@ -191,10 +193,10 @@ export default function AdminPanel() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Papel Atual</TableHead>
-                      <TableHead>Alterar Papel</TableHead>
+                      <TableHead>{t('account.admin.colName')}</TableHead>
+                      <TableHead>{t('account.admin.colEmail')}</TableHead>
+                      <TableHead>{t('account.admin.colCurrentRole')}</TableHead>
+                      <TableHead>{t('account.admin.colChangeRole')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -209,7 +211,7 @@ export default function AdminPanel() {
                         <TableCell>{getRoleBadge(getHighestRole(u.roles))}</TableCell>
                         <TableCell>
                           {u.id === user?.id ? (
-                            <span className="text-xs text-muted-foreground">Você</span>
+                            <span className="text-xs text-muted-foreground">{t('account.admin.you')}</span>
                           ) : (
                             <Select
                               defaultValue={getHighestRole(u.roles)}

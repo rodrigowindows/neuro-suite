@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -16,26 +16,18 @@ import { motion } from 'framer-motion';
 import { User, Mail, Save, Shield, LogOut } from 'lucide-react';
 import WellnessScoreCard from '@/components/WellnessScoreCard';
 import GamificationScoreCard from '@/components/GamificationScoreCard';
-import { z } from 'zod';
-
-const profileSchema = z.object({
-  fullName: z.string().trim().max(100, 'Nome muito longo').optional(),
-  preferredName: z.string().trim().max(50, 'Apelido muito longo').optional(),
-});
-
-const passwordSchema = z.object({
-  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres').max(100, 'Senha muito longa'),
-  confirmPassword: z.string(),
-}).refine(data => data.password === data.confirmPassword, {
-  message: 'As senhas não coincidem',
-  path: ['confirmPassword'],
-});
+import { useI18n } from '@/i18n';
+import { getProfileSchema, getPasswordSchema } from '@/lib/validations';
 
 export default function Profile() {
   const { user, loading, signOut } = useAuth();
   const { profile, loading: profileLoading } = useUserProfile();
   const { isAutonomous } = useConnectionMode();
   const navigate = useNavigate();
+  const { t } = useI18n();
+
+  const profileSchema = useMemo(() => getProfileSchema(t), [t]);
+  const passwordSchema = useMemo(() => getPasswordSchema(t), [t]);
 
   const [fullName, setFullName] = useState('');
   const [preferredName, setPreferredName] = useState('');
@@ -73,7 +65,7 @@ export default function Profile() {
             preferred_name: validated.preferredName || null,
           },
         });
-        toast.success('Registro salvo localmente — será enviado ao restabelecer o uplink');
+        toast.success(t('account.profile.toastOfflineSaved'));
         return;
       }
 
@@ -86,12 +78,12 @@ export default function Profile() {
         .eq('id', user!.id);
 
       if (error) throw error;
-      toast.success('Perfil atualizado com sucesso.');
+      toast.success(t('account.profile.toastProfileUpdated'));
     } catch (err: any) {
       if (err.errors) {
         toast.error(err.errors[0].message);
       } else {
-        toast.error(err.message || 'Erro ao salvar perfil');
+        toast.error(err.message || t('account.profile.toastProfileError'));
       }
     } finally {
       setIsSaving(false);
@@ -111,12 +103,12 @@ export default function Profile() {
 
       setNewPassword('');
       setConfirmPassword('');
-      toast.success('Senha atualizada com sucesso.');
+      toast.success(t('account.profile.toastPasswordUpdated'));
     } catch (err: any) {
       if (err.errors) {
         toast.error(err.errors[0].message);
       } else {
-        toast.error(err.message || 'Erro ao alterar senha');
+        toast.error(err.message || t('account.profile.toastPasswordError'));
       }
     } finally {
       setIsChangingPassword(false);
@@ -142,8 +134,8 @@ export default function Profile() {
         <div className="flex items-center gap-3">
           <BackButton />
           <div>
-            <h1 className="font-display font-bold text-xl text-foreground">Meu Perfil</h1>
-            <p className="text-xs text-muted-foreground">Gerencie suas informações pessoais</p>
+            <h1 className="font-display font-bold text-xl text-foreground">{t('account.profile.title')}</h1>
+            <p className="text-xs text-muted-foreground">{t('account.profile.subtitle')}</p>
           </div>
         </div>
 
@@ -164,17 +156,17 @@ export default function Profile() {
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
                 <User className="h-4.5 w-4.5 text-primary" />
-                <CardTitle className="text-base">Informações Pessoais</CardTitle>
+                <CardTitle className="text-base">{t('account.profile.personalInfoTitle')}</CardTitle>
               </div>
               <CardDescription className="text-xs">
-                Atualize seu nome e como deseja ser chamado pelo AstroAssist
+                {t('account.profile.personalInfoDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-1.5">
                 <Label htmlFor="email" className="text-xs font-medium flex items-center gap-1.5">
                   <Mail className="h-3.5 w-3.5 text-muted-foreground" />
-                  Email
+                  {t('account.profile.emailLabel')}
                 </Label>
                 <Input
                   id="email"
@@ -183,15 +175,15 @@ export default function Profile() {
                   disabled
                   className="bg-muted/50 text-muted-foreground"
                 />
-                <p className="text-[10px] text-muted-foreground">O email não pode ser alterado</p>
+                <p className="text-[10px] text-muted-foreground">{t('account.profile.emailHint')}</p>
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="full-name" className="text-xs font-medium">Nome completo</Label>
+                <Label htmlFor="full-name" className="text-xs font-medium">{t('account.profile.fullNameLabel')}</Label>
                 <Input
                   id="full-name"
                   type="text"
-                  placeholder="Seu nome completo"
+                  placeholder={t('account.profile.fullNamePlaceholder')}
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   maxLength={100}
@@ -199,16 +191,16 @@ export default function Profile() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="preferred-name" className="text-xs font-medium">Como prefere ser chamado(a)?</Label>
+                <Label htmlFor="preferred-name" className="text-xs font-medium">{t('account.profile.preferredNameLabel')}</Label>
                 <Input
                   id="preferred-name"
                   type="text"
-                  placeholder="Ex: João, Maria..."
+                  placeholder={t('account.profile.preferredNamePlaceholder')}
                   value={preferredName}
                   onChange={(e) => setPreferredName(e.target.value)}
                   maxLength={50}
                 />
-                <p className="text-[10px] text-muted-foreground">O AstroAssist usará este nome nas conversas</p>
+                <p className="text-[10px] text-muted-foreground">{t('account.profile.preferredNameHint')}</p>
               </div>
 
               <Button
@@ -217,7 +209,7 @@ export default function Profile() {
                 className="w-full gap-2"
               >
                 <Save className="h-4 w-4" />
-                {isSaving ? 'Salvando...' : 'Salvar Alterações'}
+                {isSaving ? t('account.profile.saving') : t('account.profile.saveChanges')}
               </Button>
             </CardContent>
           </Card>
@@ -227,15 +219,15 @@ export default function Profile() {
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
                 <Shield className="h-4.5 w-4.5 text-primary" />
-                <CardTitle className="text-base">Segurança</CardTitle>
+                <CardTitle className="text-base">{t('account.profile.securityTitle')}</CardTitle>
               </div>
               <CardDescription className="text-xs">
-                Altere sua senha de acesso
+                {t('account.profile.securityDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="new-password" className="text-xs font-medium">Nova senha</Label>
+                <Label htmlFor="new-password" className="text-xs font-medium">{t('account.profile.newPasswordLabel')}</Label>
                 <Input
                   id="new-password"
                   type="password"
@@ -245,7 +237,7 @@ export default function Profile() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="confirm-new-password" className="text-xs font-medium">Confirmar nova senha</Label>
+                <Label htmlFor="confirm-new-password" className="text-xs font-medium">{t('account.profile.confirmNewPasswordLabel')}</Label>
                 <Input
                   id="confirm-new-password"
                   type="password"
@@ -253,7 +245,7 @@ export default function Profile() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />
-                <p className="text-[10px] text-muted-foreground">Mínimo 6 caracteres</p>
+                <p className="text-[10px] text-muted-foreground">{t('account.profile.passwordHint')}</p>
               </div>
               <Button
                 onClick={handleChangePassword}
@@ -262,7 +254,7 @@ export default function Profile() {
                 className="w-full gap-2"
               >
                 <Shield className="h-4 w-4" />
-                {isChangingPassword ? 'Atualizando...' : 'Alterar Senha'}
+                {isChangingPassword ? t('account.profile.updatingPassword') : t('account.profile.changePassword')}
               </Button>
             </CardContent>
           </Card>
@@ -275,7 +267,7 @@ export default function Profile() {
             className="w-full gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
           >
             <LogOut className="h-4 w-4" />
-            Sair da conta
+            {t('account.profile.logout')}
           </Button>
         </motion.div>
       </div>

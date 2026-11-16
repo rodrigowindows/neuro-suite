@@ -8,9 +8,11 @@ import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { CheckCircle, Lock } from 'lucide-react';
 import neuroSuiteLogo from '@/assets/neurosuite-logo.jpg';
+import { useI18n } from '@/i18n';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -37,11 +39,11 @@ export default function ResetPassword() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password.length < 6) {
-      toast.error('Senha deve ter no mínimo 6 caracteres');
+      toast.error(t('account.resetPassword.errorMin6'));
       return;
     }
     if (password !== confirmPassword) {
-      toast.error('As senhas não coincidem');
+      toast.error(t('account.resetPassword.errorMismatch'));
       return;
     }
 
@@ -51,7 +53,7 @@ export default function ResetPassword() {
       toast.error(error.message);
     } else {
       setSuccess(true);
-      toast.success('Senha atualizada com sucesso!');
+      toast.success(t('account.resetPassword.toastSuccess'));
       setTimeout(() => navigate('/dashboard'), 2000);
     }
     setIsLoading(false);
@@ -63,8 +65,8 @@ export default function ResetPassword() {
         <Card className="w-full max-w-md shadow-elegant">
           <CardContent className="pt-6 text-center space-y-4">
             <Lock className="h-12 w-12 text-muted-foreground mx-auto" />
-            <p className="text-muted-foreground">Link de recuperação inválido ou expirado.</p>
-            <Button variant="outline" onClick={() => navigate('/auth')}>Voltar ao Login</Button>
+            <p className="text-muted-foreground">{t('account.resetPassword.invalidLink')}</p>
+            <Button variant="outline" onClick={() => navigate('/auth')}>{t('account.resetPassword.backToLogin')}</Button>
           </CardContent>
         </Card>
       </div>
@@ -85,8 +87,8 @@ export default function ResetPassword() {
               <img src={neuroSuiteLogo} alt="CrewVitals" className="h-20 w-auto rounded-xl shadow-medium" />
             </div>
             <div>
-              <h1 className="font-display font-bold text-xl text-foreground">Redefinir Senha</h1>
-              <CardDescription className="text-xs mt-1">Escolha uma nova senha segura</CardDescription>
+              <h1 className="font-display font-bold text-xl text-foreground">{t('account.resetPassword.title')}</h1>
+              <CardDescription className="text-xs mt-1">{t('account.resetPassword.subtitle')}</CardDescription>
             </div>
           </CardHeader>
           <CardContent>
@@ -95,22 +97,22 @@ export default function ResetPassword() {
                 <div className="mx-auto w-16 h-16 bg-success/10 rounded-full flex items-center justify-center">
                   <CheckCircle className="h-8 w-8 text-success" />
                 </div>
-                <p className="font-display font-bold text-lg">Senha atualizada.</p>
-                <p className="text-sm text-muted-foreground">Redirecionando...</p>
+                <p className="font-display font-bold text-lg">{t('account.resetPassword.successTitle')}</p>
+                <p className="text-sm text-muted-foreground">{t('account.resetPassword.redirecting')}</p>
               </motion.div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-3">
                 <div className="space-y-1.5">
-                  <label htmlFor="new-password" className="text-xs font-medium">Nova senha</label>
+                  <label htmlFor="new-password" className="text-xs font-medium">{t('account.resetPassword.newPasswordLabel')}</label>
                   <Input id="new-password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
                 </div>
                 <div className="space-y-1.5">
-                  <label htmlFor="confirm-password" className="text-xs font-medium">Confirmar senha</label>
+                  <label htmlFor="confirm-password" className="text-xs font-medium">{t('account.resetPassword.confirmPasswordLabel')}</label>
                   <Input id="confirm-password" type="password" placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
-                  <p className="text-[10px] text-muted-foreground">Mínimo 6 caracteres</p>
+                  <p className="text-[10px] text-muted-foreground">{t('account.resetPassword.passwordHint')}</p>
                 </div>
                 <Button type="submit" className="w-full mt-2" disabled={isLoading}>
-                  {isLoading ? 'Atualizando...' : 'Atualizar Senha'}
+                  {isLoading ? t('account.resetPassword.submitting') : t('account.resetPassword.submit')}
                 </Button>
               </form>
             )}

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useStressData } from '@/hooks/useStressData';
 import { toast } from 'sonner';
+import { useI18n } from '@/i18n';
 
 interface UseStressNotificationsOptions {
   consecutiveDaysThreshold?: number;
@@ -10,6 +11,7 @@ interface UseStressNotificationsOptions {
 export function useStressNotifications(options: UseStressNotificationsOptions = {}) {
   const { consecutiveDaysThreshold = 3, enabled = true } = options;
   const { consecutiveHighDays, stats, loading } = useStressData({ days: 14, filterByUser: true });
+  const { t } = useI18n();
   const notifiedRef = useRef(false);
 
   const isCritical = consecutiveHighDays >= consecutiveDaysThreshold;
@@ -22,20 +24,20 @@ export function useStressNotifications(options: UseStressNotificationsOptions = 
 
     // In-app toast
     toast.warning(
-      `Estresse crítico detectado: ${consecutiveHighDays} dias consecutivos com estresse alto. Considere fazer uma pausa ou falar com seu gestor.`,
+      t('account.stressNotification.toast', { days: consecutiveHighDays }),
       { duration: 10000 },
     );
 
     // Browser notification (if permitted)
     if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('CrewVitals — Alerta de Estresse', {
-        body: `Você está com estresse alto há ${consecutiveHighDays} dias consecutivos. Cuide-se!`,
+      new Notification(t('account.stressNotification.notificationTitle'), {
+        body: t('account.stressNotification.notificationBody', { days: consecutiveHighDays }),
         icon: '/favicon.ico',
       });
     } else if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
     }
-  }, [isCritical, consecutiveHighDays, loading, enabled]);
+  }, [isCritical, consecutiveHighDays, loading, enabled, t]);
 
   return {
     isCritical,
