@@ -5,6 +5,7 @@ import { UserMinus, Loader2, AlertTriangle, TrendingDown, DollarSign, Shield } f
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useConnectionMode } from '@/hooks/useConnectionMode';
+import { useI18n } from '@/i18n';
 
 interface Employee {
   id: string;
@@ -32,6 +33,7 @@ interface TurnoverResult {
 }
 
 export default function TurnoverPrediction() {
+  const { t } = useI18n();
   const [result, setResult] = useState<TurnoverResult | null>(null);
   const [loading, setLoading] = useState(false);
   const { isAutonomous } = useConnectionMode();
@@ -51,7 +53,11 @@ export default function TurnoverPrediction() {
         .limit(1000);
 
       if (!scans || scans.length === 0) {
-        toast({ title: 'Sem dados', description: 'Sem scans para análise de turnover.', variant: 'destructive' });
+        toast({
+          title: t('command.turnover.toast.noDataTitle'),
+          description: t('command.turnover.toast.noDataDesc'),
+          variant: 'destructive',
+        });
         return;
       }
 
@@ -79,7 +85,11 @@ export default function TurnoverPrediction() {
         const half = Math.floor(total / 2);
         const recentHigh = total > 1 ? userScans.slice(0, half).filter(s => s.stress_level === 'high').length / Math.max(half, 1) : 0;
         const olderHigh = total > 1 ? userScans.slice(half).filter(s => s.stress_level === 'high').length / Math.max(total - half, 1) : 0;
-        const trend = recentHigh > olderHigh * 1.2 ? 'piorando' : recentHigh < olderHigh * 0.8 ? 'melhorando' : 'estável';
+        const trend = recentHigh > olderHigh * 1.2
+          ? t('command.turnover.trend.worsening')
+          : recentHigh < olderHigh * 0.8
+          ? t('command.turnover.trend.improving')
+          : t('command.turnover.trend.stable');
 
         return {
           id: `COL-${String(idx + 1).padStart(3, '0')}`,
@@ -101,27 +111,30 @@ export default function TurnoverPrediction() {
         const localResult: TurnoverResult = {
           overallRisk: companyHighPercent > 40 ? 'high' : companyHighPercent > 20 ? 'moderate' : 'low',
           overallScore: companyHighPercent,
-          summary: 'Gerado localmente (regras fixas, sem IA em nuvem): Estimativa calculada via limites fixos de telemetria local.',
-          topRisks: ['Fadiga operacional identificada em registros locais'],
-          costEstimate: 'R$ 0 (modo autônomo offline)',
+          summary: t('command.turnover.autonomous.summary'),
+          topRisks: [t('command.turnover.autonomous.topRisk')],
+          costEstimate: t('command.turnover.autonomous.costEstimate'),
           retentionActions: [
             {
-              action: 'Gerado localmente (regras fixas, sem IA em nuvem): Aplicar contramedidas e pausas imediatas',
+              action: t('command.turnover.autonomous.action'),
               priority: 'high',
-              impact: 'Estabilização de prontidão',
+              impact: t('command.turnover.autonomous.impact'),
             },
           ],
           employees: employees.map((emp) => ({
             id: emp.id,
             riskScore: emp.highPercent,
             riskLevel: emp.highPercent > 40 ? 'high' : emp.highPercent > 20 ? 'moderate' : 'low',
-            factors: ['Percentual elevado de estresse'],
-            recommendation: 'Gerado localmente (regras fixas, sem IA em nuvem): Intervalo operacional e protocolo 4-7-8',
-            signals: ['Variação de piscadas'],
+            factors: [t('command.turnover.autonomous.factor')],
+            recommendation: t('command.turnover.autonomous.recommendation'),
+            signals: [t('command.turnover.autonomous.signal')],
           })),
         };
         setResult(localResult);
-        toast({ title: 'Análise concluída', description: 'Predição de turnover gerada com sucesso.' });
+        toast({
+          title: t('command.turnover.toast.successTitle'),
+          description: t('command.turnover.toast.successDesc'),
+        });
         return;
       }
 
@@ -140,9 +153,16 @@ export default function TurnoverPrediction() {
       if (error) throw error;
       if (aiResult?.error) throw new Error(aiResult.error);
       setResult(aiResult.result);
-      toast({ title: 'Análise concluída', description: 'Predição de turnover gerada com sucesso.' });
-    } catch (e: any) {
-      toast({ title: 'Erro', description: e.message, variant: 'destructive' });
+      toast({
+        title: t('command.turnover.toast.successTitle'),
+        description: t('command.turnover.toast.successDesc'),
+      });
+    } catch (e: unknown) {
+      toast({
+        title: t('command.turnover.toast.errorTitle'),
+        description: e instanceof Error ? e.message : String(e),
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -168,39 +188,52 @@ export default function TurnoverPrediction() {
 
   const getRiskLabel = (level: string) => {
     switch (level) {
-      case 'critical': return 'CRÍTICO';
-      case 'high': return 'ALTO';
-      case 'moderate': return 'MODERADO';
-      default: return 'BAIXO';
+      case 'critical': return t('command.turnover.level.critical');
+      case 'high': return t('command.turnover.level.high');
+      case 'moderate': return t('command.turnover.level.moderate');
+      default: return t('command.turnover.level.low');
     }
   };
 
   const getPriorityColor = (p: string) => {
-    if (p === 'alta') return 'text-destructive';
-    if (p === 'média') return 'text-yellow-600';
+    const norm = p?.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (norm === 'alta' || norm === 'high') return 'text-destructive';
+    if (norm === 'media' || norm === 'medium') return 'text-yellow-600';
     return 'text-green-600';
+  };
+
+  const getPriorityLabel = (p: string) => {
+    const norm = p?.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (norm === 'alta' || norm === 'high') return t('command.turnover.priority.high');
+    if (norm === 'media' || norm === 'medium') return t('command.turnover.priority.medium');
+    return t('command.turnover.priority.low');
   };
 
   return (
     <div className="space-y-6">
       <Card className="shadow-soft border-primary/20">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <UserMinus className="h-5 w-5 text-primary" />
-            Predição de Turnover com IA
-          </CardTitle>
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className="flex items-center gap-2">
+              <UserMinus className="h-5 w-5 text-primary" />
+              {t('command.turnover.title')}
+            </CardTitle>
+            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border border-muted-foreground/30 text-muted-foreground">
+              {t('command.turnover.badge')}
+            </span>
+          </div>
           <CardDescription>
-            Análise preditiva de risco de saída por colaborador baseada em estresse, engajamento e frequência de uso
+            {t('command.turnover.description')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Button onClick={analyze} disabled={loading} className="gap-2">
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <TrendingDown className="h-4 w-4" />}
-            {loading ? 'Analisando dados...' : 'Gerar Predição de Turnover'}
+            {loading ? t('command.turnover.btn.analyzing') : t('command.turnover.btn.analyze')}
           </Button>
           {loading && (
             <div className="text-center py-6">
-              <p className="text-xs text-muted-foreground mt-2">Correlacionando estresse, engajamento e frequência de uso...</p>
+              <p className="text-xs text-muted-foreground mt-2">{t('command.turnover.loadingText')}</p>
             </div>
           )}
         </CardContent>
@@ -213,11 +246,11 @@ export default function TurnoverPrediction() {
             <CardContent className="p-4 flex items-center gap-4">
               <div className="text-center">
                 <p className={`text-4xl font-bold ${getRiskColor(result.overallRisk)}`}>{result.overallScore}</p>
-                <p className="text-[10px] text-muted-foreground uppercase">Risk Score</p>
+                <p className="text-[10px] text-muted-foreground uppercase">{t('command.turnover.riskScoreLabel')}</p>
               </div>
               <div className="flex-1">
                 <p className={`font-bold ${getRiskColor(result.overallRisk)}`}>
-                  Risco de Turnover: {getRiskLabel(result.overallRisk)}
+                  {t('command.turnover.riskTitle', { level: getRiskLabel(result.overallRisk) })}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">{result.summary}</p>
               </div>
@@ -229,7 +262,7 @@ export default function TurnoverPrediction() {
             <CardContent className="p-4 flex items-start gap-3">
               <DollarSign className="h-5 w-5 text-destructive mt-0.5" />
               <div>
-                <p className="text-xs font-semibold">💰 Estimativa de Custo de Turnover:</p>
+                <p className="text-xs font-semibold">💰 {t('command.turnover.costEstimateTitle')}</p>
                 <p className="text-xs text-muted-foreground">{result.costEstimate}</p>
               </div>
             </CardContent>
@@ -241,7 +274,7 @@ export default function TurnoverPrediction() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 text-orange-500" />
-                  Principais Riscos Identificados
+                  {t('command.turnover.topRisksTitle')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -259,7 +292,7 @@ export default function TurnoverPrediction() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2">
                 <UserMinus className="h-4 w-4 text-primary" />
-                Risco por Colaborador (Anonimizado)
+                {t('command.turnover.employeeRiskTitle')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -305,16 +338,28 @@ export default function TurnoverPrediction() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <Shield className="h-4 w-4 text-accent" />
-                  Plano de Retenção
+                  {t('command.turnover.retentionPlanTitle')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   {result.retentionActions.map((a, i) => (
-                    <div key={i} className="p-3 bg-muted/20 rounded-lg border-l-4" style={{ borderLeftColor: a.priority === 'alta' ? 'hsl(var(--destructive))' : a.priority === 'média' ? '#d97706' : '#16a34a' }}>
+                    <div
+                      key={i}
+                      className="p-3 bg-muted/20 rounded-lg border-l-4"
+                      style={{
+                        borderLeftColor: (a.priority?.toLowerCase().includes('alt') || a.priority?.toLowerCase() === 'high')
+                          ? 'hsl(var(--destructive))'
+                          : (a.priority?.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === 'media' || a.priority?.toLowerCase() === 'medium')
+                          ? '#d97706'
+                          : '#16a34a'
+                      }}
+                    >
                       <div className="flex items-center justify-between mb-1">
                         <p className="text-xs font-semibold">{a.action}</p>
-                        <span className={`text-[10px] font-bold ${getPriorityColor(a.priority)}`}>{a.priority?.toUpperCase()}</span>
+                        <span className={`text-[10px] font-bold ${getPriorityColor(a.priority)}`}>
+                          {getPriorityLabel(a.priority)}
+                        </span>
                       </div>
                       <p className="text-[10px] text-muted-foreground">📈 {a.impact}</p>
                     </div>
@@ -329,8 +374,8 @@ export default function TurnoverPrediction() {
       {!result && !loading && (
         <div className="text-center py-8 text-muted-foreground">
           <UserMinus className="h-12 w-12 mx-auto mb-3 opacity-30" />
-          <p className="text-sm">Clique no botão acima para gerar a análise preditiva de turnover</p>
-          <p className="text-xs mt-1">A IA correlaciona estresse, HRV, engajamento e frequência de uso</p>
+          <p className="text-sm">{t('command.turnover.emptyState.line1')}</p>
+          <p className="text-xs mt-1">{t('command.turnover.emptyState.line2')}</p>
         </div>
       )}
     </div>

@@ -4,28 +4,32 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useStressData } from '@/hooks/useStressData';
+import { useI18n } from '@/i18n';
 import { Building2, TrendingUp, TrendingDown, Minus, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { Bar } from 'react-chartjs-2';
 
 // Mock industry benchmark averages (aggregated anonymous data)
-const SECTOR_BENCHMARKS: Record<string, { label: string; lowPercent: number; moderatePercent: number; highPercent: number; avgHRV: number; engagementRate: number }> = {
-  technology: { label: 'Tecnologia', lowPercent: 42, moderatePercent: 38, highPercent: 20, avgHRV: 48, engagementRate: 65 },
-  finance: { label: 'Financeiro', lowPercent: 35, moderatePercent: 40, highPercent: 25, avgHRV: 44, engagementRate: 58 },
-  healthcare: { label: 'Saúde', lowPercent: 30, moderatePercent: 35, highPercent: 35, avgHRV: 40, engagementRate: 72 },
-  education: { label: 'Educação', lowPercent: 45, moderatePercent: 35, highPercent: 20, avgHRV: 50, engagementRate: 60 },
-  retail: { label: 'Varejo', lowPercent: 38, moderatePercent: 37, highPercent: 25, avgHRV: 43, engagementRate: 45 },
-  manufacturing: { label: 'Indústria', lowPercent: 33, moderatePercent: 40, highPercent: 27, avgHRV: 42, engagementRate: 50 },
-  services: { label: 'Serviços', lowPercent: 40, moderatePercent: 38, highPercent: 22, avgHRV: 46, engagementRate: 55 },
-  government: { label: 'Governo/Público', lowPercent: 37, moderatePercent: 38, highPercent: 25, avgHRV: 45, engagementRate: 42 },
+const SECTOR_BENCHMARKS: Record<
+  string,
+  { labelKey: string; lowPercent: number; moderatePercent: number; highPercent: number; avgHRV: number; engagementRate: number }
+> = {
+  technology: { labelKey: 'command.benchmark.sector.technology', lowPercent: 42, moderatePercent: 38, highPercent: 20, avgHRV: 48, engagementRate: 65 },
+  finance: { labelKey: 'command.benchmark.sector.finance', lowPercent: 35, moderatePercent: 40, highPercent: 25, avgHRV: 44, engagementRate: 58 },
+  healthcare: { labelKey: 'command.benchmark.sector.healthcare', lowPercent: 30, moderatePercent: 35, highPercent: 35, avgHRV: 40, engagementRate: 72 },
+  education: { labelKey: 'command.benchmark.sector.education', lowPercent: 45, moderatePercent: 35, highPercent: 20, avgHRV: 50, engagementRate: 60 },
+  retail: { labelKey: 'command.benchmark.sector.retail', lowPercent: 38, moderatePercent: 37, highPercent: 25, avgHRV: 43, engagementRate: 45 },
+  manufacturing: { labelKey: 'command.benchmark.sector.manufacturing', lowPercent: 33, moderatePercent: 40, highPercent: 27, avgHRV: 42, engagementRate: 50 },
+  services: { labelKey: 'command.benchmark.sector.services', lowPercent: 40, moderatePercent: 38, highPercent: 22, avgHRV: 46, engagementRate: 55 },
+  government: { labelKey: 'command.benchmark.sector.government', lowPercent: 37, moderatePercent: 38, highPercent: 25, avgHRV: 45, engagementRate: 42 },
 };
 
-function DiffBadge({ value, inverted = false }: { value: number; inverted?: boolean }) {
+function DiffBadge({ value, inverted = false, equalText }: { value: number; inverted?: boolean; equalText: string }) {
   const isPositive = inverted ? value < 0 : value > 0;
   const isNeutral = value === 0;
 
   if (isNeutral) return (
     <span className="inline-flex items-center gap-0.5 text-xs text-muted-foreground">
-      <Minus className="h-3 w-3" /> igual
+      <Minus className="h-3 w-3" /> {equalText}
     </span>
   );
 
@@ -38,10 +42,12 @@ function DiffBadge({ value, inverted = false }: { value: number; inverted?: bool
 }
 
 export default function SectorBenchmark() {
+  const { t } = useI18n();
   const [sector, setSector] = useState('technology');
   const { stats, loading } = useStressData({ days: 30 });
 
   const benchmark = SECTOR_BENCHMARKS[sector];
+  const benchmarkLabel = t(benchmark.labelKey);
 
   const diffLow = stats.lowPercent - benchmark.lowPercent;
   const diffHigh = stats.highPercent - benchmark.highPercent;
@@ -50,17 +56,22 @@ export default function SectorBenchmark() {
   const overallPosition = diffLow > 5 ? 'above' : diffLow < -5 ? 'below' : 'average';
 
   const chartData = {
-    labels: ['Baixo Estresse', 'Moderado', 'Alto Estresse', 'HRV Médio'],
+    labels: [
+      t('command.benchmark.chart.low'),
+      t('command.benchmark.chart.moderate'),
+      t('command.benchmark.chart.high'),
+      t('command.benchmark.chart.avgHrv')
+    ],
     datasets: [
       {
-        label: 'Sua Empresa',
+        label: t('command.benchmark.chart.labelCompany'),
         data: [stats.lowPercent, stats.moderatePercent, stats.highPercent, stats.avgHRV],
         backgroundColor: 'hsla(var(--primary), 0.7)',
         borderColor: 'hsl(var(--primary))',
         borderWidth: 2,
       },
       {
-        label: `Média — ${benchmark.label}`,
+        label: t('command.benchmark.chart.labelSector', { sector: benchmarkLabel }),
         data: [benchmark.lowPercent, benchmark.moderatePercent, benchmark.highPercent, benchmark.avgHRV],
         backgroundColor: 'hsla(var(--muted-foreground), 0.3)',
         borderColor: 'hsl(var(--muted-foreground))',
@@ -74,7 +85,7 @@ export default function SectorBenchmark() {
       <Card>
         <CardContent className="p-8 text-center">
           <div className="animate-spin h-6 w-6 border-4 border-primary border-t-transparent rounded-full mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground">Carregando benchmark...</p>
+          <p className="text-sm text-muted-foreground">{t('command.benchmark.loading')}</p>
         </CardContent>
       </Card>
     );
@@ -87,10 +98,10 @@ export default function SectorBenchmark() {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Building2 className="h-5 w-5 text-primary" />
-              Benchmark por Setor
+              {t('command.benchmark.title')}
             </CardTitle>
             <CardDescription>
-              Compare seus indicadores com a média do setor (dados agregados anônimos)
+              {t('command.benchmark.description')}
             </CardDescription>
           </div>
           <Select value={sector} onValueChange={setSector}>
@@ -99,7 +110,7 @@ export default function SectorBenchmark() {
             </SelectTrigger>
             <SelectContent>
               {Object.entries(SECTOR_BENCHMARKS).map(([key, val]) => (
-                <SelectItem key={key} value={key}>{val.label}</SelectItem>
+                <SelectItem key={key} value={key}>{t(val.labelKey)}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -117,20 +128,22 @@ export default function SectorBenchmark() {
              overallPosition === 'below' ? <TrendingDown className="h-4 w-4 text-red-500" /> :
              <Minus className="h-4 w-4 text-yellow-500" />}
             <span className="font-semibold text-sm">
-              {overallPosition === 'above' ? 'Acima da média do setor' :
-               overallPosition === 'below' ? 'Abaixo da média do setor' :
-               'Na média do setor'}
+              {overallPosition === 'above'
+                ? t('command.benchmark.overall.above')
+                : overallPosition === 'below'
+                ? t('command.benchmark.overall.below')
+                : t('command.benchmark.overall.average')}
             </span>
             <Badge variant={overallPosition === 'above' ? 'default' : overallPosition === 'below' ? 'destructive' : 'secondary'} className="text-[10px]">
-              {benchmark.label}
+              {benchmarkLabel}
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground">
             {overallPosition === 'above'
-              ? `Sua empresa tem ${Math.abs(diffLow)}% mais colaboradores com baixo estresse que a média do setor ${benchmark.label}.`
+              ? t('command.benchmark.overall.aboveDesc', { diff: Math.abs(diffLow), sector: benchmarkLabel })
               : overallPosition === 'below'
-              ? `Sua empresa tem ${Math.abs(diffLow)}% menos colaboradores com baixo estresse que a média do setor ${benchmark.label}. Considere ações preventivas.`
-              : `Os indicadores da sua empresa estão alinhados com a média do setor ${benchmark.label}.`}
+              ? t('command.benchmark.overall.belowDesc', { diff: Math.abs(diffLow), sector: benchmarkLabel })
+              : t('command.benchmark.overall.averageDesc', { sector: benchmarkLabel })}
           </p>
         </div>
 
@@ -138,39 +151,57 @@ export default function SectorBenchmark() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-xs text-muted-foreground">Baixo Estresse</span>
-              <DiffBadge value={diffLow} />
+              <span className="text-xs text-muted-foreground">{t('command.benchmark.metric.lowStress')}</span>
+              <DiffBadge value={diffLow} equalText={t('command.benchmark.diff.equal')} />
             </div>
             <div className="space-y-1">
-              <div className="flex justify-between text-xs"><span>Você</span><span className="font-medium">{stats.lowPercent}%</span></div>
+              <div className="flex justify-between text-xs">
+                <span>{t('command.benchmark.metric.you')}</span>
+                <span className="font-medium">{stats.lowPercent}%</span>
+              </div>
               <Progress value={stats.lowPercent} className="h-2" />
-              <div className="flex justify-between text-xs"><span>Setor</span><span className="font-medium">{benchmark.lowPercent}%</span></div>
+              <div className="flex justify-between text-xs">
+                <span>{t('command.benchmark.metric.sector')}</span>
+                <span className="font-medium">{benchmark.lowPercent}%</span>
+              </div>
               <Progress value={benchmark.lowPercent} className="h-2 opacity-50" />
             </div>
           </div>
 
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-xs text-muted-foreground">Alto Estresse</span>
-              <DiffBadge value={diffHigh} inverted />
+              <span className="text-xs text-muted-foreground">{t('command.benchmark.metric.highStress')}</span>
+              <DiffBadge value={diffHigh} inverted equalText={t('command.benchmark.diff.equal')} />
             </div>
             <div className="space-y-1">
-              <div className="flex justify-between text-xs"><span>Você</span><span className="font-medium">{stats.highPercent}%</span></div>
+              <div className="flex justify-between text-xs">
+                <span>{t('command.benchmark.metric.you')}</span>
+                <span className="font-medium">{stats.highPercent}%</span>
+              </div>
               <Progress value={stats.highPercent} className="h-2" />
-              <div className="flex justify-between text-xs"><span>Setor</span><span className="font-medium">{benchmark.highPercent}%</span></div>
+              <div className="flex justify-between text-xs">
+                <span>{t('command.benchmark.metric.sector')}</span>
+                <span className="font-medium">{benchmark.highPercent}%</span>
+              </div>
               <Progress value={benchmark.highPercent} className="h-2 opacity-50" />
             </div>
           </div>
 
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-xs text-muted-foreground">HRV Médio</span>
-              <DiffBadge value={diffHRV} />
+              <span className="text-xs text-muted-foreground">{t('command.benchmark.metric.avgHrv')}</span>
+              <DiffBadge value={diffHRV} equalText={t('command.benchmark.diff.equal')} />
             </div>
             <div className="space-y-1">
-              <div className="flex justify-between text-xs"><span>Você</span><span className="font-medium">{stats.avgHRV}ms</span></div>
+              <div className="flex justify-between text-xs">
+                <span>{t('command.benchmark.metric.you')}</span>
+                <span className="font-medium">{stats.avgHRV}ms</span>
+              </div>
               <Progress value={Math.min(stats.avgHRV, 100)} className="h-2" />
-              <div className="flex justify-between text-xs"><span>Setor</span><span className="font-medium">{benchmark.avgHRV}ms</span></div>
+              <div className="flex justify-between text-xs">
+                <span>{t('command.benchmark.metric.sector')}</span>
+                <span className="font-medium">{benchmark.avgHRV}ms</span>
+              </div>
               <Progress value={Math.min(benchmark.avgHRV, 100)} className="h-2 opacity-50" />
             </div>
           </div>
@@ -184,7 +215,7 @@ export default function SectorBenchmark() {
               responsive: true,
               plugins: {
                 legend: { position: 'top' as const },
-                title: { display: true, text: `Sua Empresa vs Média ${benchmark.label}` },
+                title: { display: true, text: t('command.benchmark.chart.title', { sector: benchmarkLabel }) },
               },
               scales: {
                 y: {
@@ -197,7 +228,7 @@ export default function SectorBenchmark() {
         </div>
 
         <p className="text-[10px] text-muted-foreground text-center">
-          * Dados de benchmark baseados em médias agregadas anônimas do setor. Atualização periódica.
+          {t('command.benchmark.footnote')}
         </p>
       </CardContent>
     </Card>

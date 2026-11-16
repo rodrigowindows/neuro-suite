@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, Minus, ArrowRight } from 'lucide-react';
+import { useI18n } from '@/i18n';
 
 const MOOD_VALUES: Record<string, number> = {
   great: 5, good: 4, okay: 3, low: 2, bad: 1,
@@ -60,16 +61,20 @@ function DiffBadge({ current, previous, label, unit }: { current: number; previo
   );
 }
 
-const MOOD_LABELS: Record<number, string> = {
-  1: 'Crítico', 2: 'Baixo', 3: 'Nominal', 4: 'Bem', 5: 'Ótimo',
-};
-
-function moodLabel(val: number): string {
+function getMoodLabel(val: number, t: (k: string) => string): string {
   const rounded = Math.round(val);
-  return MOOD_LABELS[rounded] || `${val}`;
+  const labels: Record<number, string> = {
+    1: t('command.weekly.mood.1'),
+    2: t('command.weekly.mood.2'),
+    3: t('command.weekly.mood.3'),
+    4: t('command.weekly.mood.4'),
+    5: t('command.weekly.mood.5'),
+  };
+  return labels[rounded] || `${val}`;
 }
 
 export default function WeeklyComparison() {
+  const { t } = useI18n();
   const { user } = useAuth();
   const [current, setCurrent] = useState<WeekSummary>({ avgMood: 0, avgEnergy: 0, count: 0 });
   const [previous, setPrevious] = useState<WeekSummary>({ avgMood: 0, avgEnergy: 0, count: 0 });
@@ -112,7 +117,7 @@ export default function WeeklyComparison() {
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-base">
           <ArrowRight className="h-5 w-5 text-primary" />
-          Comparativo Semanal
+          {t('command.weekly.title')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -120,41 +125,49 @@ export default function WeeklyComparison() {
         <div className="grid grid-cols-2 gap-3">
           {/* Previous week */}
           <div className="rounded-lg border border-muted bg-muted/20 p-3 space-y-2">
-            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Semana Anterior</p>
+            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+              {t('command.weekly.previousWeek')}
+            </p>
             {previous.count > 0 ? (
               <>
                 <div>
-                  <p className="text-xs text-muted-foreground">Prontidão Operacional média</p>
-                  <p className="text-lg font-bold">{moodLabel(previous.avgMood)}</p>
+                  <p className="text-xs text-muted-foreground">{t('command.weekly.readinessAvg')}</p>
+                  <p className="text-lg font-bold">{getMoodLabel(previous.avgMood, t)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Energia média</p>
+                  <p className="text-xs text-muted-foreground">{t('command.weekly.energyAvg')}</p>
                   <p className="text-lg font-bold">{previous.avgEnergy}/5</p>
                 </div>
-                <p className="text-[10px] text-muted-foreground">{previous.count} check-in(s)</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {t('command.weekly.checkinCount', { count: previous.count })}
+                </p>
               </>
             ) : (
-              <p className="text-xs text-muted-foreground py-4 text-center">Sem dados</p>
+              <p className="text-xs text-muted-foreground py-4 text-center">{t('command.weekly.noData')}</p>
             )}
           </div>
 
           {/* Current week */}
           <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-2">
-            <p className="text-[10px] font-medium text-primary uppercase tracking-wide">Semana Atual</p>
+            <p className="text-[10px] font-medium text-primary uppercase tracking-wide">
+              {t('command.weekly.currentWeek')}
+            </p>
             {current.count > 0 ? (
               <>
                 <div>
-                  <p className="text-xs text-muted-foreground">Prontidão Operacional média</p>
-                  <p className="text-lg font-bold">{moodLabel(current.avgMood)}</p>
+                  <p className="text-xs text-muted-foreground">{t('command.weekly.readinessAvg')}</p>
+                  <p className="text-lg font-bold">{getMoodLabel(current.avgMood, t)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Energia média</p>
+                  <p className="text-xs text-muted-foreground">{t('command.weekly.energyAvg')}</p>
                   <p className="text-lg font-bold">{current.avgEnergy}/5</p>
                 </div>
-                <p className="text-[10px] text-muted-foreground">{current.count} check-in(s)</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {t('command.weekly.checkinCount', { count: current.count })}
+                </p>
               </>
             ) : (
-              <p className="text-xs text-muted-foreground py-4 text-center">Sem dados</p>
+              <p className="text-xs text-muted-foreground py-4 text-center">{t('command.weekly.noData')}</p>
             )}
           </div>
         </div>
@@ -162,8 +175,18 @@ export default function WeeklyComparison() {
         {/* Diff badges */}
         {current.count > 0 && previous.count > 0 && (
           <div className="flex flex-wrap gap-4 justify-center p-2 bg-muted/20 rounded-lg">
-            <DiffBadge current={current.avgMood} previous={previous.avgMood} label="prontidão" unit="pts" />
-            <DiffBadge current={current.avgEnergy} previous={previous.avgEnergy} label="energia" unit="pts" />
+            <DiffBadge
+              current={current.avgMood}
+              previous={previous.avgMood}
+              label={t('command.weekly.diff.readiness')}
+              unit={t('command.weekly.diff.pts')}
+            />
+            <DiffBadge
+              current={current.avgEnergy}
+              previous={previous.avgEnergy}
+              label={t('command.weekly.diff.energy')}
+              unit={t('command.weekly.diff.pts')}
+            />
           </div>
         )}
       </CardContent>

@@ -21,7 +21,14 @@ export interface CompanyScoreData {
   refresh: () => Promise<void>;
 }
 
-export function getCompanyLabel(score: number): string {
+export function getCompanyLabel(score: number, t?: (key: string) => string): string {
+  if (t) {
+    if (score >= 80) return t('command.companyScore.label.excellent');
+    if (score >= 60) return t('command.companyScore.label.good');
+    if (score >= 40) return t('command.companyScore.label.moderate');
+    if (score >= 20) return t('command.companyScore.label.attention');
+    return t('command.companyScore.label.critical');
+  }
   if (score >= 80) return 'Excelente';
   if (score >= 60) return 'Bom';
   if (score >= 40) return 'Moderado';
@@ -42,10 +49,10 @@ export function stressLevelToScore(level: string): number {
   return 8;
 }
 
-export function useCompanyScore(): CompanyScoreData {
+export function useCompanyScore(t?: (key: string) => string): CompanyScoreData {
   const [data, setData] = useState<Omit<CompanyScoreData, 'refresh'>>({
     overallScore: 0,
-    label: 'Sem dados',
+    label: t ? t('command.companyScore.label.noData') : 'Sem dados',
     color: 'hsl(var(--muted-foreground))',
     totalEmployees: 0,
     activeEmployees: 0,
@@ -146,7 +153,7 @@ export function useCompanyScore(): CompanyScoreData {
 
       setData({
         overallScore,
-        label: getCompanyLabel(overallScore),
+        label: getCompanyLabel(overallScore, t),
         color: getCompanyColor(overallScore),
         totalEmployees,
         activeEmployees,
@@ -161,7 +168,7 @@ export function useCompanyScore(): CompanyScoreData {
       console.error('useCompanyScore error:', err);
       setData(prev => ({ ...prev, loading: false }));
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     compute();
