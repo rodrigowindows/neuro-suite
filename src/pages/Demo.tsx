@@ -6,14 +6,53 @@ import { Badge } from '@/components/ui/badge';
 import PredictiveAlert from '@/components/PredictiveAlert';
 import { roundBlinkRate } from '@/lib/biometricDisplay';
 import { useGuestDemoReadiness } from '@/hooks/useReadiness';
+import { useI18n } from '@/i18n';
+import LanguageToggle from '@/components/LanguageToggle';
+import { DemoEventLog } from '@/lib/demoScenario';
 import {
   appendEvent,
   registerCountermeasureProtocol,
 } from '@/lib/missionEvents';
 
+function getLocalizedLog(
+  log: DemoEventLog,
+  t: (key: string, vars?: Record<string, string | number>) => string,
+  readiness: { bioScore: number | null; hrvValue: number | null }
+): { time: string; message: string } {
+  if (log.id === 'demo-log-1') {
+    const scoreMatch = log.message.match(/BioScore\s+(\d+)/);
+    const score = scoreMatch ? Number(scoreMatch[1]) : 34;
+    return {
+      time: t('demo.log.1.time'),
+      message: t('demo.log.1.message', { score }),
+    };
+  }
+  if (log.id === 'demo-log-2') {
+    return {
+      time: t('demo.log.2.time'),
+      message: t('demo.log.2.message'),
+    };
+  }
+  if (log.id === 'demo-log-3') {
+    const scoreMatch = log.message.match(/BioScore\s+(\d+)/);
+    const hrvMatch = log.message.match(/HRV\s+(\d+)/);
+    const score = scoreMatch ? Number(scoreMatch[1]) : (readiness.bioScore ?? 72);
+    const hrv = hrvMatch ? Number(hrvMatch[1]) : (readiness.hrvValue ?? 62);
+    return {
+      time: t('demo.log.3.time'),
+      message: t('demo.log.3.message', { score, hrv }),
+    };
+  }
+  return {
+    time: log.timeRelative,
+    message: log.message,
+  };
+}
+
 export default function Demo() {
+  const { t } = useI18n();
   const readiness = useGuestDemoReadiness();
-  const [protocolNotice, setProtocolNotice] = useState<string | null>(null);
+  const [noticeKey, setNoticeKey] = useState<'countermeasure' | 'shiftStarted' | null>(null);
 
   const handleStartProtocol = () => {
     appendEvent({
@@ -22,33 +61,35 @@ export default function Demo() {
       title: 'Contramedida executada',
     });
     registerCountermeasureProtocol({ breathing: true });
-    setProtocolNotice('Contramedida local executada: 3 ciclos de respiração 4-7-8 concluídos.');
+    setNoticeKey('countermeasure');
   };
 
   const handleReset = () => {
-    setProtocolNotice(null);
+    setNoticeKey(null);
     readiness.resetDemo();
   };
 
   const handleSimulateScan = () => {
-    setProtocolNotice(null);
+    setNoticeKey(null);
     readiness.simulateScan();
   };
 
   const readinessTitle =
     readiness.state === 'go'
-      ? 'GO - APTO PARA O TURNO'
+      ? t('demo.status.go')
       : readiness.state === 'caution'
-      ? 'ATENÇÃO - VIGILÂNCIA'
+      ? t('demo.status.caution')
       : readiness.state === 'nogo'
-      ? 'NO-GO - FADIGA (NÃO APTO)'
-      : 'AGUARDANDO SCAN';
+      ? t('demo.status.nogo')
+      : t('demo.status.unknown');
 
   const bioScoreDisplay = readiness.bioScore != null ? readiness.bioScore : '—';
   const blinkRateDisplay =
     readiness.blinkRate != null ? roundBlinkRate(readiness.blinkRate) : '—';
   const sleepDisplay =
-    readiness.horasSono != null ? `${readiness.horasSono}h` : '—';
+    readiness.horasSono != null
+      ? t('demo.format.sleep', { hours: readiness.horasSono })
+      : '—';
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -60,7 +101,7 @@ export default function Demo() {
               data-testid="demo-fixed-seal"
               className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-mono font-bold tracking-wide uppercase border border-amber-500/60 bg-amber-500/15 text-amber-700 dark:text-amber-300"
             >
-              DEMO: dados simulados
+              {t('demo.seal')}
             </span>
             {readiness.stageBadge && (
               <Badge variant="outline" className="font-mono text-[11px] h-6">
@@ -69,7 +110,8 @@ export default function Demo() {
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <LanguageToggle />
             <Button
               type="button"
               variant="outline"
@@ -78,7 +120,7 @@ export default function Demo() {
               className="min-h-[44px] text-xs font-medium"
             >
               <Play className="h-3.5 w-3.5 mr-1.5 shrink-0" aria-hidden="true" />
-              Simular novo scan
+              {t('demo.btn.simulateScan')}
             </Button>
             <Button
               type="button"
@@ -88,13 +130,13 @@ export default function Demo() {
               className="min-h-[44px] text-xs font-medium"
             >
               <RotateCcw className="h-3.5 w-3.5 mr-1.5 shrink-0" aria-hidden="true" />
-              Reiniciar demonstração
+              {t('demo.btn.reset')}
             </Button>
             <Link
               to="/auth"
               className="min-h-[44px] inline-flex items-center text-xs text-muted-foreground hover:text-foreground px-2 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              Entrar
+              {t('demo.link.signIn')}
             </Link>
           </div>
         </div>
@@ -103,20 +145,20 @@ export default function Demo() {
       {/* Conteúdo Principal do Cockpit */}
       <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-6 sm:py-8 space-y-6">
         {/* Aviso de Contramedida Executada Localmente */}
-        {protocolNotice && (
+        {noticeKey && (
           <div
             role="status"
             className="rounded-lg border border-cyan-500/50 bg-cyan-500/10 px-4 py-3 text-xs sm:text-sm text-cyan-700 dark:text-cyan-300 flex items-center justify-between"
           >
-            <span>{protocolNotice}</span>
+            <span>{t(`demo.notice.${noticeKey}`)}</span>
             <Button
               type="button"
               variant="ghost"
               size="sm"
               className="h-7 text-xs px-2"
-              onClick={() => setProtocolNotice(null)}
+              onClick={() => setNoticeKey(null)}
             >
-              Fechar
+              {t('demo.btn.close')}
             </Button>
           </div>
         )}
@@ -150,7 +192,7 @@ export default function Demo() {
                 {readinessTitle}
               </span>
               <span className="text-xs text-muted-foreground mt-1">
-                veredito baseado em estresse e HRV
+                {t('demo.verdictSubtitle')}
               </span>
             </div>
           </div>
@@ -166,7 +208,7 @@ export default function Demo() {
           {/* 1. BioScore */}
           <div className="rounded-xl border border-border/70 bg-card/60 p-4 sm:p-5 flex flex-col items-center justify-center text-center">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-              BioScore
+              {t('demo.metric.bioScore')}
             </span>
             <span className="text-3xl sm:text-4xl md:text-5xl font-black font-display tracking-tight text-foreground">
               {bioScoreDisplay}
@@ -176,7 +218,7 @@ export default function Demo() {
           {/* 2. Piscadas/min */}
           <div className="rounded-xl border border-border/70 bg-card/60 p-4 sm:p-5 flex flex-col items-center justify-center text-center">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-              Piscadas/min
+              {t('demo.metric.blinkRate')}
             </span>
             <span className="text-3xl sm:text-4xl md:text-5xl font-black font-display tracking-tight text-foreground">
               {blinkRateDisplay}
@@ -186,7 +228,7 @@ export default function Demo() {
           {/* 3. Sono */}
           <div className="rounded-xl border border-border/70 bg-card/60 p-4 sm:p-5 flex flex-col items-center justify-center text-center">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-              Sono
+              {t('demo.metric.sleep')}
             </span>
             <span className="text-3xl sm:text-4xl md:text-5xl font-black font-display tracking-tight text-foreground">
               {sleepDisplay}
@@ -206,10 +248,10 @@ export default function Demo() {
                   label: 'Turno iniciado com prontidão nominal',
                   title: 'Turno iniciado',
                 });
-                setProtocolNotice('Turno operacional iniciado com sucesso.');
+                setNoticeKey('shiftStarted');
               }}
             >
-              Iniciar Turno
+              {t('demo.btn.startShift')}
             </Button>
           ) : readiness.state === 'caution' ? (
             <Button
@@ -217,7 +259,7 @@ export default function Demo() {
               className="w-full sm:w-auto min-w-[280px] h-14 min-h-[44px] text-base sm:text-lg font-bold shadow-md bg-amber-600 hover:bg-amber-700 text-white"
               onClick={handleSimulateScan}
             >
-              Simular novo scan
+              {t('demo.btn.simulateScan')}
             </Button>
           ) : (
             <Button
@@ -226,7 +268,7 @@ export default function Demo() {
               className="w-full sm:w-auto min-w-[280px] h-14 min-h-[44px] text-base sm:text-lg font-bold shadow-md"
               onClick={handleStartProtocol}
             >
-              Iniciar Protocolo 4-7-8
+              {t('demo.btn.startProtocol')}
             </Button>
           )}
         </div>
@@ -235,21 +277,24 @@ export default function Demo() {
         <div className="w-full bg-card/40 border border-border/60 rounded-xl p-4 font-mono text-xs space-y-1.5">
           <div className="flex items-center justify-between pb-1">
             <span className="text-xs font-bold font-mono tracking-wider text-muted-foreground uppercase">
-              LOG DE EVENTOS RECENTES
+              {t('demo.log.title')}
             </span>
             <Badge
               variant="outline"
               data-testid="demo-badge-log"
               className="text-[10px] font-mono border-amber-500/40 text-amber-700 dark:text-amber-300"
             >
-              DEMO
+              {t('demo.log.badge')}
             </Badge>
           </div>
-          {readiness.logs.map((log) => (
-            <p key={log.id} className={log.colorClass}>
-              {log.timeRelative} — {log.message}
-            </p>
-          ))}
+          {readiness.logs.map((log) => {
+            const item = getLocalizedLog(log, t, readiness);
+            return (
+              <p key={log.id} className={log.colorClass}>
+                {item.time} — {item.message}
+              </p>
+            );
+          })}
         </div>
       </main>
     </div>
