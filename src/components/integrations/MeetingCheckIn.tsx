@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Brain, Target, TrendingUp, Send, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useI18n } from '@/i18n';
 
 interface MeetingCheckInProps {
   overloadLevel: string;
@@ -14,6 +15,7 @@ interface MeetingCheckInProps {
 
 export default function MeetingCheckIn({ overloadLevel, connectedCount, totalMeetingTime }: MeetingCheckInProps) {
   const { toast } = useToast();
+  const { t, lang } = useI18n();
   const [checkInType, setCheckInType] = useState<'pre' | 'post'>('pre');
   const [purpose, setPurpose] = useState('');
   const [objectives, setObjectives] = useState('');
@@ -24,13 +26,21 @@ export default function MeetingCheckIn({ overloadLevel, connectedCount, totalMee
 
   const generateAICheckIn = async () => {
     if (!purpose && checkInType === 'pre') {
-      toast({ title: 'Campo obrigatório', description: 'Informe o propósito da reunião', variant: 'destructive' });
+      toast({
+        title: t('integrations.toast.requiredField'),
+        description: t('integrations.toast.purposeRequired'),
+        variant: 'destructive',
+      });
       return;
     }
 
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-      toast({ title: 'Sessão expirada', description: 'Sessão expirada. Faça novamente o login.', variant: 'destructive' });
+      toast({
+        title: t('integrations.toast.sessionExpired'),
+        description: t('integrations.toast.sessionExpiredDesc'),
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -40,18 +50,31 @@ export default function MeetingCheckIn({ overloadLevel, connectedCount, totalMee
     let streamedContent = '';
 
     try {
-      const prompt = checkInType === 'pre'
-        ? `Você é um coach de prontidão operacional com PNL. O usuário vai entrar em uma reunião com:
+      const prompt = lang === 'en'
+        ? (checkInType === 'pre'
+            ? `You are an operational readiness coach using NLP. The user is about to enter a meeting with:
+Purpose: ${purpose}
+Objectives: ${objectives}
+Expectations: ${expectations}
+
+Ask 3 powerful questions (NLP) to align mindset before the meeting. Be concise and motivating.`
+            : `You are an operational readiness coach using NLP. The user just finished a meeting:
+Original purpose: ${purpose}
+Feedback: ${feedback || 'Not provided'}
+
+Provide constructive feedback based on NLP: what went well, what to improve, and positive anchoring. Maximum 3 paragraphs.`)
+        : (checkInType === 'pre'
+            ? `Você é um coach de prontidão operacional com PNL. O usuário vai entrar em uma reunião com:
 Propósito: ${purpose}
 Objetivos: ${objectives}
 Expectativas: ${expectations}
 
 Faça 3 perguntas poderosas (PNL) para alinhar mindset antes da reunião. Seja conciso e motivador.`
-        : `Você é um coach de prontidão operacional com PNL. O usuário acabou uma reunião:
+            : `Você é um coach de prontidão operacional com PNL. O usuário acabou uma reunião:
 Propósito original: ${purpose}
 Feedback: ${feedback || 'Não informado'}
 
-Dê um feedback construtivo baseado em PNL: o que foi bem, o que melhorar, e uma ancoragem positiva. Máximo 3 parágrafos.`;
+Dê um feedback construtivo baseado em PNL: o que foi bem, o que melhorar, e uma ancoragem positiva. Máximo 3 parágrafos.`);
 
       const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/neuro-coach`;
 
@@ -65,7 +88,9 @@ Dê um feedback construtivo baseado em PNL: o que foi bem, o que melhorar, e uma
         body: JSON.stringify({
           messages: [{ role: 'user', content: prompt }],
           stressLevel: overloadLevel,
-          context: `Integrations: ${connectedCount} conectadas. Tempo em reunião hoje: ${totalMeetingTime}min.`,
+          context: lang === 'en'
+            ? `Integrations: ${connectedCount} connected. Meeting time today: ${totalMeetingTime}min.`
+            : `Integrations: ${connectedCount} conectadas. Tempo em reunião hoje: ${totalMeetingTime}min.`,
           userName: '',
           communicationTone: 'casual',
         }),
@@ -73,12 +98,12 @@ Dê um feedback construtivo baseado em PNL: o que foi bem, o que melhorar, e uma
 
       if (!response.ok || !response.body) {
         if (response.status === 429) {
-          throw new Error('Muitas requisições. Aguarde um momento.');
+          throw new Error(t('integrations.checkin.rateLimitError'));
         }
         if (response.status === 402) {
-          throw new Error('Serviço temporariamente indisponível.');
+          throw new Error(t('integrations.checkin.unavailableError'));
         }
-        throw new Error('Erro ao conectar ao AstroAssist');
+        throw new Error(t('integrations.checkin.connectError'));
       }
 
       const reader = response.body.getReader();
@@ -139,7 +164,11 @@ Dê um feedback construtivo baseado em PNL: o que foi bem, o que melhorar, e uma
       }
     } catch (error: any) {
       console.error('Erro IA:', error);
-      toast({ title: 'Erro', description: error.message || 'Não foi possível gerar feedback. Tente novamente.', variant: 'destructive' });
+      toast({
+        title: t('integrations.toast.error'),
+        description: error.message || t('integrations.toast.feedbackError'),
+        variant: 'destructive',
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -150,9 +179,9 @@ Dê um feedback construtivo baseado em PNL: o que foi bem, o que melhorar, e uma
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Brain className="h-5 w-5 text-primary" />
-          Avaliação de Prontidão de Reunião com IA
+          {t('integrations.checkin.title')}
         </CardTitle>
-        <CardDescription>Feedback baseado em PNL antes e depois das reuniões</CardDescription>
+        <CardDescription>{t('integrations.checkin.description')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-2">
@@ -162,7 +191,7 @@ Dê um feedback construtivo baseado em PNL: o que foi bem, o que melhorar, e uma
             className="flex-1"
           >
             <Target className="h-4 w-4 mr-2" />
-            Pré-Reunião
+            {t('integrations.checkin.preMeeting')}
           </Button>
           <Button
             variant={checkInType === 'post' ? 'default' : 'outline'}
@@ -170,15 +199,15 @@ Dê um feedback construtivo baseado em PNL: o que foi bem, o que melhorar, e uma
             className="flex-1"
           >
             <TrendingUp className="h-4 w-4 mr-2" />
-            Pós-Reunião
+            {t('integrations.checkin.postMeeting')}
           </Button>
         </div>
 
         <div className="space-y-3">
           <div>
-            <label className="text-sm font-medium">Propósito da reunião</label>
+            <label className="text-sm font-medium">{t('integrations.checkin.purposeLabel')}</label>
             <Textarea
-              placeholder="Ex: Alinhamento de projeto, feedback trimestral..."
+              placeholder={t('integrations.checkin.purposePlaceholder')}
               value={purpose}
               onChange={(e) => setPurpose(e.target.value)}
               className="mt-1"
@@ -188,18 +217,18 @@ Dê um feedback construtivo baseado em PNL: o que foi bem, o que melhorar, e uma
           {checkInType === 'pre' ? (
             <>
               <div>
-                <label className="text-sm font-medium">Seus objetivos</label>
+                <label className="text-sm font-medium">{t('integrations.checkin.objectivesLabel')}</label>
                 <Textarea
-                  placeholder="O que você quer alcançar nessa reunião?"
+                  placeholder={t('integrations.checkin.objectivesPlaceholder')}
                   value={objectives}
                   onChange={(e) => setObjectives(e.target.value)}
                   className="mt-1"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Expectativas</label>
+                <label className="text-sm font-medium">{t('integrations.checkin.expectationsLabel')}</label>
                 <Textarea
-                  placeholder="Qual resultado ideal?"
+                  placeholder={t('integrations.checkin.expectationsPlaceholder')}
                   value={expectations}
                   onChange={(e) => setExpectations(e.target.value)}
                   className="mt-1"
@@ -208,9 +237,9 @@ Dê um feedback construtivo baseado em PNL: o que foi bem, o que melhorar, e uma
             </>
           ) : (
             <div>
-              <label className="text-sm font-medium">Como foi a reunião?</label>
+              <label className="text-sm font-medium">{t('integrations.checkin.postFeedbackLabel')}</label>
               <Textarea
-                placeholder="Descreva brevemente o que aconteceu, sentimentos, resultados..."
+                placeholder={t('integrations.checkin.postFeedbackPlaceholder')}
                 value={feedback}
                 onChange={(e) => setFeedback(e.target.value)}
                 className="mt-1"
@@ -223,12 +252,12 @@ Dê um feedback construtivo baseado em PNL: o que foi bem, o que melhorar, e uma
             {isGenerating ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Gerando feedback...
+                {t('integrations.checkin.generating')}
               </>
             ) : (
               <>
                 <Send className="h-4 w-4 mr-2" />
-                {checkInType === 'pre' ? 'Preparar Mindset' : 'Obter Feedback'}
+                {checkInType === 'pre' ? t('integrations.checkin.prepareMindset') : t('integrations.checkin.getFeedback')}
               </>
             )}
           </Button>
@@ -237,7 +266,7 @@ Dê um feedback construtivo baseado em PNL: o que foi bem, o que melhorar, e uma
             <div className="p-4 bg-muted/50 rounded-lg border mt-4">
               <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
                 <Brain className="h-4 w-4 text-primary" />
-                AstroAssist diz:
+                {t('integrations.checkin.assistantSays')}
               </h4>
               <p className="text-sm whitespace-pre-wrap leading-relaxed">{aiResponse}</p>
             </div>

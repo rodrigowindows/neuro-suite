@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Clock, MessageSquare, Zap, AlertTriangle } from 'lucide-react';
+import { useI18n } from '@/i18n';
 
 interface IntegrationMetricsProps {
   totalMeetingTime: number;
@@ -10,16 +11,25 @@ interface IntegrationMetricsProps {
 }
 
 export default function IntegrationMetrics({ totalMeetingTime, totalMessages, connectedCount, overload }: IntegrationMetricsProps) {
+  const { t } = useI18n();
+
+  const overloadLabels: Record<string, string> = {
+    crítico: t('integrations.metrics.overload.critical'),
+    alto: t('integrations.metrics.overload.high'),
+    moderado: t('integrations.metrics.overload.moderate'),
+    saudável: t('integrations.metrics.overload.healthy'),
+  };
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
         <CardContent className="p-4">
           <div className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-primary" />
-            <span className="text-sm text-muted-foreground">Tempo em Calls</span>
+            <span className="text-sm text-muted-foreground">{t('integrations.metrics.callTime')}</span>
           </div>
-          <p className="text-2xl font-bold mt-1">{totalMeetingTime} min</p>
-          <p className="text-xs text-muted-foreground">hoje</p>
+          <p className="text-2xl font-bold mt-1">{totalMeetingTime} {t('integrations.units.min')}</p>
+          <p className="text-xs text-muted-foreground">{t('integrations.metrics.today')}</p>
         </CardContent>
       </Card>
 
@@ -27,10 +37,10 @@ export default function IntegrationMetrics({ totalMeetingTime, totalMessages, co
         <CardContent className="p-4">
           <div className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5 text-secondary" />
-            <span className="text-sm text-muted-foreground">Mensagens</span>
+            <span className="text-sm text-muted-foreground">{t('integrations.metrics.messages')}</span>
           </div>
           <p className="text-2xl font-bold mt-1">{totalMessages}</p>
-          <p className="text-xs text-muted-foreground">enviadas hoje</p>
+          <p className="text-xs text-muted-foreground">{t('integrations.metrics.sentToday')}</p>
         </CardContent>
       </Card>
 
@@ -38,10 +48,10 @@ export default function IntegrationMetrics({ totalMeetingTime, totalMessages, co
         <CardContent className="p-4">
           <div className="flex items-center gap-2">
             <Zap className="h-5 w-5 text-accent" />
-            <span className="text-sm text-muted-foreground">Integrações</span>
+            <span className="text-sm text-muted-foreground">{t('integrations.metrics.integrations')}</span>
           </div>
           <p className="text-2xl font-bold mt-1">{connectedCount}/4</p>
-          <p className="text-xs text-muted-foreground">conectadas</p>
+          <p className="text-xs text-muted-foreground">{t('integrations.metrics.connected')}</p>
         </CardContent>
       </Card>
 
@@ -49,9 +59,9 @@ export default function IntegrationMetrics({ totalMeetingTime, totalMessages, co
         <CardContent className="p-4">
           <div className="flex items-center gap-2">
             <AlertTriangle className={`h-5 w-5 ${overload.level === 'crítico' ? 'text-destructive' : overload.level === 'alto' ? 'text-yellow-500' : 'text-green-500'}`} />
-            <span className="text-sm text-muted-foreground">Sobrecarga</span>
+            <span className="text-sm text-muted-foreground">{t('integrations.metrics.overload')}</span>
           </div>
-          <p className="text-2xl font-bold mt-1 capitalize">{overload.level}</p>
+          <p className="text-2xl font-bold mt-1 capitalize">{overloadLabels[overload.level] || overload.level}</p>
           <Progress value={overload.percent} className="h-1 mt-2" />
         </CardContent>
       </Card>

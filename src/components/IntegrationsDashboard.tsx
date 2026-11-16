@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useI18n } from '@/i18n';
 import IntegrationMetrics from './integrations/IntegrationMetrics';
 import PlatformCards from './integrations/PlatformCards';
 import MeetingCheckIn from './integrations/MeetingCheckIn';
@@ -29,6 +30,7 @@ interface IntegrationStatus {
 
 export default function IntegrationsDashboard() {
   const { toast } = useToast();
+  const { t, lang } = useI18n();
   const [loadingPlatform, setLoadingPlatform] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
   const pendingOAuthStateRef = useRef<string | null>(null);
@@ -81,26 +83,37 @@ export default function IntegrationsDashboard() {
               connected: true, status: 'online',
               meetingTime: calendarData.totalMinutes || 0,
               messagesCount: calendarData.totalMeetings || 0,
-              lastSync: new Date().toLocaleTimeString('pt-BR'),
+              lastSync: new Date().toLocaleTimeString(lang === 'pt' ? 'pt-BR' : 'en-US'),
               accessToken: event.data.access_token,
               upcomingMeetings: calendarData.upcomingMeetings || [],
               isReal: true,
             },
           }));
-          toast({ title: 'Google Meet conectado!', description: `${calendarData.totalMeetings} reuniões encontradas.` });
+          toast({
+            title: t('integrations.toast.meetConnected'),
+            description: t('integrations.toast.meetingsFound', { count: calendarData.totalMeetings }),
+          });
         } catch (error: any) {
-          toast({ title: 'Erro ao buscar dados', description: error.message, variant: 'destructive' });
+          toast({
+            title: t('integrations.toast.fetchError'),
+            description: error.message,
+            variant: 'destructive',
+          });
         } finally {
           setLoadingPlatform(null);
         }
       } else if (event.data?.error) {
-        toast({ title: 'Erro na autenticação', description: event.data.error, variant: 'destructive' });
+        toast({
+          title: t('integrations.toast.authError'),
+          description: event.data.error,
+          variant: 'destructive',
+        });
         setLoadingPlatform(null);
       }
     };
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [fetchGoogleCalendarData, toast]);
+  }, [fetchGoogleCalendarData, toast, t, lang]);
 
   const connectGoogleMeet = async () => {
     setLoadingPlatform('meet');
@@ -116,7 +129,11 @@ export default function IntegrationsDashboard() {
       window.open(data.authUrl, 'Google OAuth', `width=${width},height=${height},left=${left},top=${top}`);
     } catch (error: any) {
       pendingOAuthStateRef.current = null;
-      toast({ title: 'Erro ao iniciar OAuth', description: error.message, variant: 'destructive' });
+      toast({
+        title: t('integrations.toast.oauthInitError'),
+        description: error.message,
+        variant: 'destructive',
+      });
       setLoadingPlatform(null);
     }
   };
@@ -133,13 +150,20 @@ export default function IntegrationsDashboard() {
           ...prev.meet,
           meetingTime: calendarData.totalMinutes || 0,
           messagesCount: calendarData.totalMeetings || 0,
-          lastSync: new Date().toLocaleTimeString('pt-BR'),
+          lastSync: new Date().toLocaleTimeString(lang === 'pt' ? 'pt-BR' : 'en-US'),
           upcomingMeetings: calendarData.upcomingMeetings || [],
         },
       }));
-      toast({ title: 'Sincronizado!', description: 'Dados do calendário atualizados.' });
+      toast({
+        title: t('integrations.toast.synced'),
+        description: t('integrations.toast.calendarUpdated'),
+      });
     } catch {
-      toast({ title: 'Erro ao sincronizar', description: 'Token expirado. Reconecte o Google Meet.', variant: 'destructive' });
+      toast({
+        title: t('integrations.toast.syncError'),
+        description: t('integrations.toast.tokenExpired'),
+        variant: 'destructive',
+      });
       setIntegrations(prev => ({ ...prev, meet: { ...prev.meet, connected: false, accessToken: undefined, isReal: false } }));
     } finally {
       setLoadingPlatform(null);
@@ -148,7 +172,10 @@ export default function IntegrationsDashboard() {
 
   const connectMockIntegration = (platform: string) => {
     setLoadingPlatform(platform);
-    toast({ title: `Conectando...`, description: 'Modo demo - dados simulados' });
+    toast({
+      title: t('integrations.toast.connecting'),
+      description: t('integrations.toast.demoMode'),
+    });
     setTimeout(() => {
       setIntegrations(prev => ({
         ...prev,
@@ -156,7 +183,7 @@ export default function IntegrationsDashboard() {
           connected: true, status: 'online',
           meetingTime: Math.floor(Math.random() * 180) + 30,
           messagesCount: Math.floor(Math.random() * 50) + 10,
-          lastSync: new Date().toLocaleTimeString('pt-BR'),
+          lastSync: new Date().toLocaleTimeString(lang === 'pt' ? 'pt-BR' : 'en-US'),
           isReal: false,
         },
       }));
@@ -184,9 +211,9 @@ export default function IntegrationsDashboard() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview">Integrações</TabsTrigger>
-          <TabsTrigger value="checkin">Check-in IA</TabsTrigger>
-          <TabsTrigger value="insights">Insights</TabsTrigger>
+          <TabsTrigger value="overview">{t('integrations.tabs.overview')}</TabsTrigger>
+          <TabsTrigger value="checkin">{t('integrations.tabs.checkin')}</TabsTrigger>
+          <TabsTrigger value="insights">{t('integrations.tabs.insights')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-4">

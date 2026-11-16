@@ -1,0 +1,203 @@
+export const en: Record<string, string> = {
+  // Tabs
+  'integrations.tabs.overview': 'Integrations',
+  'integrations.tabs.checkin': 'AI Check-in',
+  'integrations.tabs.insights': 'Insights',
+
+  // Metrics
+  'integrations.metrics.callTime': 'Time in Calls',
+  'integrations.metrics.today': 'today',
+  'integrations.metrics.messages': 'Messages',
+  'integrations.metrics.sentToday': 'sent today',
+  'integrations.metrics.integrations': 'Integrations',
+  'integrations.metrics.connected': 'connected',
+  'integrations.metrics.overload': 'Overload',
+  'integrations.metrics.overload.critical': 'Critical',
+  'integrations.metrics.overload.high': 'High',
+  'integrations.metrics.overload.moderate': 'Moderate',
+  'integrations.metrics.overload.healthy': 'Healthy',
+
+  // Units
+  'integrations.units.min': 'min',
+
+  // Platform Cards
+  'integrations.platform.status': 'Status',
+  'integrations.platform.badgeReal': 'Real',
+  'integrations.platform.badgeDemo': 'Demo',
+  'integrations.platform.callTime': 'Time in calls',
+  'integrations.platform.messages': 'Messages',
+  'integrations.platform.lastSync': 'Last sync',
+  'integrations.platform.sync': 'Sync',
+  'integrations.platform.connectOAuth': 'Connect with real OAuth',
+  'integrations.platform.comingSoonDemo': 'Coming soon (demo available)',
+  'integrations.platform.connect': 'Connect {platform}',
+
+  // Status values
+  'integrations.status.online': 'Online',
+  'integrations.status.away': 'Away',
+  'integrations.status.busy': 'Busy',
+  'integrations.status.offline': 'Offline',
+
+  // Upcoming Meetings
+  'integrations.meetings.upcomingTitle': 'Upcoming Meetings',
+  'integrations.meetings.upcomingDesc': 'Click to join directly on Google Meet',
+  'integrations.meetings.today': 'Today',
+  'integrations.meetings.attendees': '{count} attendees',
+  'integrations.meetings.join': 'Join',
+
+  // Check-In
+  'integrations.checkin.title': 'AI Meeting Readiness Assessment',
+  'integrations.checkin.description': 'NLP-based feedback before and after meetings',
+  'integrations.checkin.preMeeting': 'Pre-Meeting',
+  'integrations.checkin.postMeeting': 'Post-Meeting',
+  'integrations.checkin.purposeLabel': 'Meeting purpose',
+  'integrations.checkin.purposePlaceholder': 'E.g., Project alignment, quarterly feedback...',
+  'integrations.checkin.objectivesLabel': 'Your objectives',
+  'integrations.checkin.objectivesPlaceholder': 'What do you want to achieve in this meeting?',
+  'integrations.checkin.expectationsLabel': 'Expectations',
+  'integrations.checkin.expectationsPlaceholder': 'What is the ideal outcome?',
+  'integrations.checkin.postFeedbackLabel': 'How was the meeting?',
+  'integrations.checkin.postFeedbackPlaceholder': 'Briefly describe what happened, feelings, outcomes...',
+  'integrations.checkin.generating': 'Generating feedback...',
+  'integrations.checkin.prepareMindset': 'Prepare Mindset',
+  'integrations.checkin.getFeedback': 'Get Feedback',
+  'integrations.checkin.assistantSays': 'AstroAssist says:',
+  'integrations.checkin.rateLimitError': 'Too many requests. Please wait a moment.',
+  'integrations.checkin.unavailableError': 'Service temporarily unavailable.',
+  'integrations.checkin.connectError': 'Error connecting to AstroAssist',
+
+  // Productivity Insights
+  'integrations.insights.title': 'Productivity Insights',
+  'integrations.insights.description': 'Analysis based on integration data',
+  'integrations.insights.noIntegrations': 'Connect at least one integration to see insights',
+  'integrations.insights.connectBtn': 'Connect Integrations',
+  'integrations.insights.meetingOverloadTitle': 'Alert: Meeting Overload',
+  'integrations.insights.meetingOverloadDesc': 'You are already at {time} minutes of calls today. Consider blocking time for focused work.',
+  'integrations.insights.messageVolumeTitle': 'High communication volume',
+  'integrations.insights.messageVolumeDesc': '{count} messages today. Consider batching responses at specific times.',
+  'integrations.insights.goodBalanceTitle': 'Good balance today!',
+  'integrations.insights.goodBalanceDesc': 'Healthy meeting time. Keep it up to maintain productivity and well-being.',
+  'integrations.insights.focusTimeEstimated': 'Estimated focus time',
+  'integrations.insights.interruptionsEstimated': 'Estimated interruptions',
+
+  // Toasts
+  'integrations.toast.meetConnected': 'Google Meet connected!',
+  'integrations.toast.meetingsFound': '{count} meetings found.',
+  'integrations.toast.fetchError': 'Error fetching data',
+  'integrations.toast.authError': 'Authentication error',
+  'integrations.toast.oauthInitError': 'Error starting OAuth',
+  'integrations.toast.synced': 'Synchronized!',
+  'integrations.toast.calendarUpdated': 'Calendar data updated.',
+  'integrations.toast.syncError': 'Error syncing',
+  'integrations.toast.tokenExpired': 'Token expired. Reconnect Google Meet.',
+  'integrations.toast.connecting': 'Connecting...',
+  'integrations.toast.demoMode': 'Demo mode - simulated data',
+  'integrations.toast.requiredField': 'Required field',
+  'integrations.toast.purposeRequired': 'Please provide the meeting purpose',
+  'integrations.toast.sessionExpired': 'Session expired',
+  'integrations.toast.sessionExpiredDesc': 'Session expired. Please log in again.',
+  'integrations.toast.error': 'Error',
+  'integrations.toast.feedbackError': 'Could not generate feedback. Please try again.',
+};
+
+export const pt: Record<string, string> = {
+  // Tabs
+  'integrations.tabs.overview': 'Integrações',
+  'integrations.tabs.checkin': 'Check-in IA',
+  'integrations.tabs.insights': 'Insights',
+
+  // Metrics
+  'integrations.metrics.callTime': 'Tempo em Calls',
+  'integrations.metrics.today': 'hoje',
+  'integrations.metrics.messages': 'Mensagens',
+  'integrations.metrics.sentToday': 'enviadas hoje',
+  'integrations.metrics.integrations': 'Integrações',
+  'integrations.metrics.connected': 'conectadas',
+  'integrations.metrics.overload': 'Sobrecarga',
+  'integrations.metrics.overload.critical': 'Crítico',
+  'integrations.metrics.overload.high': 'Alto',
+  'integrations.metrics.overload.moderate': 'Moderado',
+  'integrations.metrics.overload.healthy': 'Saudável',
+
+  // Units
+  'integrations.units.min': 'min',
+
+  // Platform Cards
+  'integrations.platform.status': 'Status',
+  'integrations.platform.badgeReal': 'Real',
+  'integrations.platform.badgeDemo': 'Demo',
+  'integrations.platform.callTime': 'Tempo em call',
+  'integrations.platform.messages': 'Mensagens',
+  'integrations.platform.lastSync': 'Última sync',
+  'integrations.platform.sync': 'Sincronizar',
+  'integrations.platform.connectOAuth': 'Conecte com OAuth real',
+  'integrations.platform.comingSoonDemo': 'Em breve (demo disponível)',
+  'integrations.platform.connect': 'Conectar {platform}',
+
+  // Status values
+  'integrations.status.online': 'Online',
+  'integrations.status.away': 'Ausente',
+  'integrations.status.busy': 'Ocupado',
+  'integrations.status.offline': 'Offline',
+
+  // Upcoming Meetings
+  'integrations.meetings.upcomingTitle': 'Próximas Reuniões',
+  'integrations.meetings.upcomingDesc': 'Clique para entrar direto no Google Meet',
+  'integrations.meetings.today': 'Hoje',
+  'integrations.meetings.attendees': '{count} participantes',
+  'integrations.meetings.join': 'Entrar',
+
+  // Check-In
+  'integrations.checkin.title': 'Avaliação de Prontidão de Reunião com IA',
+  'integrations.checkin.description': 'Feedback baseado em PNL antes e depois das reuniões',
+  'integrations.checkin.preMeeting': 'Pré-Reunião',
+  'integrations.checkin.postMeeting': 'Pós-Reunião',
+  'integrations.checkin.purposeLabel': 'Propósito da reunião',
+  'integrations.checkin.purposePlaceholder': 'Ex: Alinhamento de projeto, feedback trimestral...',
+  'integrations.checkin.objectivesLabel': 'Seus objetivos',
+  'integrations.checkin.objectivesPlaceholder': 'O que você quer alcançar nessa reunião?',
+  'integrations.checkin.expectationsLabel': 'Expectativas',
+  'integrations.checkin.expectationsPlaceholder': 'Qual resultado ideal?',
+  'integrations.checkin.postFeedbackLabel': 'Como foi a reunião?',
+  'integrations.checkin.postFeedbackPlaceholder': 'Descreva brevemente o que aconteceu, sentimentos, resultados...',
+  'integrations.checkin.generating': 'Gerando feedback...',
+  'integrations.checkin.prepareMindset': 'Preparar Mindset',
+  'integrations.checkin.getFeedback': 'Obter Feedback',
+  'integrations.checkin.assistantSays': 'AstroAssist diz:',
+  'integrations.checkin.rateLimitError': 'Muitas requisições. Aguarde um momento.',
+  'integrations.checkin.unavailableError': 'Serviço temporariamente indisponível.',
+  'integrations.checkin.connectError': 'Erro ao conectar ao AstroAssist',
+
+  // Productivity Insights
+  'integrations.insights.title': 'Insights de Produtividade',
+  'integrations.insights.description': 'Análise baseada nos dados das integrações',
+  'integrations.insights.noIntegrations': 'Conecte pelo menos uma integração para ver insights',
+  'integrations.insights.connectBtn': 'Conectar Integrações',
+  'integrations.insights.meetingOverloadTitle': 'Alerta: Excesso de reuniões',
+  'integrations.insights.meetingOverloadDesc': 'Você já está em {time} minutos de calls hoje. Considere bloquear tempo para trabalho focado.',
+  'integrations.insights.messageVolumeTitle': 'Alto volume de comunicação',
+  'integrations.insights.messageVolumeDesc': '{count} mensagens hoje. Considere agrupar respostas em horários específicos.',
+  'integrations.insights.goodBalanceTitle': 'Bom equilíbrio hoje!',
+  'integrations.insights.goodBalanceDesc': 'Tempo em reuniões saudável. Continue assim para manter produtividade e bem-estar.',
+  'integrations.insights.focusTimeEstimated': 'Tempo focado estimado',
+  'integrations.insights.interruptionsEstimated': 'Interrupções estimadas',
+
+  // Toasts
+  'integrations.toast.meetConnected': 'Google Meet conectado!',
+  'integrations.toast.meetingsFound': '{count} reuniões encontradas.',
+  'integrations.toast.fetchError': 'Erro ao buscar dados',
+  'integrations.toast.authError': 'Erro na autenticação',
+  'integrations.toast.oauthInitError': 'Erro ao iniciar OAuth',
+  'integrations.toast.synced': 'Sincronizado!',
+  'integrations.toast.calendarUpdated': 'Dados do calendário atualizados.',
+  'integrations.toast.syncError': 'Erro ao sincronizar',
+  'integrations.toast.tokenExpired': 'Token expirado. Reconecte o Google Meet.',
+  'integrations.toast.connecting': 'Conectando...',
+  'integrations.toast.demoMode': 'Modo demo - dados simulados',
+  'integrations.toast.requiredField': 'Campo obrigatório',
+  'integrations.toast.purposeRequired': 'Informe o propósito da reunião',
+  'integrations.toast.sessionExpired': 'Sessão expirada',
+  'integrations.toast.sessionExpiredDesc': 'Sessão expirada. Faça novamente o login.',
+  'integrations.toast.error': 'Erro',
+  'integrations.toast.feedbackError': 'Não foi possível gerar feedback. Tente novamente.',
+};

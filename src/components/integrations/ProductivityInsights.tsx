@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, MessageSquare, CheckCircle2, TrendingUp } from 'lucide-react';
+import { useI18n } from '@/i18n';
 
 interface ProductivityInsightsProps {
   connectedCount: number;
@@ -10,20 +11,22 @@ interface ProductivityInsightsProps {
 }
 
 export default function ProductivityInsights({ connectedCount, totalMeetingTime, totalMessages, onGoToOverview }: ProductivityInsightsProps) {
+  const { t } = useI18n();
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5 text-primary" />
-          Insights de Produtividade
+          {t('integrations.insights.title')}
         </CardTitle>
-        <CardDescription>Análise baseada nos dados das integrações</CardDescription>
+        <CardDescription>{t('integrations.insights.description')}</CardDescription>
       </CardHeader>
       <CardContent>
         {connectedCount === 0 ? (
           <div className="text-center py-8">
-            <p className="text-muted-foreground mb-4">Conecte pelo menos uma integração para ver insights</p>
-            <Button variant="outline" onClick={onGoToOverview}>Conectar Integrações</Button>
+            <p className="text-muted-foreground mb-4">{t('integrations.insights.noIntegrations')}</p>
+            <Button variant="outline" onClick={onGoToOverview}>{t('integrations.insights.connectBtn')}</Button>
           </div>
         ) : (
           <div className="space-y-4">
@@ -32,9 +35,11 @@ export default function ProductivityInsights({ connectedCount, totalMeetingTime,
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="h-5 w-5 text-yellow-500 mt-0.5" />
                   <div>
-                    <h4 className="font-semibold text-yellow-700 dark:text-yellow-400">Alerta: Excesso de reuniões</h4>
+                    <h4 className="font-semibold text-yellow-700 dark:text-yellow-400">
+                      {t('integrations.insights.meetingOverloadTitle')}
+                    </h4>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Você já está em {totalMeetingTime} minutos de calls hoje. Considere bloquear tempo para trabalho focado.
+                      {t('integrations.insights.meetingOverloadDesc', { time: totalMeetingTime })}
                     </p>
                   </div>
                 </div>
@@ -46,9 +51,11 @@ export default function ProductivityInsights({ connectedCount, totalMeetingTime,
                 <div className="flex items-start gap-3">
                   <MessageSquare className="h-5 w-5 text-blue-500 mt-0.5" />
                   <div>
-                    <h4 className="font-semibold text-blue-700 dark:text-blue-400">Alto volume de comunicação</h4>
+                    <h4 className="font-semibold text-blue-700 dark:text-blue-400">
+                      {t('integrations.insights.messageVolumeTitle')}
+                    </h4>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {totalMessages} mensagens hoje. Considere agrupar respostas em horários específicos.
+                      {t('integrations.insights.messageVolumeDesc', { count: totalMessages })}
                     </p>
                   </div>
                 </div>
@@ -60,9 +67,11 @@ export default function ProductivityInsights({ connectedCount, totalMeetingTime,
                 <div className="flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5" />
                   <div>
-                    <h4 className="font-semibold text-green-700 dark:text-green-400">Bom equilíbrio hoje!</h4>
+                    <h4 className="font-semibold text-green-700 dark:text-green-400">
+                      {t('integrations.insights.goodBalanceTitle')}
+                    </h4>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Tempo em reuniões saudável. Continue assim para manter produtividade e bem-estar.
+                      {t('integrations.insights.goodBalanceDesc')}
                     </p>
                   </div>
                 </div>
@@ -71,11 +80,11 @@ export default function ProductivityInsights({ connectedCount, totalMeetingTime,
 
             <div className="grid grid-cols-2 gap-4 mt-4">
               <div className="p-3 bg-muted/50 rounded-lg">
-                <p className="text-xs text-muted-foreground">Tempo focado estimado</p>
-                <p className="text-xl font-bold">{Math.max(0, 480 - totalMeetingTime)} min</p>
+                <p className="text-xs text-muted-foreground">{t('integrations.insights.focusTimeEstimated')}</p>
+                <p className="text-xl font-bold">{Math.max(0, 480 - totalMeetingTime)} {t('integrations.units.min')}</p>
               </div>
               <div className="p-3 bg-muted/50 rounded-lg">
-                <p className="text-xs text-muted-foreground">Interrupções estimadas</p>
+                <p className="text-xs text-muted-foreground">{t('integrations.insights.interruptionsEstimated')}</p>
                 <p className="text-xl font-bold">{Math.floor(totalMessages / 5)}</p>
               </div>
             </div>

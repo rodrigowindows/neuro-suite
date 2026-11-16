@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useI18n } from '@/i18n';
 import {
   Video, MessageSquare, Users, Calendar, ExternalLink,
   CheckCircle2, XCircle, Clock, Loader2, RefreshCw
@@ -63,6 +64,15 @@ const getPlatformDisplayName = (platform: string) => {
 };
 
 export default function PlatformCards({ integrations, loadingPlatform, onConnect, onSync }: PlatformCardsProps) {
+  const { t, lang } = useI18n();
+
+  const statusLabels: Record<string, string> = {
+    online: t('integrations.status.online'),
+    away: t('integrations.status.away'),
+    busy: t('integrations.status.busy'),
+    offline: t('integrations.status.offline'),
+  };
+
   return (
     <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -81,26 +91,30 @@ export default function PlatformCards({ integrations, loadingPlatform, onConnect
               {data.connected ? (
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Status</span>
+                    <span className="text-muted-foreground">{t('integrations.platform.status')}</span>
                     <div className="flex items-center gap-2">
                       {data.isReal ? (
-                        <Badge variant="default" className="text-xs bg-green-600">Real</Badge>
+                        <Badge variant="default" className="text-xs bg-green-600">
+                          {t('integrations.platform.badgeReal')}
+                        </Badge>
                       ) : (
-                        <Badge variant="secondary" className="text-xs">Demo</Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          {t('integrations.platform.badgeDemo')}
+                        </Badge>
                       )}
-                      <Badge variant="outline" className="capitalize">{data.status}</Badge>
+                      <Badge variant="outline">{statusLabels[data.status] || data.status}</Badge>
                     </div>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Tempo em call</span>
-                    <span className="font-medium">{data.meetingTime} min</span>
+                    <span className="text-muted-foreground">{t('integrations.platform.callTime')}</span>
+                    <span className="font-medium">{data.meetingTime} {t('integrations.units.min')}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Mensagens</span>
+                    <span className="text-muted-foreground">{t('integrations.platform.messages')}</span>
                     <span className="font-medium">{data.messagesCount}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Última sync</span>
+                    <span className="text-muted-foreground">{t('integrations.platform.lastSync')}</span>
                     <span className="text-xs">{data.lastSync}</span>
                   </div>
                   <Button
@@ -115,13 +129,13 @@ export default function PlatformCards({ integrations, loadingPlatform, onConnect
                     ) : (
                       <RefreshCw className="h-3 w-3 mr-1" />
                     )}
-                    Sincronizar
+                    {t('integrations.platform.sync')}
                   </Button>
                 </div>
               ) : (
                 <div className="text-center py-4">
                   <p className="text-sm text-muted-foreground mb-3">
-                    {platform === 'meet' ? 'Conecte com OAuth real' : 'Em breve (demo disponível)'}
+                    {platform === 'meet' ? t('integrations.platform.connectOAuth') : t('integrations.platform.comingSoonDemo')}
                   </p>
                   <Button
                     onClick={() => onConnect(platform)}
@@ -131,7 +145,7 @@ export default function PlatformCards({ integrations, loadingPlatform, onConnect
                     {loadingPlatform === platform ? (
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
                     ) : null}
-                    Conectar {getPlatformDisplayName(platform)}
+                    {t('integrations.platform.connect', { platform: getPlatformDisplayName(platform) })}
                   </Button>
                 </div>
               )}
@@ -146,9 +160,9 @@ export default function PlatformCards({ integrations, loadingPlatform, onConnect
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />
-              Próximas Reuniões
+              {t('integrations.meetings.upcomingTitle')}
             </CardTitle>
-            <CardDescription>Clique para entrar direto no Google Meet</CardDescription>
+            <CardDescription>{t('integrations.meetings.upcomingDesc')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -156,6 +170,7 @@ export default function PlatformCards({ integrations, loadingPlatform, onConnect
                 const startDate = new Date(meeting.start);
                 const endDate = new Date(meeting.end);
                 const isToday = startDate.toDateString() === new Date().toDateString();
+                const dateLocale = lang === 'pt' ? 'pt-BR' : 'en-US';
 
                 return (
                   <div
@@ -165,11 +180,11 @@ export default function PlatformCards({ integrations, loadingPlatform, onConnect
                     <div className="flex-1">
                       <p className="font-medium text-sm">{meeting.title}</p>
                       <p className="text-xs text-muted-foreground">
-                        {isToday ? 'Hoje' : startDate.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric' })} • {startDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} - {endDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        {isToday ? t('integrations.meetings.today') : startDate.toLocaleDateString(dateLocale, { weekday: 'short', day: 'numeric' })} • {startDate.toLocaleTimeString(dateLocale, { hour: '2-digit', minute: '2-digit' })} - {endDate.toLocaleTimeString(dateLocale, { hour: '2-digit', minute: '2-digit' })}
                       </p>
                       {meeting.attendees > 0 && (
                         <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                          <Users className="h-3 w-3" /> {meeting.attendees} participantes
+                          <Users className="h-3 w-3" /> {t('integrations.meetings.attendees', { count: meeting.attendees })}
                         </p>
                       )}
                     </div>
@@ -181,7 +196,7 @@ export default function PlatformCards({ integrations, loadingPlatform, onConnect
                         className="gap-2"
                       >
                         <Video className="h-4 w-4" />
-                        Entrar
+                        {t('integrations.meetings.join')}
                         <ExternalLink className="h-3 w-3" />
                       </Button>
                     )}
