@@ -162,6 +162,8 @@ describe('Index page', () => {
       expect(screen.getByText('Long-Duration Missions')).toBeTruthy();
       expect(container.textContent).toContain('Webcam-based monitoring');
       expect(container.textContent).toContain('recovery techniques');
+      expect(container.textContent).toContain('Protect crew safety with fatigue analysis via webcam.');
+      expect(container.textContent).toContain('a webcam-based estimate of heart rate variability');
 
       // Assert: Portuguese texts are absent
       expect(container.textContent).not.toContain('Ver demonstração');
@@ -174,6 +176,7 @@ describe('Index page', () => {
       expect(container.textContent).not.toContain('Long-Duration Missions — NASA');
       expect(container.textContent).not.toContain('in real time');
       expect(container.textContent).not.toContain('techniques validated');
+      expect(container.textContent).not.toContain('spacecraft cameras');
       const emoji = /\p{Extended_Pictographic}/u;
       expect(emoji.test(container.innerHTML)).toBe(false);
     });
@@ -191,6 +194,8 @@ describe('Index page', () => {
       expect(screen.getByText('Missões de longa duração')).toBeTruthy();
       expect(container.textContent).toContain('monitoramento por webcam');
       expect(container.textContent).toContain('técnicas de recuperação');
+      expect(container.textContent).toContain('Garanta a segurança da tripulação com análise de fadiga via webcam.');
+      expect(container.textContent).toContain('estimativa da variabilidade cardíaca');
 
       // Assert: English texts are absent
       expect(container.textContent).not.toContain('View demo');
@@ -203,6 +208,7 @@ describe('Index page', () => {
       expect(container.textContent).not.toContain('Missões de Longa Duração — NASA');
       expect(container.textContent).not.toContain('em tempo real');
       expect(container.textContent).not.toContain('técnicas validadas');
+      expect(container.textContent).not.toContain('câmeras da nave');
       const emoji = /\p{Extended_Pictographic}/u;
       expect(emoji.test(container.innerHTML)).toBe(false);
     });
