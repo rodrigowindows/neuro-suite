@@ -55,6 +55,7 @@ export function calculateROI(inputs: ROIInputs): ROIResults {
   };
 }
 
-export function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+export function formatCurrency(value: number, lang: 'en' | 'pt' = 'pt'): string {
+  const locale = lang === 'en' ? 'en-US' : 'pt-BR';
+  return new Intl.NumberFormat(locale, { style: 'currency', currency: 'BRL' }).format(value);
 }

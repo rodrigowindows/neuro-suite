@@ -124,6 +124,109 @@ describe("generateAlerts", () => {
     // Assert
     expect(alerts.length).toBe(0);
   });
+
+  describe("English language variant (lang = 'en')", () => {
+    it("generates critical alert in English when high stress exceeds threshold", () => {
+      // Arrange
+      const stats: StressStats = { ...defaultStats, highPercent: 40 };
+
+      // Act
+      const alerts = generateAlerts(stats, null, 0, defaultThresholds, "en");
+      const critical = alerts.find((a) => a.id === "high_stress");
+
+      // Assert
+      expect(critical).toBeDefined();
+      expect(critical?.type).toBe("critical");
+      expect(critical?.title).toBe("High Stress Threshold Exceeded");
+      expect(critical?.description).toContain("40% of scans indicate high stress");
+      expect(critical?.title).not.toContain("Limite de Estresse");
+    });
+
+    it("generates critical alert in English when HRV is below threshold", () => {
+      // Arrange
+      const stats: StressStats = { ...defaultStats, avgHRV: 25 };
+
+      // Act
+      const alerts = generateAlerts(stats, null, 0, defaultThresholds, "en");
+      const hrvAlert = alerts.find((a) => a.id === "low_hrv");
+
+      // Assert
+      expect(hrvAlert).toBeDefined();
+      expect(hrvAlert?.type).toBe("critical");
+      expect(hrvAlert?.title).toBe("Average HRV Below Threshold");
+      expect(hrvAlert?.description).toContain("Average HRV: 25ms");
+      expect(hrvAlert?.title).not.toContain("HRV Médio");
+    });
+
+    it("generates warning in English for consecutive high days", () => {
+      // Arrange & Act
+      const alerts = generateAlerts(defaultStats, null, 5, defaultThresholds, "en");
+      const consecutive = alerts.find((a) => a.id === "consecutive_high");
+
+      // Assert
+      expect(consecutive).toBeDefined();
+      expect(consecutive?.type).toBe("warning");
+      expect(consecutive?.title).toBe("Consecutive High Stress");
+      expect(consecutive?.description).toContain("5 consecutive days with majority of scans in high stress");
+      expect(consecutive?.title).not.toContain("Estresse Alto Consecutivo");
+    });
+
+    it("generates warning in English for worsening trend", () => {
+      // Arrange
+      const trend: StressTrend = {
+        direction: "worsening",
+        recentHighPercent: 60,
+        olderHighPercent: 30,
+      };
+
+      // Act
+      const alerts = generateAlerts(defaultStats, trend, 0, defaultThresholds, "en");
+      const trendAlert = alerts.find((a) => a.id === "trend_worsening");
+
+      // Assert
+      expect(trendAlert).toBeDefined();
+      expect(trendAlert?.type).toBe("warning");
+      expect(trendAlert?.title).toBe("Worsening Trend Detected");
+      expect(trendAlert?.description).toContain("High stress increased by 30% in the recent week");
+      expect(trendAlert?.title).not.toContain("Tendência de Piora");
+    });
+
+    it("generates info in English for improving trend", () => {
+      // Arrange
+      const trend: StressTrend = {
+        direction: "improving",
+        recentHighPercent: 10,
+        olderHighPercent: 50,
+      };
+
+      // Act
+      const alerts = generateAlerts(defaultStats, trend, 0, defaultThresholds, "en");
+      const improving = alerts.find((a) => a.id === "trend_improving");
+
+      // Assert
+      expect(improving).toBeDefined();
+      expect(improving?.type).toBe("info");
+      expect(improving?.title).toBe("Improving Trend");
+      expect(improving?.description).toContain("Countermeasures are working");
+      expect(improving?.title).not.toContain("Tendência de Melhora");
+    });
+
+    it("generates low engagement alert in English for few scans", () => {
+      // Arrange
+      const stats: StressStats = { ...defaultStats, totalScans: 2 };
+
+      // Act
+      const alerts = generateAlerts(stats, null, 0, defaultThresholds, "en");
+      const engagement = alerts.find((a) => a.id === "low_engagement");
+
+      // Assert
+      expect(engagement).toBeDefined();
+      expect(engagement?.type).toBe("info");
+      expect(engagement?.title).toBe("Low Engagement");
+      expect(engagement?.description).toContain("Only 2 scans in the last 7 days");
+      expect(engagement?.title).not.toContain("Baixo Engajamento");
+    });
+  });
 });
 
 describe("sortAlerts", () => {

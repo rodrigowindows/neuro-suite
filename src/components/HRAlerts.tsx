@@ -11,7 +11,8 @@ import { useConnectionMode } from '@/hooks/useConnectionMode';
 import { Badge } from '@/components/ui/badge';
 import { useStressData } from '@/hooks/useStressData';
 import type { AlertThresholds } from '@/types/stress';
-import { generateAlerts, sortAlerts, getAlertStyles, type Alert } from '@/services/alertGenerator';
+import { generateAlerts, sortAlerts, getAlertStyles } from '@/services/alertGenerator';
+import { useI18n } from '@/i18n';
 
 interface ProactiveAlert {
   userId: string;
@@ -25,6 +26,7 @@ interface ProactiveAlert {
 }
 
 export default function HRAlerts() {
+  const { lang, t } = useI18n();
   const [acknowledgedIds, setAcknowledgedIds] = useState<Set<string>>(new Set());
   const [proactiveAlerts, setProactiveAlerts] = useState<ProactiveAlert[]>([]);
   const [aiSummary, setAiSummary] = useState('');
@@ -43,12 +45,12 @@ export default function HRAlerts() {
 
   const alerts = useMemo(() => {
     if (loading || stats.totalScans === 0) return [];
-    const generated = generateAlerts(stats, trend, consecutiveHighDays, thresholds);
+    const generated = generateAlerts(stats, trend, consecutiveHighDays, thresholds, lang);
     return generated.map(a => ({
       ...a,
       acknowledged: acknowledgedIds.has(a.id),
     }));
-  }, [stats, trend, consecutiveHighDays, thresholds, loading, acknowledgedIds]);
+  }, [stats, trend, consecutiveHighDays, thresholds, loading, acknowledgedIds, lang]);
 
   const sortedAlerts = useMemo(() => sortAlerts(alerts), [alerts]);
 
@@ -64,8 +66,8 @@ export default function HRAlerts() {
           totalScans: alerts.length,
         });
         toast({
-          title: 'Análise concluída',
-          description: 'Análise de alertas gerada localmente.',
+          title: t('insights.alerts.toast.analysisCompleted'),
+          description: t('insights.alerts.toast.analysisLocalDesc'),
         });
         return;
       }
@@ -85,12 +87,12 @@ export default function HRAlerts() {
       });
 
       toast({
-        title: 'Análise concluída',
-        description: `${data.atRiskCount} colaborador(es) em risco identificados.`,
+        title: t('insights.alerts.toast.analysisCompleted'),
+        description: t('insights.alerts.toast.analysisResultDesc', { count: data.atRiskCount }),
       });
     } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : 'Erro desconhecido';
-      toast({ title: 'Erro', description: message, variant: 'destructive' });
+      const message = e instanceof Error ? e.message : t('insights.alerts.toast.unknownError');
+      toast({ title: t('insights.alerts.toast.error'), description: message, variant: 'destructive' });
     } finally {
       setProactiveLoading(false);
     }
@@ -98,7 +100,7 @@ export default function HRAlerts() {
 
   const acknowledgeAlert = (alertId: string) => {
     setAcknowledgedIds(prev => new Set(prev).add(alertId));
-    toast({ title: 'Alerta reconhecido' });
+    toast({ title: t('insights.alerts.toast.alertAcknowledged') });
   };
 
   const criticalCount = alerts.filter(a => a.type === 'critical' && !a.acknowledged).length;
@@ -109,7 +111,7 @@ export default function HRAlerts() {
       <Card>
         <CardContent className="p-12 text-center">
           <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-muted-foreground">Analisando dados para alertas...</p>
+          <p className="text-muted-foreground">{t('insights.alerts.loading')}</p>
         </CardContent>
       </Card>
     );
@@ -121,7 +123,7 @@ export default function HRAlerts() {
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="realtime" className="gap-1.5">
             <Bell className="h-3.5 w-3.5" />
-            Alertas em Tempo Real
+            {t('insights.alerts.tab.realtime')}
             {criticalCount > 0 && (
               <span className="ml-1 px-1.5 py-0.5 bg-destructive text-destructive-foreground text-[10px] rounded-full font-bold">
                 {criticalCount}
@@ -130,7 +132,7 @@ export default function HRAlerts() {
           </TabsTrigger>
           <TabsTrigger value="proactive" className="gap-1.5">
             <Brain className="h-3.5 w-3.5" />
-            Alertas Proativos IA
+            {t('insights.alerts.tab.proactive')}
           </TabsTrigger>
         </TabsList>
 
@@ -142,14 +144,14 @@ export default function HRAlerts() {
                 <div>
                   <CardTitle className="flex items-center gap-2 text-base">
                     <Bell className="h-5 w-5 text-primary" />
-                    Alertas Inteligentes
+                    {t('insights.alerts.realtime.title')}
                     {warningCount > 0 && (
                       <span className="ml-1 px-1.5 py-0.5 bg-orange-500 text-white text-[10px] rounded-full font-bold">
                         {warningCount}
                       </span>
                     )}
                   </CardTitle>
-                  <CardDescription>Baseados nos thresholds configurados</CardDescription>
+                  <CardDescription>{t('insights.alerts.realtime.description')}</CardDescription>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => setShowSettings(!showSettings)}>
                   <Settings className="h-4 w-4" />
@@ -160,22 +162,22 @@ export default function HRAlerts() {
               {showSettings && (
                 <Card className="bg-muted/30 border-muted">
                   <CardContent className="p-4 space-y-4">
-                    <p className="text-sm font-semibold">⚙️ Configurar Limites</p>
+                    <p className="text-sm font-semibold">{t('insights.alerts.settings.title')}</p>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="highStress" className="text-xs">% Estresse Alto Máximo</Label>
+                        <Label htmlFor="highStress" className="text-xs">{t('insights.alerts.settings.highStress')}</Label>
                         <Input id="highStress" type="number" value={thresholds.highStressPercent}
                           onChange={(e) => setThresholds({ ...thresholds, highStressPercent: Number(e.target.value) || 30 })}
                           className="h-8" />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="lowHRV" className="text-xs">HRV Mínimo (ms)</Label>
+                        <Label htmlFor="lowHRV" className="text-xs">{t('insights.alerts.settings.lowHRV')}</Label>
                         <Input id="lowHRV" type="number" value={thresholds.lowHRVThreshold}
                           onChange={(e) => setThresholds({ ...thresholds, lowHRVThreshold: Number(e.target.value) || 30 })}
                           className="h-8" />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="consecutiveDays" className="text-xs">Dias Consecutivos Alto</Label>
+                        <Label htmlFor="consecutiveDays" className="text-xs">{t('insights.alerts.settings.consecutiveDays')}</Label>
                         <Input id="consecutiveDays" type="number" value={thresholds.consecutiveHighDays}
                           onChange={(e) => setThresholds({ ...thresholds, consecutiveHighDays: Number(e.target.value) || 3 })}
                           className="h-8" />
@@ -188,8 +190,8 @@ export default function HRAlerts() {
               {sortedAlerts.length === 0 ? (
                 <div className="text-center py-8">
                   <CheckCircle className="h-12 w-12 text-primary mx-auto mb-3 opacity-60" />
-                  <p className="text-sm font-semibold">Tudo OK! 🎉</p>
-                  <p className="text-xs text-muted-foreground">Nenhum alerta ativo.</p>
+                  <p className="text-sm font-semibold">{t('insights.alerts.empty.title')}</p>
+                  <p className="text-xs text-muted-foreground">{t('insights.alerts.empty.description')}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -211,7 +213,7 @@ export default function HRAlerts() {
                           </div>
                           {!alert.acknowledged && (
                             <Button variant="ghost" size="sm" className="shrink-0 text-xs" onClick={() => acknowledgeAlert(alert.id)}>
-                              OK
+                              {t('insights.alerts.btn.acknowledge')}
                             </Button>
                           )}
                         </CardContent>
@@ -230,16 +232,16 @@ export default function HRAlerts() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <Brain className="h-5 w-5 text-primary" />
-                Detecção Proativa de Burnout
+                {t('insights.alerts.proactive.title')}
               </CardTitle>
               <CardDescription>
-                IA analisa padrões da equipe e identifica colaboradores em risco antes que o problema escale
+                {t('insights.alerts.proactive.description')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Button onClick={runProactiveAnalysis} disabled={proactiveLoading} className="w-full gap-2">
                 {proactiveLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Brain className="h-4 w-4" />}
-                {proactiveLoading ? 'Analisando equipe...' : 'Executar Análise Proativa'}
+                {proactiveLoading ? t('insights.alerts.proactive.btn.running') : t('insights.alerts.proactive.btn.run')}
               </Button>
 
               {teamStats.totalMonitored > 0 && (
@@ -247,17 +249,17 @@ export default function HRAlerts() {
                   <div className="text-center p-3 bg-muted/30 rounded-lg">
                     <Users className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
                     <p className="text-xl font-bold">{teamStats.totalMonitored}</p>
-                    <p className="text-[10px] text-muted-foreground">Monitorados</p>
+                    <p className="text-[10px] text-muted-foreground">{t('insights.alerts.stats.monitored')}</p>
                   </div>
                   <div className="text-center p-3 bg-destructive/10 rounded-lg">
                     <AlertTriangle className="h-4 w-4 mx-auto mb-1 text-destructive" />
                     <p className="text-xl font-bold text-destructive">{teamStats.atRiskCount}</p>
-                    <p className="text-[10px] text-muted-foreground">Em Risco</p>
+                    <p className="text-[10px] text-muted-foreground">{t('insights.alerts.stats.atRisk')}</p>
                   </div>
                   <div className="text-center p-3 bg-primary/10 rounded-lg">
                     <TrendingUp className="h-4 w-4 mx-auto mb-1 text-primary" />
                     <p className="text-xl font-bold text-primary">{teamStats.totalScans}</p>
-                    <p className="text-[10px] text-muted-foreground">Scans 7d</p>
+                    <p className="text-[10px] text-muted-foreground">{t('insights.alerts.stats.scans7d')}</p>
                   </div>
                 </div>
               )}
@@ -267,7 +269,7 @@ export default function HRAlerts() {
                   <CardContent className="p-4">
                     <p className="text-xs font-semibold mb-2 flex items-center gap-1.5">
                       <Brain className="h-3.5 w-3.5 text-primary" />
-                      Resumo IA da Equipe
+                      {t('insights.alerts.summary.title')}
                     </p>
                     <p className="text-xs text-muted-foreground whitespace-pre-line leading-relaxed">{aiSummary}</p>
                   </CardContent>
@@ -276,7 +278,7 @@ export default function HRAlerts() {
 
               {proactiveAlerts.length > 0 && (
                 <div className="space-y-3">
-                  <p className="text-xs font-semibold">Colaboradores em Risco:</p>
+                  <p className="text-xs font-semibold">{t('insights.alerts.list.title')}</p>
                   {proactiveAlerts.map((alert, i) => (
                     <Card key={i} className={`border ${alert.severity === 'critical' ? 'border-destructive/30 bg-destructive/5' : 'border-orange-500/30 bg-orange-500/5'}`}>
                       <CardContent className="p-3 flex items-center gap-3">
@@ -285,12 +287,16 @@ export default function HRAlerts() {
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-semibold truncate">{alert.userName}</p>
                             <Badge variant={alert.severity === 'critical' ? 'destructive' : 'outline'} className="text-[9px]">
-                              {alert.severity === 'critical' ? 'CRÍTICO' : 'ATENÇÃO'}
+                              {alert.severity === 'critical' ? t('insights.alerts.severity.critical') : t('insights.alerts.severity.warning')}
                             </Badge>
                           </div>
                           <p className="text-[11px] text-muted-foreground mt-0.5">
-                            {alert.highPercent}% estresse alto · {alert.consecutiveHigh}d consecutivos
-                            {alert.avgHRV ? ` · HRV ${alert.avgHRV}ms` : ''} · {alert.totalScans} scans
+                            {t('insights.alerts.item.details', {
+                              highPercent: alert.highPercent,
+                              consecutiveHigh: alert.consecutiveHigh,
+                              hrv: alert.avgHRV ? ` · HRV ${alert.avgHRV}ms` : '',
+                              totalScans: alert.totalScans,
+                            })}
                           </p>
                         </div>
                         <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -303,8 +309,8 @@ export default function HRAlerts() {
               {!proactiveLoading && proactiveAlerts.length === 0 && teamStats.totalMonitored === 0 && (
                 <div className="text-center py-6 text-muted-foreground">
                   <Brain className="h-10 w-10 mx-auto mb-3 opacity-30" />
-                  <p className="text-sm">Clique acima para executar a análise proativa</p>
-                  <p className="text-xs mt-1">A IA identificará padrões de burnout na equipe</p>
+                  <p className="text-sm">{t('insights.alerts.proactive.empty.title')}</p>
+                  <p className="text-xs mt-1">{t('insights.alerts.proactive.empty.subtitle')}</p>
                 </div>
               )}
             </CardContent>

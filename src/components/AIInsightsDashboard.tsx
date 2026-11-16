@@ -5,6 +5,7 @@ import { Brain, TrendingUp, FileText, MessageSquare, Sparkles, Loader2 } from 'l
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useConnectionMode } from '@/hooks/useConnectionMode';
+import { useI18n } from '@/i18n';
 
 interface BurnoutPrediction {
   riskScore: number;
@@ -34,7 +35,13 @@ interface SentimentResult {
   insight: string;
 }
 
+interface MessageItem {
+  role?: string;
+  content?: string;
+}
+
 export default function AIInsightsDashboard() {
+  const { t } = useI18n();
   const [burnout, setBurnout] = useState<BurnoutPrediction | null>(null);
   const [summary, setSummary] = useState<WeeklySummary | null>(null);
   const [sentiment, setSentiment] = useState<SentimentResult | null>(null);
@@ -44,7 +51,7 @@ export default function AIInsightsDashboard() {
 
   const getStressData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Não autenticado');
+    if (!user) throw new Error(t('insights.ai.error.unauthenticated'));
 
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -57,7 +64,7 @@ export default function AIInsightsDashboard() {
       .order('created_at', { ascending: false })
       .limit(200);
 
-    if (!scans || scans.length === 0) throw new Error('Sem dados suficientes. Realize scans primeiro.');
+    if (!scans || scans.length === 0) throw new Error(t('insights.ai.error.insufficientData'));
 
     const total = scans.length;
     const low = scans.filter(s => s.stress_level === 'low').length;
@@ -107,12 +114,14 @@ export default function AIInsightsDashboard() {
     };
   };
 
-  const callAI = async (type: string, data: any) => {
+  const callAI = async (type: string, data: Record<string, unknown>) => {
     if (isAutonomous) {
       if (type === 'burnout_prediction') {
+        const highPercent = typeof data.highPercent === 'number' ? data.highPercent : 20;
+        const consecutiveHighDays = typeof data.consecutiveHighDays === 'number' ? data.consecutiveHighDays : 0;
         return {
-          riskScore: Math.min(100, Math.round((data.highPercent || 20) * 1.2)),
-          riskLevel: data.consecutiveHighDays >= 2 ? 'high' : (data.highPercent || 0) > 30 ? 'moderate' : 'low',
+          riskScore: Math.min(100, Math.round(highPercent * 1.2)),
+          riskLevel: consecutiveHighDays >= 2 ? 'high' : highPercent > 30 ? 'moderate' : 'low',
           prediction: 'Gerado localmente (regras fixas, sem IA em nuvem): Análise de tendência baseada em contagem de scans com estresse elevado.',
           factors: ['Fadiga operacional identificada nos registros locais'],
           recommendation: 'Gerado localmente (regras fixas, sem IA em nuvem): Priorize hidratação e pausas guiadas 4-7-8.',
@@ -155,8 +164,9 @@ export default function AIInsightsDashboard() {
       const data = await getStressData();
       const result = await callAI('burnout_prediction', data);
       setBurnout(result);
-    } catch (e: any) {
-      toast({ title: 'Erro', description: e.message, variant: 'destructive' });
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Erro';
+      toast({ title: t('insights.ai.toast.error'), description: message, variant: 'destructive' });
     } finally {
       setLoading(prev => ({ ...prev, burnout: false }));
     }
@@ -168,8 +178,9 @@ export default function AIInsightsDashboard() {
       const data = await getStressData();
       const result = await callAI('weekly_summary', data);
       setSummary(result);
-    } catch (e: any) {
-      toast({ title: 'Erro', description: e.message, variant: 'destructive' });
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Erro';
+      toast({ title: t('insights.ai.toast.error'), description: message, variant: 'destructive' });
     } finally {
       setLoading(prev => ({ ...prev, summary: false }));
     }
@@ -179,7 +190,7 @@ export default function AIInsightsDashboard() {
     setLoading(prev => ({ ...prev, sentiment: true }));
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Não autenticado');
+      if (!user) throw new Error(t('insights.ai.error.unauthenticated'));
 
       const { data: conversations } = await supabase
         .from('coach_conversations')
@@ -188,17 +199,19 @@ export default function AIInsightsDashboard() {
         .order('updated_at', { ascending: false })
         .limit(5);
 
-      if (!conversations || conversations.length === 0) throw new Error('Sem conversas para analisar. Use o AstroAssist primeiro.');
+      if (!conversations || conversations.length === 0) throw new Error(t('insights.ai.error.noConversations'));
 
-      const allUserMessages = conversations.flatMap(c => 
-        (c.messages as any[]).filter((m: any) => m.role === 'user')
-      );
-      if (allUserMessages.length === 0) throw new Error('Sem mensagens do usuário para analisar.');
+      const allUserMessages = conversations.flatMap(c => {
+        const msgs = Array.isArray(c.messages) ? (c.messages as MessageItem[]) : [];
+        return msgs.filter(m => m.role === 'user');
+      });
+      if (allUserMessages.length === 0) throw new Error(t('insights.ai.error.noUserMessages'));
 
       const result = await callAI('sentiment_analysis', { messages: allUserMessages });
       setSentiment(result);
-    } catch (e: any) {
-      toast({ title: 'Erro', description: e.message, variant: 'destructive' });
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Erro';
+      toast({ title: t('insights.ai.toast.error'), description: message, variant: 'destructive' });
     } finally {
       setLoading(prev => ({ ...prev, sentiment: false }));
     }
@@ -230,10 +243,10 @@ export default function AIInsightsDashboard() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Brain className="h-5 w-5 text-primary" />
-            Central de Inteligência Artificial
+            {t('insights.ai.title')}
           </CardTitle>
           <CardDescription>
-            Análises avançadas com IA para prevenção de burnout, resumos executivos e insights emocionais
+            {t('insights.ai.description')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -241,15 +254,15 @@ export default function AIInsightsDashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Button onClick={runBurnoutPrediction} disabled={loading.burnout} variant="outline" className="h-auto py-3 flex-col gap-1">
               {loading.burnout ? <Loader2 className="h-5 w-5 animate-spin" /> : <TrendingUp className="h-5 w-5 text-orange-500" />}
-              <span className="text-xs font-semibold">Previsão de Burnout</span>
+              <span className="text-xs font-semibold">{t('insights.ai.btn.burnout')}</span>
             </Button>
             <Button onClick={runWeeklySummary} disabled={loading.summary} variant="outline" className="h-auto py-3 flex-col gap-1">
               {loading.summary ? <Loader2 className="h-5 w-5 animate-spin" /> : <FileText className="h-5 w-5 text-blue-500" />}
-              <span className="text-xs font-semibold">Resumo Semanal</span>
+              <span className="text-xs font-semibold">{t('insights.ai.btn.weeklySummary')}</span>
             </Button>
             <Button onClick={runSentimentAnalysis} disabled={loading.sentiment} variant="outline" className="h-auto py-3 flex-col gap-1">
               {loading.sentiment ? <Loader2 className="h-5 w-5 animate-spin" /> : <MessageSquare className="h-5 w-5 text-purple-500" />}
-              <span className="text-xs font-semibold">Análise de Sentimento</span>
+              <span className="text-xs font-semibold">{t('insights.ai.btn.sentiment')}</span>
             </Button>
           </div>
         </CardContent>
@@ -261,7 +274,7 @@ export default function AIInsightsDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <TrendingUp className="h-5 w-5 text-orange-500" />
-              🧠 Análise Preditiva de Burnout
+              {t('insights.ai.burnout.title')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -270,29 +283,37 @@ export default function AIInsightsDashboard() {
                 <p className="text-4xl font-bold" style={{ color: burnout.riskScore > 70 ? 'hsl(var(--destructive))' : burnout.riskScore > 40 ? 'hsl(var(--warning))' : 'hsl(var(--success))' }}>
                   {burnout.riskScore}
                 </p>
-                <p className="text-[10px] text-muted-foreground uppercase">Risk Score</p>
+                <p className="text-[10px] text-muted-foreground uppercase">{t('insights.ai.burnout.riskScoreLabel')}</p>
               </div>
               <div className="flex-1">
                 <p className={`font-bold ${getRiskColor(burnout.riskLevel)}`}>
-                  Risco: {burnout.riskLevel === 'critical' ? 'CRÍTICO' : burnout.riskLevel === 'high' ? 'ALTO' : burnout.riskLevel === 'moderate' ? 'MODERADO' : 'BAIXO'}
+                  {t('insights.ai.burnout.riskLabel', {
+                    level: burnout.riskLevel === 'critical'
+                      ? t('insights.ai.risk.critical')
+                      : burnout.riskLevel === 'high'
+                      ? t('insights.ai.risk.high')
+                      : burnout.riskLevel === 'moderate'
+                      ? t('insights.ai.risk.moderate')
+                      : t('insights.ai.risk.low'),
+                  })}
                 </p>
                 <p className="text-sm text-muted-foreground">{burnout.prediction}</p>
               </div>
             </div>
 
             <div className="space-y-2">
-              <p className="text-xs font-semibold">⚠️ Fatores de Risco:</p>
+              <p className="text-xs font-semibold">{t('insights.ai.burnout.factorsTitle')}</p>
               {burnout.factors?.map((f, i) => (
                 <p key={i} className="text-xs text-muted-foreground pl-3">• {f}</p>
               ))}
             </div>
 
             <div className="p-3 bg-accent/10 rounded-lg border border-accent/20">
-              <p className="text-xs font-semibold text-accent mb-1">💡 Recomendação:</p>
+              <p className="text-xs font-semibold text-accent mb-1">{t('insights.ai.burnout.recommendationTitle')}</p>
               <p className="text-xs text-muted-foreground">{burnout.recommendation}</p>
             </div>
 
-            <p className="text-[10px] text-muted-foreground">⏱️ Horizonte: {burnout.timeframe}</p>
+            <p className="text-[10px] text-muted-foreground">{t('insights.ai.burnout.timeframe', { timeframe: burnout.timeframe })}</p>
           </CardContent>
         </Card>
       )}
@@ -303,7 +324,7 @@ export default function AIInsightsDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <FileText className="h-5 w-5 text-blue-500" />
-              📊 Resumo Semanal Inteligente
+              {t('insights.ai.summary.title')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -314,19 +335,23 @@ export default function AIInsightsDashboard() {
             <div className="grid grid-cols-2 gap-3">
               <div className="text-center p-3 bg-secondary/10 rounded-lg">
                 <p className="text-3xl font-bold text-secondary">{summary.wellnessScore}</p>
-                <p className="text-[10px] text-muted-foreground">Wellness Score</p>
+                <p className="text-[10px] text-muted-foreground">{t('insights.ai.summary.wellnessScoreLabel')}</p>
               </div>
               <div className="text-center p-3 bg-primary/10 rounded-lg">
                 <p className={`text-sm font-bold ${summary.complianceStatus === 'compliant' ? 'text-green-500' : summary.complianceStatus === 'attention' ? 'text-yellow-500' : 'text-red-500'}`}>
-                  {summary.complianceStatus === 'compliant' ? '✅ Segurança de Missão' : summary.complianceStatus === 'attention' ? '⚡ Atenção' : '❌ Atenção à Segurança de Missão'}
+                  {summary.complianceStatus === 'compliant'
+                    ? t('insights.ai.summary.status.compliant')
+                    : summary.complianceStatus === 'attention'
+                    ? t('insights.ai.summary.status.attention')
+                    : t('insights.ai.summary.status.nonCompliant')}
                 </p>
-                <p className="text-[10px] text-muted-foreground">Status Segurança de Missão</p>
+                <p className="text-[10px] text-muted-foreground">{t('insights.ai.summary.complianceLabel')}</p>
               </div>
             </div>
 
             {summary.highlights?.length > 0 && (
               <div className="space-y-1">
-                <p className="text-xs font-semibold">✅ Destaques:</p>
+                <p className="text-xs font-semibold">{t('insights.ai.summary.highlightsTitle')}</p>
                 {summary.highlights.map((h, i) => (
                   <p key={i} className="text-xs text-muted-foreground pl-3">• {h}</p>
                 ))}
@@ -335,7 +360,7 @@ export default function AIInsightsDashboard() {
 
             {summary.concerns?.length > 0 && (
               <div className="space-y-1">
-                <p className="text-xs font-semibold">⚠️ Preocupações:</p>
+                <p className="text-xs font-semibold">{t('insights.ai.summary.concernsTitle')}</p>
                 {summary.concerns.map((c, i) => (
                   <p key={i} className="text-xs text-muted-foreground pl-3">• {c}</p>
                 ))}
@@ -344,7 +369,7 @@ export default function AIInsightsDashboard() {
 
             {summary.actions?.length > 0 && (
               <div className="space-y-1">
-                <p className="text-xs font-semibold">🎯 Ações Recomendadas:</p>
+                <p className="text-xs font-semibold">{t('insights.ai.summary.actionsTitle')}</p>
                 {summary.actions.map((a, i) => (
                   <p key={i} className="text-xs text-muted-foreground pl-3">{i + 1}. {a}</p>
                 ))}
@@ -352,7 +377,7 @@ export default function AIInsightsDashboard() {
             )}
 
             <div className="p-3 bg-muted/30 rounded-lg">
-              <p className="text-xs font-semibold mb-1">📋 Resumo Executivo (C-Level):</p>
+              <p className="text-xs font-semibold mb-1">{t('insights.ai.summary.executiveSummaryTitle')}</p>
               <p className="text-xs text-muted-foreground">{summary.executiveSummary}</p>
             </div>
           </CardContent>
@@ -365,7 +390,7 @@ export default function AIInsightsDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <MessageSquare className="h-5 w-5 text-purple-500" />
-              💬 Análise de Sentimento
+              {t('insights.ai.sentiment.title')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -374,13 +399,27 @@ export default function AIInsightsDashboard() {
                 <p className={`text-3xl font-bold ${getSentimentColor(sentiment.overallSentiment)}`}>
                   {sentiment.sentimentScore > 0 ? '+' : ''}{sentiment.sentimentScore}
                 </p>
-                <p className="text-[10px] text-muted-foreground">Score</p>
+                <p className="text-[10px] text-muted-foreground">{t('insights.ai.sentiment.scoreLabel')}</p>
               </div>
               <div>
                 <p className={`font-bold ${getSentimentColor(sentiment.overallSentiment)}`}>
-                  {sentiment.overallSentiment === 'positive' ? '😊 Positivo' : sentiment.overallSentiment === 'negative' ? '😟 Negativo' : sentiment.overallSentiment === 'mixed' ? '🤔 Misto' : '⚖️ Neutro'}
+                  {sentiment.overallSentiment === 'positive'
+                    ? t('insights.ai.sentiment.type.positive')
+                    : sentiment.overallSentiment === 'negative'
+                    ? t('insights.ai.sentiment.type.negative')
+                    : sentiment.overallSentiment === 'mixed'
+                    ? t('insights.ai.sentiment.type.mixed')
+                    : t('insights.ai.sentiment.type.neutral')}
                 </p>
-                <p className="text-xs text-muted-foreground">Engajamento: {sentiment.engagementLevel === 'high' ? 'Alto' : sentiment.engagementLevel === 'medium' ? 'Médio' : 'Baixo'}</p>
+                <p className="text-xs text-muted-foreground">
+                  {t('insights.ai.sentiment.engagement', {
+                    level: sentiment.engagementLevel === 'high'
+                      ? t('insights.ai.engagement.high')
+                      : sentiment.engagementLevel === 'medium'
+                      ? t('insights.ai.engagement.medium')
+                      : t('insights.ai.engagement.low'),
+                  })}
+                </p>
               </div>
             </div>
 
@@ -394,15 +433,15 @@ export default function AIInsightsDashboard() {
 
             {sentiment.themes?.length > 0 && (
               <div className="space-y-1">
-                <p className="text-xs font-semibold">🏷️ Temas Identificados:</p>
-                {sentiment.themes.map((t, i) => (
-                  <p key={i} className="text-xs text-muted-foreground pl-3">• {t}</p>
+                <p className="text-xs font-semibold">{t('insights.ai.sentiment.themesTitle')}</p>
+                {sentiment.themes.map((tItem, i) => (
+                  <p key={i} className="text-xs text-muted-foreground pl-3">• {tItem}</p>
                 ))}
               </div>
             )}
 
             <div className="p-3 bg-purple-500/5 rounded-lg border border-purple-500/20">
-              <p className="text-xs font-semibold mb-1"><Sparkles className="h-3 w-3 inline text-purple-500" /> Insight:</p>
+              <p className="text-xs font-semibold mb-1"><Sparkles className="h-3 w-3 inline text-purple-500" /> {t('insights.ai.sentiment.insightTitle')}</p>
               <p className="text-xs text-muted-foreground">{sentiment.insight}</p>
             </div>
           </CardContent>
@@ -412,8 +451,8 @@ export default function AIInsightsDashboard() {
       {!burnout && !summary && !sentiment && (
         <div className="text-center py-8 text-muted-foreground">
           <Brain className="h-12 w-12 mx-auto mb-3 opacity-30" />
-          <p className="text-sm">Clique em um dos botões acima para gerar análises com IA</p>
-          <p className="text-xs mt-1">Requer dados de scans para funcionar</p>
+          <p className="text-sm">{t('insights.ai.empty.title')}</p>
+          <p className="text-xs mt-1">{t('insights.ai.empty.subtitle')}</p>
         </div>
       )}
     </div>

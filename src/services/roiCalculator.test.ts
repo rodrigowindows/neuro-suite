@@ -103,4 +103,27 @@ describe("formatCurrency", () => {
     const result = formatCurrency(-500);
     expect(result).toContain("500");
   });
+
+  describe("English formatting (lang = 'en')", () => {
+    it("formats positive values with English separators while keeping BRL currency", () => {
+      const result = formatCurrency(1234.56, "en");
+      expect(result).toContain("1,234.56");
+      expect(result).toContain("R$");
+    });
+
+    it("formats zero correctly in English", () => {
+      const result = formatCurrency(0, "en");
+      expect(result).toContain("0.00");
+    });
+
+    it("formats large numbers with commas in English", () => {
+      const result = formatCurrency(1000000, "en");
+      expect(result).toContain("1,000,000");
+    });
+
+    it("formats negative values in English", () => {
+      const result = formatCurrency(-500, "en");
+      expect(result).toContain("500");
+    });
+  });
 });

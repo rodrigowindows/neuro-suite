@@ -16,15 +16,19 @@ export function generateAlerts(
   trend: StressTrend | null,
   consecutiveHighDays: number,
   thresholds: AlertThresholds,
+  lang: 'en' | 'pt' = 'pt',
 ): Alert[] {
   const alerts: Alert[] = [];
+  const isEn = lang === 'en';
 
   if (stats.highPercent > thresholds.highStressPercent) {
     alerts.push({
       id: 'high_stress',
       type: 'critical',
-      title: 'Limite de Estresse Alto Ultrapassado',
-      description: `${stats.highPercent}% dos scans indicam estresse alto (limite: ${thresholds.highStressPercent}%). Intervenção urgente recomendada.`,
+      title: isEn ? 'High Stress Threshold Exceeded' : 'Limite de Estresse Alto Ultrapassado',
+      description: isEn
+        ? `${stats.highPercent}% of scans indicate high stress (threshold: ${thresholds.highStressPercent}%). Urgent intervention recommended.`
+        : `${stats.highPercent}% dos scans indicam estresse alto (limite: ${thresholds.highStressPercent}%). Intervenção urgente recomendada.`,
       timestamp: new Date(),
       acknowledged: false,
     });
@@ -34,8 +38,10 @@ export function generateAlerts(
     alerts.push({
       id: 'low_hrv',
       type: 'critical',
-      title: 'HRV Médio Abaixo do Limite',
-      description: `HRV médio: ${stats.avgHRV}ms (limite: ${thresholds.lowHRVThreshold}ms). Possível sobrecarga do sistema nervoso autônomo.`,
+      title: isEn ? 'Average HRV Below Threshold' : 'HRV Médio Abaixo do Limite',
+      description: isEn
+        ? `Average HRV: ${stats.avgHRV}ms (threshold: ${thresholds.lowHRVThreshold}ms). Possible autonomic nervous system overload.`
+        : `HRV médio: ${stats.avgHRV}ms (limite: ${thresholds.lowHRVThreshold}ms). Possível sobrecarga do sistema nervoso autônomo.`,
       timestamp: new Date(),
       acknowledged: false,
     });
@@ -45,8 +51,10 @@ export function generateAlerts(
     alerts.push({
       id: 'consecutive_high',
       type: 'warning',
-      title: 'Estresse Alto Consecutivo',
-      description: `${consecutiveHighDays} dias consecutivos com maioria de scans em estresse alto. Risco de burnout.`,
+      title: isEn ? 'Consecutive High Stress' : 'Estresse Alto Consecutivo',
+      description: isEn
+        ? `${consecutiveHighDays} consecutive days with majority of scans in high stress. Burnout risk.`
+        : `${consecutiveHighDays} dias consecutivos com maioria de scans em estresse alto. Risco de burnout.`,
       timestamp: new Date(),
       acknowledged: false,
     });
@@ -57,8 +65,10 @@ export function generateAlerts(
       alerts.push({
         id: 'trend_worsening',
         type: 'warning',
-        title: 'Tendência de Piora Detectada',
-        description: `O estresse alto aumentou ${trend.recentHighPercent - trend.olderHighPercent}% na semana recente.`,
+        title: isEn ? 'Worsening Trend Detected' : 'Tendência de Piora Detectada',
+        description: isEn
+          ? `High stress increased by ${trend.recentHighPercent - trend.olderHighPercent}% in the recent week.`
+          : `O estresse alto aumentou ${trend.recentHighPercent - trend.olderHighPercent}% na semana recente.`,
         timestamp: new Date(),
         acknowledged: false,
       });
@@ -68,8 +78,10 @@ export function generateAlerts(
       alerts.push({
         id: 'trend_improving',
         type: 'info',
-        title: 'Tendência de Melhora',
-        description: 'O estresse alto reduziu significativamente. As intervenções estão funcionando!',
+        title: isEn ? 'Improving Trend' : 'Tendência de Melhora',
+        description: isEn
+          ? 'High stress decreased significantly. Countermeasures are working!'
+          : 'O estresse alto reduziu significativamente. As intervenções estão funcionando!',
         timestamp: new Date(),
         acknowledged: false,
       });
@@ -80,8 +92,10 @@ export function generateAlerts(
     alerts.push({
       id: 'low_engagement',
       type: 'info',
-      title: 'Baixo Engajamento',
-      description: `Apenas ${stats.totalScans} scans nos últimos 7 dias. Incentive o uso regular.`,
+      title: isEn ? 'Low Engagement' : 'Baixo Engajamento',
+      description: isEn
+        ? `Only ${stats.totalScans} scans in the last 7 days. Encourage regular check-ins.`
+        : `Apenas ${stats.totalScans} scans nos últimos 7 dias. Incentive o uso regular.`,
       timestamp: new Date(),
       acknowledged: false,
     });
