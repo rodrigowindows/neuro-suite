@@ -49,6 +49,21 @@ describe("getInitialMessage", () => {
     expect(message).toContain("scan");
     expect(message).not.toMatch(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u);
   });
+
+  it("returns English messages when lang='en' is passed", () => {
+    // Arrange & Act
+    const lowMsg = getInitialMessage("low", "en");
+    const modMsg = getInitialMessage("moderate", "en");
+    const highMsg = getInitialMessage("high", "en");
+    const defMsg = getInitialMessage("unknown", "en");
+
+    // Assert
+    expect(lowMsg).toContain("Great focus!");
+    expect(lowMsg).toContain("Anchor a success memory");
+    expect(modMsg).toContain("burnout and turnover");
+    expect(highMsg).toContain("Burnout alert (Mission Safety)");
+    expect(defMsg).toContain("Complete a scan first");
+  });
 });
 
 describe("buildContext", () => {
@@ -76,6 +91,13 @@ describe("buildContext", () => {
     const ctx = buildContext("low", "abc");
     expect(ctx).not.toContain("RMSSD");
   });
+
+  it("generates context in English when lang='en'", () => {
+    const ctxHigh = buildContext("high", "25", "en");
+    expect(ctxHigh).toContain("Detected stress level: high.");
+    expect(ctxHigh).toContain("Low HRV indicates high stress - prioritize well-being.");
+    expect(ctxHigh).not.toContain("HRV baixa valida");
+  });
 });
 
 describe("exportConversation", () => {
@@ -102,6 +124,22 @@ describe("exportConversation", () => {
     });
     expect(text).toContain("AstroAssist: Hello");
     expect(text).toContain("Você: Hi");
+  });
+
+  it("formats messages with English labels when lang='en'", async () => {
+    const messages: CoachMessage[] = [
+      { role: "assistant", content: "Hello crew member" },
+      { role: "user", content: "Hi AstroAssist" },
+    ];
+    const blob = exportConversation(messages, "en");
+    const text = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.readAsText(blob);
+    });
+    expect(text).toContain("AstroAssist: Hello crew member");
+    expect(text).toContain("You: Hi AstroAssist");
+    expect(text).not.toContain("Você:");
   });
 
   it("handles empty messages", () => {

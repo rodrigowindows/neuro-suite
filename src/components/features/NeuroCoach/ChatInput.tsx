@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Send, Square } from 'lucide-react';
+import { useI18n } from '@/i18n';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -10,6 +11,7 @@ interface ChatInputProps {
 }
 
 export default function ChatInput({ onSend, onCancel, isLoading }: ChatInputProps) {
+  const { t } = useI18n();
   const [input, setInput] = useState('');
 
   const handleSend = () => {
@@ -21,7 +23,7 @@ export default function ChatInput({ onSend, onCancel, isLoading }: ChatInputProp
   return (
     <div className="flex gap-2">
       <Textarea
-        placeholder="Descreva como se sente ou o que quer melhorar..."
+        placeholder={t('coach.chat.placeholder')}
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={(e) => {
@@ -33,7 +35,14 @@ export default function ChatInput({ onSend, onCancel, isLoading }: ChatInputProp
         className="min-h-[50px] sm:min-h-[60px] text-xs sm:text-sm"
       />
       {isLoading && onCancel ? (
-        <Button onClick={onCancel} variant="destructive" size="icon" className="h-10 w-10 sm:h-12 sm:w-12" title="Cancelar geração">
+        <Button
+          onClick={onCancel}
+          variant="destructive"
+          size="icon"
+          className="h-10 w-10 sm:h-12 sm:w-12"
+          title={t('coach.chat.cancelGeneration')}
+          aria-label={t('coach.chat.cancelGeneration')}
+        >
           <Square className="h-3 w-3 sm:h-4 sm:w-4" />
         </Button>
       ) : (

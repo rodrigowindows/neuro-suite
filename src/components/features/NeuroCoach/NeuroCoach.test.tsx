@@ -3,6 +3,7 @@ import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import { toast } from 'sonner';
 import { hasCountermeasureProtocolToday } from '@/lib/missionEvents';
 import NeuroCoach from './index';
+import { LangProvider } from '@/i18n';
 
 describe('AstroAssist - Prescrição de Contramedidas', () => {
   const getTodayKey = () => `crewvitals_countermeasures_${new Date().toISOString().split('T')[0]}`;
@@ -371,8 +372,8 @@ describe('AstroAssist - Prescrição de Contramedidas', () => {
   describe('6. Registro de Execução de Contramedidas & Barramento de Eventos', () => {
     it('bloqueia o registro com mensagem de erro quando 0 contramedidas estiverem marcadas', () => {
       // Arrange
-      const errorSpy = vi.spyOn(toast, 'error').mockImplementation(() => '' as any);
-      const successSpy = vi.spyOn(toast, 'success').mockImplementation(() => '' as any);
+      const errorSpy = vi.spyOn(toast, 'error').mockImplementation(() => 'toast-id');
+      const successSpy = vi.spyOn(toast, 'success').mockImplementation(() => 'toast-id');
       render(<NeuroCoach stressLevel="high" />);
 
       const registerBtn = screen.getByRole('button', {
@@ -394,8 +395,8 @@ describe('AstroAssist - Prescrição de Contramedidas', () => {
 
     it('registra com sucesso, emite o toast exato "Protocolo registrado. Status atualizado." e persiste no barramento', () => {
       // Arrange
-      const errorSpy = vi.spyOn(toast, 'error').mockImplementation(() => '' as any);
-      const successSpy = vi.spyOn(toast, 'success').mockImplementation(() => '' as any);
+      const errorSpy = vi.spyOn(toast, 'error').mockImplementation(() => 'toast-id');
+      const successSpy = vi.spyOn(toast, 'success').mockImplementation(() => 'toast-id');
       render(<NeuroCoach stressLevel="high" />);
 
       const checkbox1 = screen.getByRole('checkbox', {
@@ -413,6 +414,119 @@ describe('AstroAssist - Prescrição de Contramedidas', () => {
       expect(successSpy).toHaveBeenCalledWith('Protocolo registrado. Status atualizado.');
       expect(errorSpy).not.toHaveBeenCalled();
       expect(hasCountermeasureProtocolToday()).toBe(true);
+
+      errorSpy.mockRestore();
+      successSpy.mockRestore();
+    });
+  });
+
+  describe('7. Suporte Bilíngue EN/PT (i18n)', () => {
+    it('renderiza toda a tela de contramedidas em inglês sob LangProvider initialLang="en"', () => {
+      // Arrange & Act
+      render(
+        <LangProvider initialLang="en">
+          <NeuroCoach stressLevel="high" />
+        </LangProvider>
+      );
+
+      // Assert EN headers & alerts
+      expect(screen.getByText('AstroAssist — Countermeasure Prescription')).toBeInTheDocument();
+      expect(
+        screen.getByText('Decision Support System (DSS) for Workload Mitigation and Operational Fatigue')
+      ).toBeInTheDocument();
+      expect(screen.getByText('NASA HRP Guidelines')).toBeInTheDocument();
+      expect(screen.getByText('Status: Fatigue Detected.')).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'Risk of attentional lapse and readiness degradation. Execute the countermeasures prescribed below.'
+        )
+      ).toBeInTheDocument();
+      expect(screen.getByText('Execute Mitigation Protocol')).toBeInTheDocument();
+      expect(screen.getByText('High Priority')).toBeInTheDocument();
+      expect(screen.getByText('Countermeasures Progress: 0 of 3 executed')).toBeInTheDocument();
+
+      // Assert EN Actions
+      expect(
+        screen.getByRole('checkbox', {
+          name: /Action 1 \(Breathing\): Execute 4-7-8 cycle for 3 minutes\./i,
+        })
+      ).toBeInTheDocument();
+      expect(screen.getByText('4-7-8 Breathing')).toBeInTheDocument();
+      expect(
+        screen.getByRole('checkbox', {
+          name: /Action 2 \(Hydration\): 500ml water intake\./i,
+        })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('checkbox', {
+          name: /Action 3 \(Rest\): Schedule 90-min sleep cycle in Biometric Log\./i,
+        })
+      ).toBeInTheDocument();
+
+      // Assert EN Buttons
+      expect(screen.getByRole('button', { name: /Register Countermeasures Execution/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Export Plan/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Clear Checklist/i })).toBeInTheDocument();
+
+      // Assert PT texts are not present
+      expect(screen.queryByText('Status: Fadiga Detectada.')).not.toBeInTheDocument();
+      expect(screen.queryByText('AstroAssist — Prescrição de Contramedidas')).not.toBeInTheDocument();
+      expect(screen.queryByText('Registrar Execução de Contramedidas')).not.toBeInTheDocument();
+    });
+
+    it('renderiza o overlay de respiração 4-7-8 em inglês com autoStartBreathing={true}', () => {
+      // Arrange & Act
+      render(
+        <LangProvider initialLang="en">
+          <NeuroCoach stressLevel="high" autoStartBreathing={true} />
+        </LangProvider>
+      );
+
+      // Assert EN overlay
+      const overlay = screen.getByTestId('breathing-overlay');
+      expect(overlay).toBeInTheDocument();
+      expect(screen.getByRole('dialog', { name: 'Immersive 4-7-8 Breathing Experience' })).toBeInTheDocument();
+      expect(screen.getByText('Orbital Cockpit • Night Mode')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 1, name: /Mitigation Protocol — 4-7-8 Breathing/i })).toBeInTheDocument();
+      expect(screen.getByText('Inhale through the nose (4s)')).toBeInTheDocument();
+      expect(screen.getByText('Phase 1 of 3')).toBeInTheDocument();
+      expect(screen.getByText('Countdown Timer (3 min)')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Cancel / Close' })).toBeInTheDocument();
+
+      // Assert PT overlay texts not present
+      expect(screen.queryByText('Cabine Orbital • Modo Noturno')).not.toBeInTheDocument();
+      expect(screen.queryByText('Fase 1 de 3')).not.toBeInTheDocument();
+      expect(screen.queryByText('Cancelar / Fechar')).not.toBeInTheDocument();
+    });
+
+    it('emite toasts em inglês no registro sob LangProvider initialLang="en"', () => {
+      // Arrange
+      const errorSpy = vi.spyOn(toast, 'error').mockImplementation(() => 'toast-id');
+      const successSpy = vi.spyOn(toast, 'success').mockImplementation(() => 'toast-id');
+
+      render(
+        <LangProvider initialLang="en">
+          <NeuroCoach stressLevel="high" />
+        </LangProvider>
+      );
+
+      const registerBtn = screen.getByRole('button', {
+        name: /Register Countermeasures Execution/i,
+      });
+
+      // Act 1: Click without checks
+      fireEvent.click(registerBtn);
+      expect(errorSpy).toHaveBeenCalledWith('Select at least one completed countermeasure.');
+      expect(successSpy).not.toHaveBeenCalled();
+
+      // Act 2: Check Action 1 and register
+      const checkbox1 = screen.getByRole('checkbox', {
+        name: /Action 1 \(Breathing\): Execute 4-7-8 cycle for 3 minutes\./i,
+      });
+      fireEvent.click(checkbox1);
+      fireEvent.click(registerBtn);
+
+      expect(successSpy).toHaveBeenCalledWith('Protocol registered. Status updated.');
 
       errorSpy.mockRestore();
       successSpy.mockRestore();

@@ -4,11 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { AlertTriangle, Wind, Droplets, Moon, CheckCircle2, RotateCcw, ShieldCheck, Clock, Download, X, Sparkles, Activity } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AlertTriangle, Wind, Droplets, Moon, CheckCircle2, RotateCcw, ShieldCheck, Clock, Download, X } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { registerCountermeasureProtocol, appendEvent } from '@/lib/missionEvents';
 import { useConnectionMode } from '@/hooks/useConnectionMode';
+import { useI18n } from '@/i18n';
 
 interface NeuroCoachProps {
   stressLevel?: string;
@@ -23,11 +24,12 @@ interface CountermeasureState {
 }
 
 export default function NeuroCoach({
-  stressLevel,
-  onNavigateTab,
+  stressLevel: _stressLevel,
+  onNavigateTab: _onNavigateTab,
   autoStartBreathing = false,
 }: NeuroCoachProps) {
   const { isAutonomous } = useConnectionMode();
+  const { lang, t } = useI18n();
   const todayKey = `crewvitals_countermeasures_${new Date().toISOString().split('T')[0]}`;
 
   const [countermeasures, setCountermeasures] = useState<CountermeasureState>(() => {
@@ -80,12 +82,12 @@ export default function NeuroCoach({
       setTimerActive(false);
       setIsOverlayOpen(false);
       setCountermeasures((prev) => ({ ...prev, breathing: true }));
-      toast.success('Ciclo de respiração 4-7-8 concluído! Ação 1 marcada.');
+      toast.success(t('coach.toast.breathingComplete'));
     }
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [timerActive, secondsRemaining]);
+  }, [timerActive, secondsRemaining, t]);
 
   const toggleItem = (key: keyof CountermeasureState) => {
     setCountermeasures((prev) => {
@@ -121,30 +123,30 @@ export default function NeuroCoach({
   const cycleNumber = Math.min(Math.floor(elapsed / 19) + 1, 10);
 
   let phase = 1;
-  let phaseText = 'Inspire pelo nariz (4s)';
-  let phaseDescription = 'Inspire profundamente pelo nariz expandindo a caixa torácica e diafragma';
+  let phaseText = t('coach.breathing.phase1.title');
+  let phaseDescription = t('coach.breathing.phase1.desc');
   let phaseSecondsLeft = 4 - cycleTime;
 
   if (cycleTime < 4) {
     phase = 1;
-    phaseText = 'Inspire pelo nariz (4s)';
-    phaseDescription = 'Inspire suavemente pelo nariz preenchendo o diafragma e pulmões';
+    phaseText = t('coach.breathing.phase1.title');
+    phaseDescription = t('coach.breathing.phase1.desc');
     phaseSecondsLeft = 4 - cycleTime;
   } else if (cycleTime < 11) {
     phase = 2;
-    phaseText = 'Retenha o ar nos pulmões (7s)';
-    phaseDescription = 'Mantenha o ar nos pulmões com tônus vagal ativo e oxigenação celular';
+    phaseText = t('coach.breathing.phase2.title');
+    phaseDescription = t('coach.breathing.phase2.desc');
     phaseSecondsLeft = 11 - cycleTime;
   } else {
     phase = 3;
-    phaseText = 'Expire lentamente pela boca (8s)';
-    phaseDescription = 'Esvazie completamente os pulmões com expiração lenta e controlada';
+    phaseText = t('coach.breathing.phase3.title');
+    phaseDescription = t('coach.breathing.phase3.desc');
     phaseSecondsLeft = 19 - cycleTime;
   }
 
   const handleRegister = () => {
     if (completedCount === 0) {
-      toast.error('Marque ao menos uma contramedida executada.');
+      toast.error(t('coach.toast.selectAtLeastOne'));
       return;
     }
     registerCountermeasureProtocol(countermeasures);
@@ -160,7 +162,7 @@ export default function NeuroCoach({
       label: `Contramedida registrada (${detail})`,
     });
 
-    toast.success('Protocolo registrado. Status atualizado.');
+    toast.success(t('coach.toast.protocolRegistered'));
   };
 
   const handleReset = () => {
@@ -168,33 +170,38 @@ export default function NeuroCoach({
     setTimerActive(false);
     setSecondsRemaining(180);
     setIsOverlayOpen(false);
-    toast.info('Checklist reiniciado para este turno.');
+    toast.info(t('coach.toast.checklistReset'));
   };
 
   const handleExport = () => {
-    const content = `PLANO OPERACIONAL DE CONTRAMEDIDAS - CREWVITALS
-Data: ${new Date().toLocaleDateString('pt-BR')}
+    const dateFormatted = new Date().toLocaleDateString(lang === 'pt' ? 'pt-BR' : 'en-US');
+    const checked1 = countermeasures.breathing ? 'X' : ' ';
+    const checked2 = countermeasures.hydration ? 'X' : ' ';
+    const checked3 = countermeasures.rest ? 'X' : ' ';
 
-Status: Fadiga Detectada
-Diretrizes: NASA HRP / Harvard Medical School
+    const content = `${t('coach.export.title')}
+${t('coach.export.date', { date: dateFormatted })}
 
-Contramedidas Prescritas:
-1. [${countermeasures.breathing ? 'X' : ' '}] Respiração: Ciclo 4-7-8 por 3 minutos.
-2. [${countermeasures.hydration ? 'X' : ' '}] Hidratação: Ingestão de 500ml de água.
-3. [${countermeasures.rest ? 'X' : ' '}] Descanso: Ciclo de sono de 90 min (REM/NREM).
+${t('coach.export.status')}
+${t('coach.export.guidelines')}
 
-Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas).
+${t('coach.export.prescriptionsHeader')}
+${t('coach.export.action1', { checked: checked1 })}
+${t('coach.export.action2', { checked: checked2 })}
+${t('coach.export.action3', { checked: checked3 })}
+
+${t('coach.export.progress', { percent: progressPercent, completed: completedCount, total: 3 })}
 `;
     const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'plano-crewvitals.txt';
+    a.download = t('coach.export.filename');
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success('Plano operacional baixado com sucesso!');
+    toast.success(t('coach.toast.planDownloaded'));
   };
 
   return (
@@ -206,19 +213,19 @@ Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas)
             <div>
               <CardTitle className="text-xl font-display flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5 text-primary" />
-                AstroAssist — Prescrição de Contramedidas
+                {t('coach.title')}
               </CardTitle>
               <CardDescription className="text-xs sm:text-sm mt-1">
-                Sistema de Suporte à Decisão (DSS) para Mitigação de Carga e Fadiga Operacional
+                {t('coach.dssSubtitle')}
               </CardDescription>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <Badge variant="outline" className="text-xs px-2.5 py-1">
-                Diretrizes NASA HRP
+                {t('coach.badge.nasaHrp')}
               </Badge>
               {isAutonomous && (
                 <Badge variant="secondary" className="text-xs px-2.5 py-1 text-amber-600 dark:text-amber-300 border-amber-500/30">
-                  Gerado localmente (regras fixas, sem IA em nuvem)
+                  {t('coach.badge.autonomous')}
                 </Badge>
               )}
             </div>
@@ -233,10 +240,12 @@ Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas)
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-red-500 text-base sm:text-lg">Status: Fadiga Detectada.</span>
+                  <span className="font-bold text-red-500 text-base sm:text-lg">
+                    {t('coach.status.fatigueDetected')}
+                  </span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Risco de lapso atencional e degradação de prontidão. Execute as contramedidas prescritas abaixo.
+                  {t('coach.status.fatigueDesc')}
                 </p>
               </div>
             </div>
@@ -247,10 +256,10 @@ Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas)
                 onClick={handleStartBreathing}
                 className="font-semibold text-xs whitespace-nowrap shadow-sm"
               >
-                Executar Protocolo de Mitigação
+                {t('coach.btn.executeMitigation')}
               </Button>
               <Badge className="bg-red-500 hover:bg-red-600 text-white font-semibold whitespace-nowrap hidden sm:inline-flex">
-                Prioridade Alta
+                {t('coach.badge.highPriority')}
               </Badge>
             </div>
           </div>
@@ -259,7 +268,7 @@ Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas)
           <div className="space-y-2 pt-2">
             <div className="flex items-center justify-between text-xs">
               <span className="font-medium text-foreground">
-                Progresso das Contramedidas: {completedCount} de 3 executadas
+                {t('coach.progress.label', { completed: completedCount, total: 3 })}
               </span>
               <span className="font-bold text-primary">{progressPercent}%</span>
             </div>
@@ -271,7 +280,7 @@ Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas)
       {/* Prescription Checklist */}
       <div className="space-y-4">
         <h3 className="text-sm font-semibold tracking-wide uppercase text-muted-foreground px-1">
-          Prescrições Operacionais Obrigatórias
+          {t('coach.section.prescriptions')}
         </h3>
 
         {/* Action 1: Respiration */}
@@ -287,15 +296,15 @@ Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas)
               <div className="flex-1 space-y-2">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <label htmlFor="action-breathing" className="font-semibold text-sm sm:text-base cursor-pointer">
-                    Ação 1 (Respiração): Executar ciclo 4-7-8 por 3 minutos.
+                    {t('coach.action1.title')}
                   </label>
                   <Badge variant="secondary" className="text-[11px] gap-1">
                     <Wind className="h-3 w-3 text-primary" />
-                    Respiração 4-7-8
+                    {t('coach.action1.badge')}
                   </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Inspire pelo nariz por 4s, retenha o ar por 7s e expire pela boca por 8s. Reduz o tônus simpático e restabelece a estabilidade de HRV (Harvard Medical School).
+                  {t('coach.action1.desc')}
                 </p>
 
                 {/* Respiration Mini Timer */}
@@ -313,14 +322,14 @@ Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas)
                     className="text-xs gap-1.5"
                   >
                     <Clock className="h-3.5 w-3.5" />
-                    {timerActive ? 'Pausar Timer' : secondsRemaining < 180 ? 'Retomar Timer' : 'Iniciar Timer Guiado (3 min)'}
+                    {timerActive ? t('coach.timer.pause') : secondsRemaining < 180 ? t('coach.timer.resume') : t('coach.timer.start')}
                   </Button>
                   <span
                     className="text-xs font-mono font-bold px-2.5 py-1 bg-muted rounded-md cursor-pointer hover:bg-muted/80"
                     data-testid="timer-display"
                     onClick={handleStartBreathing}
                     role="button"
-                    aria-label="Abrir ciclo de respiração 4-7-8"
+                    aria-label={t('coach.timer.openAria')}
                   >
                     {formatTimer(secondsRemaining)}
                   </span>
@@ -334,7 +343,7 @@ Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas)
                       }}
                       className="text-xs text-muted-foreground h-8 px-2"
                     >
-                      Zerar / Reiniciar
+                      {t('coach.timer.reset')}
                     </Button>
                   )}
                 </div>
@@ -356,15 +365,15 @@ Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas)
               <div className="flex-1 space-y-1.5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <label htmlFor="action-hydration" className="font-semibold text-sm sm:text-base cursor-pointer">
-                    Ação 2 (Hidratação): Ingestão de 500ml de água.
+                    {t('coach.action2.title')}
                   </label>
                   <Badge variant="secondary" className="text-[11px] gap-1">
                     <Droplets className="h-3 w-3 text-sky-500" />
-                    500ml H₂O
+                    {t('coach.action2.badge')}
                   </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Combate o decréscimo de volume plasmático em microgravidade e previne a lentidão motora e cefaleia decorrentes de desidratação subclínica.
+                  {t('coach.action2.desc')}
                 </p>
               </div>
             </div>
@@ -384,15 +393,15 @@ Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas)
               <div className="flex-1 space-y-1.5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <label htmlFor="action-rest" className="font-semibold text-sm sm:text-base cursor-pointer">
-                    Ação 3 (Descanso): Agendar ciclo de sono de 90 min no Biometric Log.
+                    {t('coach.action3.title')}
                   </label>
                   <Badge variant="secondary" className="text-[11px] gap-1">
                     <Moon className="h-3 w-3 text-indigo-400" />
-                    Ciclo 90 min (REM/NREM)
+                    {t('coach.action3.badge')}
                   </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Permite a passagem por todos os estágios do sono, restaurando o índice de vigilância e a memória operacional sem induzir inércia de sono prolongada. Registre as horas de sono na aba Biometric Log.
+                  {t('coach.action3.desc')}
                 </p>
               </div>
             </div>
@@ -404,16 +413,16 @@ Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas)
       <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
         <Button variant="ghost" size="sm" onClick={handleReset} className="gap-1.5 text-xs text-muted-foreground">
           <RotateCcw className="h-3.5 w-3.5" />
-          Limpar Checklist
+          {t('coach.btn.resetChecklist')}
         </Button>
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" onClick={handleExport} className="gap-1.5 text-xs">
             <Download className="h-3.5 w-3.5" />
-            Exportar Plano
+            {t('coach.btn.exportPlan')}
           </Button>
           <Button onClick={handleRegister} className="gap-2 shadow-medium">
             <CheckCircle2 className="h-4 w-4" />
-            Registrar Execução de Contramedidas
+            {t('coach.btn.registerExecution')}
           </Button>
         </div>
       </div>
@@ -424,7 +433,7 @@ Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas)
           className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-2xl text-slate-100 flex flex-col justify-between p-4 sm:p-8 md:p-10 select-none overflow-y-auto animate-in fade-in duration-300"
           role="dialog"
           aria-modal="true"
-          aria-label="Experiência Imersiva de Respiração 4-7-8"
+          aria-label={t('coach.overlay.ariaLabel')}
           data-testid="breathing-overlay"
         >
           {/* Background HUD Cockpit Grid / Accent Lines */}
@@ -436,7 +445,7 @@ Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas)
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="outline" className="border-cyan-500/40 bg-cyan-500/10 text-cyan-300 font-mono text-[10px] tracking-wider uppercase">
-                  Cabine Orbital • Modo Noturno
+                  {t('coach.overlay.cockpitBadge')}
                 </Badge>
                 <span className="text-[10px] font-mono text-slate-400">
                   CREWVITALS HUD // SYS.RESP.478
@@ -444,10 +453,10 @@ Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas)
               </div>
               <h1 className="text-lg sm:text-xl font-bold font-display text-white tracking-tight flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5 text-cyan-400" />
-                Protocolo de Mitigação — Respiração 4-7-8
+                {t('coach.overlay.title')}
               </h1>
               <p className="text-xs text-slate-400">
-                Diretrizes Harvard Medical School & NASA HRP • Estabilização Fisiológica e Atenuação de Tônus Simpático
+                {t('coach.overlay.guidelines')}
               </p>
             </div>
             <Button
@@ -455,7 +464,7 @@ Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas)
               size="icon"
               onClick={handleCloseOverlay}
               className="text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-full h-9 w-9 flex-shrink-0"
-              aria-label="Fechar"
+              aria-label={t('coach.overlay.closeAria')}
             >
               <X className="h-5 w-5" />
             </Button>
@@ -520,7 +529,7 @@ Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas)
                   {phaseSecondsLeft}s
                 </span>
                 <span className="text-[10px] font-mono tracking-widest uppercase text-slate-300 mt-1">
-                  Fase {phase} de 3
+                  {t('coach.overlay.phaseIndicator', { phase })}
                 </span>
               </motion.div>
             </div>
@@ -535,10 +544,10 @@ Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas)
               </p>
               <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
                 <Badge variant="outline" className="border-slate-800 bg-slate-900/70 text-slate-300 font-mono text-[11px]">
-                  Ciclo {cycleNumber} de 10
+                  {t('coach.overlay.cycleBadge', { cycle: cycleNumber })}
                 </Badge>
                 <Badge variant="outline" className="border-slate-800 bg-slate-900/70 text-slate-300 font-mono text-[11px]">
-                  Ritmo Parassimpático
+                  {t('coach.overlay.rhythmBadge')}
                 </Badge>
               </div>
             </div>
@@ -552,7 +561,7 @@ Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas)
               </div>
               <div>
                 <div className="text-[10px] tracking-wider uppercase text-slate-400 font-mono">
-                  Contador Regressivo (3 min)
+                  {t('coach.overlay.countdownLabel')}
                 </div>
                 <div
                   className="font-mono text-2xl font-bold text-white tracking-wider"
@@ -569,7 +578,7 @@ Progresso: ${progressPercent}% (${completedCount} de 3 contramedidas executadas)
                 onClick={handleCloseOverlay}
                 className="border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-200 text-xs sm:text-sm font-semibold w-full sm:w-auto"
               >
-                Cancelar / Fechar
+                {t('coach.overlay.cancelClose')}
               </Button>
             </div>
           </div>

@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useI18n } from '@/i18n';
 
 export interface StreamMessage {
   role: 'user' | 'assistant';
@@ -13,6 +14,7 @@ interface UseStreamingChatOptions {
 }
 
 export function useStreamingChat({ endpoint, buildBody, onError }: UseStreamingChatOptions) {
+  const { t } = useI18n();
   const [messages, setMessages] = useState<StreamMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -33,7 +35,7 @@ export function useStreamingChat({ endpoint, buildBody, onError }: UseStreamingC
 
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
-        throw new Error('Sessão expirada. Faça novamente o login.');
+        throw new Error(t('coach.chat.errorSession'));
       }
 
       const response = await fetch(endpoint, {
@@ -48,9 +50,9 @@ export function useStreamingChat({ endpoint, buildBody, onError }: UseStreamingC
       });
 
       if (!response.ok || !response.body) {
-        if (response.status === 429) throw new Error('Muitas requisições. Aguarde um momento.');
-        if (response.status === 402) throw new Error('Serviço temporariamente indisponível.');
-        throw new Error('Erro ao conectar ao serviço');
+        if (response.status === 429) throw new Error(t('coach.chat.errorRateLimit'));
+        if (response.status === 402) throw new Error(t('coach.chat.errorUnavailable'));
+        throw new Error(t('coach.chat.errorGeneric'));
       }
 
       const reader = response.body.getReader();
@@ -113,15 +115,16 @@ export function useStreamingChat({ endpoint, buildBody, onError }: UseStreamingC
       }
 
       return [...messages, userMessage, { role: 'assistant' as const, content: assistantContent }];
-    } catch (error: any) {
-      if (error.name === 'AbortError') return undefined;
-      onError?.(error);
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      if (err.name === 'AbortError') return undefined;
+      onError?.(err);
       return undefined;
     } finally {
       abortControllerRef.current = null;
       setIsLoading(false);
     }
-  }, [messages, endpoint, buildBody, onError]);
+  }, [messages, endpoint, buildBody, onError, t]);
 
   const cancelGeneration = useCallback(() => {
     abortControllerRef.current?.abort();

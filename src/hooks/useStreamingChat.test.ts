@@ -1,5 +1,7 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
+import { LangProvider } from '@/i18n';
 
 const { getSessionMock } = vi.hoisted(() => ({ getSessionMock: vi.fn() }));
 
@@ -66,5 +68,27 @@ describe('useStreamingChat (chamador do nr1-chatbot)', () => {
     expect(fetchMock).not.toHaveBeenCalled();
     expect(onError).toHaveBeenCalledTimes(1);
     expect(onError.mock.calls[0][0].message).toBe('Sessão expirada. Faça novamente o login.');
+  });
+
+  it('sem sessão com LangProvider initialLang=en informa que a sessão expirou em inglês', async () => {
+    // Arrange
+    getSessionMock.mockResolvedValue({ data: { session: null } });
+    const onError = vi.fn();
+    const wrapper = ({ children }: { children: React.ReactNode }) =>
+      React.createElement(LangProvider, { initialLang: 'en' }, children);
+    const { result } = renderHook(
+      () => useStreamingChat({ endpoint: ENDPOINT, buildBody: (_m, u) => ({ messages: [u] }), onError }),
+      { wrapper }
+    );
+
+    // Act
+    await act(async () => {
+      await result.current.sendMessage('Hello');
+    });
+
+    // Assert
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(onError.mock.calls[0][0].message).toBe('Session expired. Please sign in again.');
   });
 });
