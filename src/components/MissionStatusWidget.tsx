@@ -1,5 +1,6 @@
 import { CheckCircle2, AlertTriangle, HelpCircle, type LucideIcon } from 'lucide-react';
 import type { ReadinessState } from '@/lib/readiness';
+import { useI18n } from '@/i18n';
 
 export interface MissionStatusWidgetProps {
   state: ReadinessState;
@@ -10,7 +11,7 @@ export interface MissionStatusWidgetProps {
 }
 
 interface StatusVisual {
-  text: string;
+  textKey: string;
   Icon: LucideIcon;
   indicatorClass: string;
   textClass: string;
@@ -18,25 +19,25 @@ interface StatusVisual {
 
 const STATUS_BY_STATE: Record<ReadinessState, StatusVisual> = {
   go: {
-    text: 'Status da Missão: Nominal',
+    textKey: 'cockpit.missionStatus.go',
     Icon: CheckCircle2,
     indicatorClass: 'bg-emerald-500',
     textClass: 'text-emerald-500',
   },
   caution: {
-    text: 'Status da Missão: Atenção',
+    textKey: 'cockpit.missionStatus.caution',
     Icon: AlertTriangle,
     indicatorClass: 'bg-amber-500',
     textClass: 'text-amber-500',
   },
   nogo: {
-    text: 'Atenção: Fadiga Detectada',
+    textKey: 'cockpit.missionStatus.nogo',
     Icon: AlertTriangle,
     indicatorClass: 'bg-destructive',
     textClass: 'text-destructive font-semibold',
   },
   unknown: {
-    text: 'Status da Missão: Aguardando scan',
+    textKey: 'cockpit.missionStatus.unknown',
     Icon: HelpCircle,
     indicatorClass: 'bg-muted-foreground/60',
     textClass: 'text-muted-foreground',
@@ -50,7 +51,10 @@ export default function MissionStatusWidget({
   stageBadge = null,
   className = '',
 }: MissionStatusWidgetProps) {
-  const { text, Icon, indicatorClass, textClass } = STATUS_BY_STATE[state];
+  const { t } = useI18n();
+  const visual = STATUS_BY_STATE[state];
+  const { Icon, indicatorClass, textClass, textKey } = visual;
+  const text = t(textKey);
 
   return (
     <div

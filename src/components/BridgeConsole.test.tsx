@@ -9,6 +9,7 @@ import {
 } from '@/lib/missionEvents';
 import { setStoredDemoStage } from '@/lib/demoScenario';
 import { useReadiness } from '@/hooks/useReadiness';
+import { LangProvider, type Lang } from '@/i18n';
 
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: vi.fn(() => ({
@@ -605,7 +606,7 @@ describe('BridgeConsole - Cockpit de 3 Níveis', () => {
     it('quando bioScore é null: preserva estado unknown sem scan e nunca exibe GO', async () => {
       // Arrange / Act
       await renderCockpit({
-        bioScore: null as any,
+        bioScore: null as unknown as number,
       });
 
       // Assert
@@ -707,6 +708,161 @@ describe('BridgeConsole - Cockpit de 3 Níveis', () => {
       const esperado = { nogo: 'NO-GO - FADIGA (NÃO APTO)', caution: 'ATENÇÃO - VIGILÂNCIA', go: 'GO - APTO PARA O TURNO' } as const;
       expect(titulo).toBe(esperado[result.current.state as 'nogo' | 'caution' | 'go']);
       expect(screen.getByText(titulo)).toBeInTheDocument();
+    });
+  });
+
+  describe('Internacionalização EN/PT do Cockpit (BridgeConsole)', () => {
+    async function renderCockpitWithLang(props: BridgeConsoleProps = {}, lang: Lang = 'en') {
+      let rendered;
+      await act(async () => {
+        rendered = render(
+          <LangProvider initialLang={lang}>
+            <BridgeConsole {...props} />
+          </LangProvider>
+        );
+      });
+      return rendered;
+    }
+
+    it('em inglês, renderiza estado AWAITING SCAN, headline e ação sem textos em português', async () => {
+      // Arrange & Act
+      await renderCockpitWithLang({}, 'en');
+
+      // Assert: EN presente
+      expect(screen.getByText('AWAITING SCAN')).toBeInTheDocument();
+      expect(screen.getByText('Start BioScore to assess readiness')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Start Readiness Scan/i })).toBeInTheDocument();
+      expect(screen.getByText('BioScore')).toBeInTheDocument();
+      expect(screen.getByText('Blinks/min')).toBeInTheDocument();
+      expect(screen.getByText('Sleep')).toBeInTheDocument();
+
+      // Assert: PT ausente
+      expect(screen.queryByText('AGUARDANDO SCAN')).not.toBeInTheDocument();
+      expect(screen.queryByText('Inicie o BioScore para avaliar a prontidão')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Iniciar Scan de Prontidão/i })).not.toBeInTheDocument();
+      expect(screen.queryByText('Piscadas/min')).not.toBeInTheDocument();
+      expect(screen.queryByText('Sono')).not.toBeInTheDocument();
+    });
+
+    it('em inglês, renderiza estado GO - FIT FOR SHIFT, métricas e botão Start Shift', async () => {
+      // Arrange & Act
+      await renderCockpitWithLang(
+        {
+          stressLevel: 'low',
+          hrvValue: 65,
+          blinkRate: 16,
+          bioScore: 90,
+        },
+        'en'
+      );
+
+      // Assert: EN presente
+      expect(screen.getByText('GO - FIT FOR SHIFT')).toBeInTheDocument();
+      expect(screen.getByText('verdict based on stress and HRV')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Start Shift/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Update scan/i })).toBeInTheDocument();
+
+      // Assert: PT ausente
+      expect(screen.queryByText('GO - APTO PARA O TURNO')).not.toBeInTheDocument();
+      expect(screen.queryByText('veredito baseado em estresse e HRV')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Iniciar Turno/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Atualizar scan/i })).not.toBeInTheDocument();
+    });
+
+    it('em inglês, renderiza CAUTION - WATCH e ação Start 4-7-8 Protocol', async () => {
+      // Arrange & Act
+      await renderCockpitWithLang(
+        {
+          stressLevel: 'moderate',
+          hrvValue: 45,
+          blinkRate: 20,
+          bioScore: 70,
+        },
+        'en'
+      );
+
+      // Assert
+      expect(screen.getByText('CAUTION - WATCH')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Start 4-7-8 Protocol/i })).toBeInTheDocument();
+      expect(screen.queryByText('ATENÇÃO - VIGILÂNCIA')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Iniciar Protocolo 4-7-8/i })).not.toBeInTheDocument();
+    });
+
+    it('em inglês, renderiza NO-GO - FATIGUE (NOT FIT) quando fadiga elevada', async () => {
+      // Arrange & Act
+      await renderCockpitWithLang(
+        {
+          stressLevel: 'high',
+          hrvValue: 25,
+          blinkRate: 12,
+          bioScore: 35,
+        },
+        'en'
+      );
+
+      // Assert
+      expect(screen.getByText('NO-GO - FATIGUE (NOT FIT)')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Start 4-7-8 Protocol/i })).toBeInTheDocument();
+      expect(screen.queryByText('NO-GO - FADIGA (NÃO APTO)')).not.toBeInTheDocument();
+    });
+
+    it('em inglês, renderiza NO-GO - PROTOCOL REGISTERED e Reassess with BioScore quando protocolo já realizado hoje', async () => {
+      // Arrange
+      registerCountermeasureProtocol({ breathing: true });
+
+      // Act
+      await renderCockpitWithLang(
+        {
+          isDemo: false,
+          stressLevel: 'high',
+          hrvValue: 25,
+        },
+        'en'
+      );
+
+      // Assert
+      expect(screen.getByText('NO-GO - PROTOCOL REGISTERED')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Reassess with BioScore/i })).toBeInTheDocument();
+      expect(screen.queryByText('NO-GO - PROTOCOLO REGISTRADO')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Reavaliar com BioScore/i })).not.toBeInTheDocument();
+    });
+
+    it('em inglês, modo demo exibe RECENT EVENT LOG com selo DEMO e eventos mock em inglês', async () => {
+      // Arrange & Act
+      await renderCockpitWithLang({ isDemo: true }, 'en');
+
+      // Assert
+      expect(screen.getByText('RECENT EVENT LOG')).toBeInTheDocument();
+      expect(screen.getByText(/\[Today, 10:30\] — Predictive alert: Elevated fatigue \(BioScore 34\)/i)).toBeInTheDocument();
+      expect(screen.getByText(/\[Today, 10:35\] — Action: Countermeasure executed \(4-7-8 breathing\)/i)).toBeInTheDocument();
+      expect(screen.getByText(/\[Today, 10:40\] — Status updated: Stable/i)).toBeInTheDocument();
+
+      // Assert: PT ausente
+      expect(screen.queryByText('LOG DE EVENTOS RECENTES')).not.toBeInTheDocument();
+      expect(screen.queryByText(/\[Hoje, 10:30\]/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/\[Hoje, 10:35\]/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/\[Hoje, 10:40\]/i)).not.toBeInTheDocument();
+    });
+
+    it('em português com LangProvider initialLang="pt", renderiza todos os textos em português idênticos', async () => {
+      // Arrange & Act
+      await renderCockpitWithLang(
+        {
+          stressLevel: 'low',
+          hrvValue: 65,
+          blinkRate: 16,
+          bioScore: 90,
+        },
+        'pt'
+      );
+
+      // Assert
+      expect(screen.getByText('GO - APTO PARA O TURNO')).toBeInTheDocument();
+      expect(screen.getByText('veredito baseado em estresse e HRV')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Iniciar Turno/i })).toBeInTheDocument();
+      expect(screen.getByText('BioScore')).toBeInTheDocument();
+      expect(screen.getByText('Piscadas/min')).toBeInTheDocument();
+      expect(screen.getByText('Sono')).toBeInTheDocument();
     });
   });
 });

@@ -9,6 +9,7 @@ import {
 } from '@/lib/perceivedFatigue';
 import { isAutonomousMode } from '@/hooks/useConnectionMode';
 import { buildWellnessReportHtml, openOrDownloadHtmlReport } from '@/components/WellnessReportPDF';
+import type { Lang } from '@/i18n';
 
 export const DOWNLINK_PACKAGE_STATUS_KEY = 'mars_downlink_package_status';
 export const DOWNLINK_PACKAGE_DATA_KEY = 'mars_downlink_package';
@@ -82,7 +83,7 @@ export interface DownlinkPackageData {
   contramedidas_registradas: Array<{
     data: string;
     registrado_em: string;
-    detalhes: any;
+    detalhes: Record<string, unknown>;
   }>;
   eventos_log: Array<{
     timestamp: string;
@@ -158,10 +159,10 @@ export function getPerceivedFatigueHistory(
 export function getRegisteredCountermeasures(
   hours: number = 72,
   now: Date = new Date()
-): Array<{ data: string; registrado_em: string; detalhes: any }> {
+): Array<{ data: string; registrado_em: string; detalhes: Record<string, unknown> }> {
   if (typeof window === 'undefined' || !window.localStorage) return [];
   const cutoff = now.getTime() - hours * 60 * 60 * 1000;
-  const results: Array<{ data: string; registrado_em: string; detalhes: any }> = [];
+  const results: Array<{ data: string; registrado_em: string; detalhes: Record<string, unknown> }> = [];
 
   for (let i = 0; i < window.localStorage.length; i++) {
     const key = window.localStorage.key(i);
@@ -198,6 +199,8 @@ export async function assembleDownlinkPackage(options?: {
   hours?: number;
   now?: Date;
   isAutonomous?: boolean;
+  lang?: Lang;
+  t?: (key: string, vars?: Record<string, string | number>) => string;
 }): Promise<DownlinkPackageData> {
   const hours = options?.hours ?? 72;
   const now = options?.now ?? new Date();
@@ -208,10 +211,10 @@ export async function assembleDownlinkPackage(options?: {
     : (await supabase?.auth?.getUser?.())?.data?.user;
   const userId = authUser?.id;
 
-  let scansData: any[] = [];
-  let checkinsData: any[] = [];
-  let coachData: any[] = [];
-  let profileData: any = null;
+  let scansData: Array<{ id?: string; created_at?: string; stress_level: string; hrv_value?: number | null; blink_rate?: number | null }> = [];
+  let checkinsData: Array<{ id?: string; created_at?: string; mood?: string; energy_level: number; note?: string; ai_response?: string }> = [];
+  let coachData: Array<{ id?: string; created_at?: string; stress_level?: string; action_plan?: string; messages?: unknown }> = [];
+  let profileData: { full_name?: string; preferred_name?: string; email?: string; horas_sono?: number | null; treino_realizado?: string | null } | null = null;
 
   if (userId) {
     try {
@@ -260,9 +263,7 @@ export async function assembleDownlinkPackage(options?: {
             .from('profiles')
             .select('full_name, preferred_name, email, horas_sono, treino_realizado')
             .eq('id', userId);
-          return typeof (query as any).maybeSingle === 'function'
-            ? await (query as any).maybeSingle()
-            : await (query as any).single?.();
+          return await query.maybeSingle();
         } catch {
           return { data: null };
         }
@@ -443,16 +444,22 @@ export async function assembleDownlinkPackage(options?: {
     ? 'pendente de envio'
     : 'gerado';
 
+  const disclaimer = options?.t
+    ? options.t('cockpit.downlink.disclaimer')
+    : options?.lang === 'en'
+    ? 'Webcam estimates, decision support, not a clinical diagnosis'
+    : DOWNLINK_CLINICAL_DISCLAIMER;
+
   const cabecalho: DownlinkPackageHeader = {
     data_hora: now.toISOString(),
     versao_app: APP_CONFIG.version,
-    aviso: DOWNLINK_CLINICAL_DISCLAIMER,
+    aviso: disclaimer,
   };
 
   const downlinkPackage: DownlinkPackageData = {
     cabecalho,
     header: cabecalho,
-    aviso: DOWNLINK_CLINICAL_DISCLAIMER,
+    aviso: disclaimer,
     versao_app: APP_CONFIG.version,
     data_hora: cabecalho.data_hora,
     janela_horas: hours,
@@ -513,7 +520,7 @@ export function triggerJsonDownload(filename: string, data: object): void {
   link.download = filename;
   link.addEventListener('click', (e) => {
     // Prevent unhandled jsdom navigation in tests
-    if (typeof window !== 'undefined' && !(window as any).navigation) {
+    if (typeof window !== 'undefined' && !('navigation' in window)) {
       e.stopPropagation();
     }
   });
@@ -532,6 +539,8 @@ export async function generateDownlinkPackageAndFiles(options?: {
   hours?: number;
   now?: Date;
   isAutonomous?: boolean;
+  lang?: Lang;
+  t?: (key: string, vars?: Record<string, string | number>) => string;
 }): Promise<{
   packageData: DownlinkPackageData;
   feedbackMessage: string;
@@ -546,15 +555,15 @@ export async function generateDownlinkPackageAndFiles(options?: {
   // Reaproveita WellnessReportPDF gerando relatório HTML/PDF consolidado
   try {
     const reportHtml = buildWellnessReportHtml({
-      userName: 'Tripulante',
-      now: new Date().toLocaleDateString('pt-BR'),
+      userName: options?.lang === 'en' ? 'Crew member' : 'Tripulante',
+      now: new Date().toLocaleDateString(options?.lang === 'en' ? 'en-US' : 'pt-BR'),
       scans: packageData.scans,
       checkins: [],
       profile: {
         horas_sono: packageData.sono.horas,
         treino_realizado: packageData.exercicios.registro,
       },
-      periodLabel: '72 horas',
+      periodLabel: options?.lang === 'en' ? '72 hours' : '72 horas',
     });
     openOrDownloadHtmlReport(reportHtml, `relatorio-downlink-72h-${dateStr}.html`);
   } catch {
@@ -562,7 +571,17 @@ export async function generateDownlinkPackageAndFiles(options?: {
   }
 
   const isAuto = packageData.status === 'pendente de envio';
-  const label = isAuto ? DOWNLINK_AUTONOMOUS_LABEL : DOWNLINK_ONLINE_LABEL;
+  const label = isAuto
+    ? (options?.t
+        ? options.t('cockpit.downlink.autonomousLabel')
+        : options?.lang === 'en'
+        ? 'Package saved locally (simulated uplink — no real transmission)'
+        : DOWNLINK_AUTONOMOUS_LABEL)
+    : (options?.t
+        ? options.t('cockpit.downlink.onlineLabel')
+        : options?.lang === 'en'
+        ? 'Package generated'
+        : DOWNLINK_ONLINE_LABEL);
 
   return {
     packageData,

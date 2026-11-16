@@ -513,5 +513,47 @@ describe('Downlink Service (AAA Pattern)', () => {
       // 3. Marcado no localStorage como "gerado"
       expect(localStorage.getItem(DOWNLINK_PACKAGE_STATUS_KEY)).toBe('gerado');
     });
+
+    it('suporta lang="en" e t customizado gerando avisos e labels em inglês', async () => {
+      // Arrange
+      localStorage.setItem('mars_mission_connection_mode', 'autonomous');
+
+      mockFrom.mockImplementation(() => ({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            gte: vi.fn().mockReturnValue({
+              order: vi.fn().mockResolvedValue({ data: [], error: null }),
+            }),
+            maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+          }),
+        }),
+      }));
+
+      // Act 1: Modo autônomo em inglês
+      const resultEn = await generateDownlinkPackageAndFiles({
+        userId: 'astronaut-001',
+        now: baseNow,
+        lang: 'en',
+      });
+
+      // Assert 1
+      expect(resultEn.buttonLabel).toBe(
+        'Package saved locally (simulated uplink — no real transmission)'
+      );
+      expect(resultEn.packageData.cabecalho.aviso).toBe(
+        'Webcam estimates, decision support, not a clinical diagnosis'
+      );
+
+      // Act 2: Modo online em inglês
+      localStorage.setItem('mars_mission_connection_mode', 'online');
+      const resultOnlineEn = await generateDownlinkPackageAndFiles({
+        userId: 'astronaut-001',
+        now: baseNow,
+        lang: 'en',
+      });
+
+      // Assert 2
+      expect(resultOnlineEn.buttonLabel).toBe('Package generated');
+    });
   });
 });

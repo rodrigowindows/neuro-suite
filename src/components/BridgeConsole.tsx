@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import PredictiveAlert from '@/components/PredictiveAlert';
 import { roundBlinkRate } from '@/lib/biometricDisplay';
 import { useReadiness } from '@/hooks/useReadiness';
+import { useI18n } from '@/i18n';
 import {
   getRecentEvents,
   formatEventDate,
@@ -32,6 +33,7 @@ export default function BridgeConsole({
   isDemo: propIsDemo,
   onStartProtocol,
 }: BridgeConsoleProps) {
+  const { lang, t } = useI18n();
   const readiness = useReadiness({
     stressLevel: propStressLevel,
     hrvValue: propHrvValue,
@@ -74,23 +76,44 @@ export default function BridgeConsole({
     }
   };
 
+  const formatEventTime = (at?: string | number | Date) => {
+    if (lang === 'pt') {
+      return formatEventDate(at);
+    }
+    if (!at) return t('cockpit.log.today');
+    const d = new Date(at);
+    if (isNaN(d.getTime())) return String(at);
+    const now = new Date();
+    const startOfDay = (date: Date) =>
+      new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+    const dayDiff = Math.round((startOfDay(now) - startOfDay(d)) / (24 * 60 * 60 * 1000));
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    const timeStr = `${hours}:${minutes}`;
+    if (dayDiff === 0) return `${t('cockpit.log.today')}, ${timeStr}`;
+    if (dayDiff === 1) return `${t('cockpit.log.yesterday')}, ${timeStr}`;
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    return `${month}/${day}, ${timeStr}`;
+  };
+
   const readinessTitle =
     readiness.state === 'go'
-      ? 'GO - APTO PARA O TURNO'
+      ? t('cockpit.readiness.go')
       : readiness.state === 'caution'
-      ? 'ATENÇÃO - VIGILÂNCIA'
+      ? t('cockpit.readiness.caution')
       : readiness.state === 'nogo'
-      ? (readiness.hasProtocolToday && !readiness.isDemo
-          ? 'NO-GO - PROTOCOLO REGISTRADO'
-          : 'NO-GO - FADIGA (NÃO APTO)')
-      : 'AGUARDANDO SCAN';
+      ? readiness.hasProtocolToday && !readiness.isDemo
+        ? t('cockpit.readiness.nogoProtocol')
+        : t('cockpit.readiness.nogo')
+      : t('cockpit.readiness.unknown');
 
   const bioScoreDisplay = readiness.bioScore != null ? readiness.bioScore : '—';
   const blinkRateDisplay =
     readiness.blinkRate != null ? roundBlinkRate(readiness.blinkRate) : '—';
   const sleepDisplay =
     readiness.horasSono !== null && readiness.horasSono !== undefined
-      ? `${readiness.horasSono}h`
+      ? t('cockpit.format.sleep', { hours: readiness.horasSono })
       : '—';
 
   return (
@@ -134,12 +157,12 @@ export default function BridgeConsole({
             </span>
             {readiness.state === 'unknown' && (
               <span className="text-xs sm:text-sm font-medium text-muted-foreground mt-1">
-                {readiness.headline}
+                {t('cockpit.headline.unknown')}
               </span>
             )}
             {readiness.state !== 'unknown' && (
               <span className="text-[11px] text-muted-foreground mt-1">
-                veredito baseado em estresse e HRV
+                {t('cockpit.verdictSubtitle')}
               </span>
             )}
           </div>
@@ -156,7 +179,7 @@ export default function BridgeConsole({
         {/* 1. BioScore */}
         <div className="rounded-xl border border-border/70 bg-card/60 p-4 sm:p-5 flex flex-col items-center justify-center text-center">
           <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-            BioScore
+            {t('cockpit.metric.bioScore')}
           </span>
           <span className="text-3xl sm:text-4xl md:text-5xl font-black font-display tracking-tight text-foreground">
             {bioScoreDisplay}
@@ -166,7 +189,7 @@ export default function BridgeConsole({
         {/* 2. Piscadas/min */}
         <div className="rounded-xl border border-border/70 bg-card/60 p-4 sm:p-5 flex flex-col items-center justify-center text-center">
           <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-            Piscadas/min
+            {t('cockpit.metric.blinkRate')}
           </span>
           <span className="text-3xl sm:text-4xl md:text-5xl font-black font-display tracking-tight text-foreground">
             {blinkRateDisplay}
@@ -176,7 +199,7 @@ export default function BridgeConsole({
         {/* 3. Sono */}
         <div className="rounded-xl border border-border/70 bg-card/60 p-4 sm:p-5 flex flex-col items-center justify-center text-center">
           <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-            Sono
+            {t('cockpit.metric.sleep')}
           </span>
           <span className="text-3xl sm:text-4xl md:text-5xl font-black font-display tracking-tight text-foreground">
             {sleepDisplay}
@@ -192,7 +215,7 @@ export default function BridgeConsole({
             className="w-full sm:w-auto min-w-[280px] h-14 text-base sm:text-lg font-bold shadow-md bg-primary text-primary-foreground hover:bg-primary/90"
             onClick={() => onNavigateTab?.('neuroscore')}
           >
-            Iniciar Scan de Prontidão
+            {t('cockpit.action.startScan')}
           </Button>
         ) : readiness.state === 'go' ? (
           <Button
@@ -200,7 +223,7 @@ export default function BridgeConsole({
             className="w-full sm:w-auto min-w-[280px] h-14 text-base sm:text-lg font-bold shadow-md bg-emerald-600 hover:bg-emerald-700 text-white"
             onClick={() => onNavigateTab?.('checkin')}
           >
-            Iniciar Turno
+            {t('cockpit.action.startShift')}
           </Button>
         ) : readiness.state === 'nogo' && readiness.hasProtocolToday && !readiness.isDemo ? (
           <Button
@@ -208,7 +231,7 @@ export default function BridgeConsole({
             className="w-full sm:w-auto min-w-[280px] h-14 text-base sm:text-lg font-bold shadow-md bg-primary text-primary-foreground hover:bg-primary/90"
             onClick={() => onNavigateTab?.('neuroscore')}
           >
-            Reavaliar com BioScore
+            {t('cockpit.action.reevaluate')}
           </Button>
         ) : (
           <Button
@@ -217,7 +240,7 @@ export default function BridgeConsole({
             className="w-full sm:w-auto min-w-[280px] h-14 text-base sm:text-lg font-bold shadow-md"
             onClick={() => (onStartProtocol ? onStartProtocol() : onNavigateTab?.('neurocoach'))}
           >
-            Iniciar Protocolo 4-7-8
+            {t('cockpit.action.startProtocol')}
           </Button>
         )}
       </div>
@@ -227,7 +250,7 @@ export default function BridgeConsole({
         <div className="w-full bg-card/40 border border-border/60 rounded-xl p-4 font-mono text-xs space-y-1.5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold font-mono tracking-wider text-muted-foreground uppercase">
-              LOG DE EVENTOS RECENTES
+              {t('cockpit.log.title')}
             </span>
             {recentEvents.length === 0 && readiness.isDemo && (
               <Badge
@@ -235,26 +258,26 @@ export default function BridgeConsole({
                 data-testid="demo-badge-log"
                 className="text-[10px] font-mono border-amber-500/40 text-amber-700 dark:text-amber-300"
               >
-                DEMO
+                {t('cockpit.log.badge')}
               </Badge>
             )}
           </div>
           {recentEvents.length > 0 ? (
             recentEvents.map((evt) => (
               <p key={evt.id} className={getEventColorClass(evt.type)}>
-                [{formatEventDate(evt.at)}] — {evt.label}
+                [{formatEventTime(evt.at)}] — {evt.label}
               </p>
             ))
           ) : (
             <>
               <p className="text-amber-600 dark:text-amber-400">
-                [Hoje, 10:30] — Alerta Preditivo: Fadiga Elevada (BioScore 34)
+                {t('cockpit.log.demo1.time')} — {t('cockpit.log.demo1.msg')}
               </p>
               <p className="text-cyan-600 dark:text-cyan-400">
-                [Hoje, 10:35] — Ação: Contramedida executada (Respiração 4-7-8)
+                {t('cockpit.log.demo2.time')} — {t('cockpit.log.demo2.msg')}
               </p>
               <p className="text-emerald-600 dark:text-emerald-400">
-                [Hoje, 10:40] — Status atualizado: Estável
+                {t('cockpit.log.demo3.time')} — {t('cockpit.log.demo3.msg')}
               </p>
             </>
           )}
@@ -269,7 +292,7 @@ export default function BridgeConsole({
             className="text-xs text-muted-foreground hover:text-foreground h-auto p-0 underline-offset-4 min-h-[44px] px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             onClick={() => onNavigateTab?.('neuroscore')}
           >
-            Atualizar scan
+            {t('cockpit.action.updateScan')}
           </Button>
         )}
         {readiness.isDemo && (
@@ -280,14 +303,14 @@ export default function BridgeConsole({
                 className="text-xs min-h-[44px]"
                 onClick={() => readiness.simulateScan()}
               >
-                Simular novo scan
+                {t('cockpit.action.simulateScan')}
               </Button>
             )}
             <Badge
               variant="outline"
               className="text-[10px] font-mono uppercase tracking-wider border-amber-500/40 text-amber-700 dark:text-amber-300"
             >
-              DEMO
+              {t('cockpit.log.badge')}
             </Badge>
           </>
         )}

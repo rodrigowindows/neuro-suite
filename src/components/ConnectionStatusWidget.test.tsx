@@ -4,6 +4,7 @@ import ConnectionStatusWidget, { STORAGE_KEY, SYNC_EVENT } from './ConnectionSta
 import { enqueue } from '@/lib/offlineOutbox';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { LangProvider } from '@/i18n';
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
@@ -196,5 +197,103 @@ describe('ConnectionStatusWidget Component', () => {
     expect(toast.success).toHaveBeenCalledWith(
       'Uplink restabelecido. 2 registros sincronizados.'
     );
+  });
+
+  describe('Internacionalização EN/PT do ConnectionStatusWidget', () => {
+    it('renderiza textos em inglês no modo online sem textos em português', () => {
+      // Arrange & Act
+      render(
+        <LangProvider initialLang="en">
+          <ConnectionStatusWidget />
+        </LangProvider>
+      );
+
+      // Assert: EN presente
+      const badge = screen.getByTestId('connection-status-badge');
+      expect(badge).toHaveTextContent('Earth Uplink: Active');
+      const subtext = screen.getByTestId('connection-status-subtext');
+      expect(subtext).toHaveTextContent('Cloud synchronization operational.');
+      expect(screen.getByText('Simulate Outage')).toBeInTheDocument();
+
+      const toggleBtn = screen.getByTestId('connection-status-toggle');
+      expect(toggleBtn).toHaveAttribute(
+        'aria-label',
+        'Simulate communication disruption (Autonomous Mode)'
+      );
+
+      // Assert: PT ausente
+      expect(screen.queryByText('Uplink da Terra: Ativo')).not.toBeInTheDocument();
+      expect(screen.queryByText('Sincronização em nuvem operacional.')).not.toBeInTheDocument();
+      expect(screen.queryByText('Simular Queda')).not.toBeInTheDocument();
+    });
+
+    it('renderiza textos e chips em inglês no modo autônomo', () => {
+      // Arrange
+      localStorage.setItem(STORAGE_KEY, 'autonomous');
+      enqueue({ table: 'daily_checkins', op: 'insert', payload: { mood: 'good' } });
+
+      // Act
+      render(
+        <LangProvider initialLang="en">
+          <ConnectionStatusWidget />
+        </LangProvider>
+      );
+
+      // Assert
+      const badge = screen.getByTestId('connection-status-badge');
+      expect(badge).toHaveTextContent('Autonomous Mode (Edge Computing) Active');
+      expect(screen.getByText('Reconnect')).toBeInTheDocument();
+      const chip = screen.getByTestId('offline-outbox-chip');
+      expect(chip).toHaveTextContent('1 record in queue');
+      const subtext = screen.getByTestId('connection-status-subtext');
+      expect(subtext).toHaveTextContent(
+        '100% Local On-Board Processing · Zero-Trust Fallback (Earth Latency: 20 min).'
+      );
+
+      const toggleBtn = screen.getByTestId('connection-status-toggle');
+      expect(toggleBtn).toHaveAttribute('aria-label', 'Reconnect Earth uplink');
+
+      // Assert: PT ausente
+      expect(screen.queryByText('Modo Autônomo (Edge Computing) Ativado')).not.toBeInTheDocument();
+      expect(screen.queryByText('Reconectar')).not.toBeInTheDocument();
+      expect(screen.queryByText(/registro em fila/i)).not.toBeInTheDocument();
+    });
+
+    it('dispara toasts traduzidos para o inglês ao alternar conexão e reconectar outbox', async () => {
+      // Arrange
+      render(
+        <LangProvider initialLang="en">
+          <ConnectionStatusWidget />
+        </LangProvider>
+      );
+      const toggleBtn = screen.getByTestId('connection-status-toggle');
+
+      // Act 1: Simular queda
+      act(() => {
+        fireEvent.click(toggleBtn);
+      });
+
+      // Assert 1: Toast de queda em EN
+      expect(toast.info).toHaveBeenCalledWith(
+        'Earth connection lost. Local processing engaged.'
+      );
+
+      // Arrange 2: Enfileirar 2 registros
+      act(() => {
+        enqueue({ table: 'daily_checkins', op: 'insert', payload: { mood: 'good' } });
+        enqueue({ table: 'stress_scans', op: 'insert', payload: { blink_rate: 16 } });
+      });
+
+      // Act 2: Reconectar
+      await act(async () => {
+        fireEvent.click(toggleBtn);
+        await new Promise((r) => setTimeout(r, 0));
+      });
+
+      // Assert 2: Toast de reconexão sincronizada em EN
+      expect(toast.success).toHaveBeenCalledWith(
+        'Uplink restored. 2 records synchronized.'
+      );
+    });
   });
 });

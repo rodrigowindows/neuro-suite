@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { useState, useEffect, useCallback } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import { toast } from 'sonner';
 import { useConnectionMode } from '@/hooks/useConnectionMode';
 import { getOutboxCount, flush, OUTBOX_SYNC_EVENT } from '@/lib/offlineOutbox';
 import { supabase } from '@/integrations/supabase/client';
+import { useI18n } from '@/i18n';
 
 export { STORAGE_KEY, SYNC_EVENT } from '@/hooks/useConnectionMode';
 
@@ -25,6 +27,7 @@ export default function ConnectionStatusWidget({
   showSubtext = true,
 }: ConnectionStatusWidgetProps) {
   const { isAutonomous, toggleConnection: rawToggle } = useConnectionMode();
+  const { t } = useI18n();
   const [queueCount, setQueueCount] = useState<number>(() => getOutboxCount());
 
   useEffect(() => {
@@ -47,29 +50,38 @@ export default function ConnectionStatusWidget({
     const next = rawToggle();
 
     if (next) {
-      toast.info('Conexão com a Terra perdida. Processamento local assumido.');
+      toast.info(t('cockpit.connection.toastLost'));
     } else {
       const pendingCount = getOutboxCount();
       if (pendingCount === 0) {
-        toast.success('Uplink restabelecido. Sincronização retomada.');
+        toast.success(t('cockpit.connection.toastRestored'));
       } else {
         flush(supabase).then((res) => {
           if (res.flushed > 0) {
             toast.success(
-              `Uplink restabelecido. ${res.flushed} ${
-                res.flushed === 1 ? 'registro sincronizado' : 'registros sincronizados'
-              }.`
+              res.flushed === 1
+                ? t('cockpit.connection.toastFlushed_one', { count: res.flushed })
+                : t('cockpit.connection.toastFlushed_other', { count: res.flushed })
             );
           } else {
-            toast.success('Uplink restabelecido. Sincronização retomada.');
+            toast.success(t('cockpit.connection.toastRestored'));
           }
         }).catch((err) => {
           console.error('Erro ao sincronizar outbox:', err);
-          toast.success('Uplink restabelecido. Sincronização retomada.');
+          toast.success(t('cockpit.connection.toastRestored'));
         });
       }
     }
-  }, [rawToggle]);
+  }, [rawToggle, t]);
+
+  const queueText =
+    queueCount === 1
+      ? t('cockpit.connection.queue_one', { count: queueCount })
+      : t('cockpit.connection.queue_other', { count: queueCount });
+
+  const subtextContent = isAutonomous
+    ? t('cockpit.connection.autonomousSubtext')
+    : t('cockpit.connection.onlineSubtext');
 
   return (
     <TooltipProvider delayDuration={150}>
@@ -91,14 +103,16 @@ export default function ConnectionStatusWidget({
                   <span className="motion-safe:animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
                 </span>
-                <span className="truncate max-w-[140px] sm:max-w-none">Modo Autônomo (Edge Computing) Ativado</span>
+                <span className="truncate max-w-[140px] sm:max-w-none">
+                  {t('cockpit.connection.autonomousBadge')}
+                </span>
               </Badge>
               <Badge
                 variant="outline"
                 data-testid="offline-outbox-chip"
                 className="font-mono text-[10px] px-1.5 py-0.5 border-amber-500/40 text-amber-700 dark:text-amber-300 bg-amber-500/15 shrink-0"
               >
-                {queueCount} {queueCount === 1 ? 'registro em fila' : 'registros em fila'}
+                {queueText}
               </Badge>
             </div>
           ) : (
@@ -112,7 +126,9 @@ export default function ConnectionStatusWidget({
                 <span className="motion-safe:animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
               </span>
-              <span className="truncate max-w-[140px] sm:max-w-none">Uplink da Terra: Ativo</span>
+              <span className="truncate max-w-[140px] sm:max-w-none">
+                {t('cockpit.connection.onlineBadge')}
+              </span>
             </Badge>
           )}
 
@@ -125,15 +141,9 @@ export default function ConnectionStatusWidget({
                   ? 'text-amber-700/90 dark:text-amber-400/90 font-medium'
                   : 'text-muted-foreground'
               }`}
-              title={
-                isAutonomous
-                  ? 'Processamento 100% Local na Nave · Zero-Trust Fallback (Latência Terra: 20 min).'
-                  : 'Sincronização em nuvem operacional.'
-              }
+              title={subtextContent}
             >
-              {isAutonomous
-                ? 'Processamento 100% Local na Nave · Zero-Trust Fallback (Latência Terra: 20 min).'
-                : 'Sincronização em nuvem operacional.'}
+              {subtextContent}
             </span>
           )}
         </div>
@@ -148,8 +158,8 @@ export default function ConnectionStatusWidget({
               data-testid="connection-status-toggle"
               aria-label={
                 isAutonomous
-                  ? 'Reconectar uplink com a Terra'
-                  : 'Simular interrupção de comunicação (Modo Autônomo)'
+                  ? t('cockpit.connection.ariaReconnect')
+                  : t('cockpit.connection.ariaSimulate')
               }
               className={`min-h-[44px] min-w-[44px] h-11 px-2.5 sm:px-3 gap-1.5 border transition-all shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
                 isAutonomous
@@ -161,14 +171,14 @@ export default function ConnectionStatusWidget({
                 <>
                   <SatelliteDish className="h-4 w-4 text-amber-700 dark:text-amber-300" />
                   <span className="text-[11px] font-mono font-medium hidden sm:inline">
-                    Reconectar
+                    {t('cockpit.connection.reconnectBtn')}
                   </span>
                 </>
               ) : (
                 <>
                   <Satellite className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                   <span className="text-[11px] font-mono font-medium hidden sm:inline">
-                    Simular Queda
+                    {t('cockpit.connection.simulateDropBtn')}
                   </span>
                 </>
               )}
@@ -176,9 +186,9 @@ export default function ConnectionStatusWidget({
           </TooltipTrigger>
           <TooltipContent side="bottom" align="end" className="text-xs">
             {isAutonomous ? (
-              <p>Clique para reconectar Uplink com a Terra</p>
+              <p>{t('cockpit.connection.tooltipReconnect')}</p>
             ) : (
-              <p>Clique para simular queda de comunicação (Modo Autônomo / Edge)</p>
+              <p>{t('cockpit.connection.tooltipSimulate')}</p>
             )}
           </TooltipContent>
         </Tooltip>
