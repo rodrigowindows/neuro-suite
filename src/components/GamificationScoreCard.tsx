@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Trophy, Sparkles, Target, Activity, Zap, Shield, Award, Flame, Compass, Radio, Crown } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useGamificationScore } from '@/hooks/useGamificationScore';
+import { useI18n } from '@/i18n';
 
 interface GamificationScoreCardProps {
   compact?: boolean;
@@ -21,7 +22,8 @@ const LEVEL_ICONS: Record<number, React.ComponentType<{ className?: string }>> =
 };
 
 export default function GamificationScoreCard({ compact = false }: GamificationScoreCardProps) {
-  const { xp, level, nextLevel, progressToNext, badges, streak, totalScans, loading } = useGamificationScore();
+  const { t } = useI18n();
+  const { level, nextLevel, progressToNext, badges, streak, totalScans, loading } = useGamificationScore();
 
   if (loading) {
     return (
@@ -39,11 +41,11 @@ export default function GamificationScoreCard({ compact = false }: GamificationS
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-base">
             <Trophy className="h-5 w-5 text-accent" />
-            Disciplina de Missão
+            {t('wellness.gamification.title')}
           </CardTitle>
         </CardHeader>
         <CardContent className="text-center py-8">
-          <p className="text-muted-foreground text-sm">Complete sua primeira avaliação para iniciar os ciclos de missão.</p>
+          <p className="text-muted-foreground text-sm">{t('wellness.gamification.emptyNotice')}</p>
         </CardContent>
       </Card>
     );
@@ -57,11 +59,13 @@ export default function GamificationScoreCard({ compact = false }: GamificationS
         <div className="flex flex-wrap gap-2 items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base">
             <Trophy className="h-5 w-5 text-accent" />
-            Disciplina de Missão
+            {t('wellness.gamification.title')}
           </CardTitle>
           <div className="flex items-center gap-1.5">
             <Sparkles className="h-3.5 w-3.5 text-accent" />
-            <span className="text-xs font-bold text-accent">{totalScans} Ciclos Concluídos</span>
+            <span className="text-xs font-bold text-accent">
+              {t('wellness.gamification.cyclesCompletedCount', { count: totalScans })}
+            </span>
           </div>
         </div>
       </CardHeader>
@@ -81,9 +85,9 @@ export default function GamificationScoreCard({ compact = false }: GamificationS
             <div className={compact ? '' : 'flex-1'}>
               <div className="flex flex-wrap items-baseline gap-2">
                 <span className="font-display font-bold text-lg text-foreground">
-                  Etapa {level.level}
+                  {t('wellness.gamification.stage', { level: level.level })}
                 </span>
-                <span className="text-xs text-muted-foreground">— Disciplina de Missão</span>
+                <span className="text-xs text-muted-foreground">{t('wellness.gamification.stageSubtitle')}</span>
               </div>
               {/* XP Progress bar */}
               <div className="mt-1.5 space-y-1">
@@ -97,8 +101,11 @@ export default function GamificationScoreCard({ compact = false }: GamificationS
                 </div>
                 <p className="text-[10px] text-muted-foreground">
                   {nextLevel
-                    ? `Progresso de missão: ${Math.round(progressToNext)}% para etapa ${nextLevel.level}`
-                    : 'Todas as etapas concluídas!'}
+                    ? t('wellness.gamification.missionProgress', {
+                        percent: Math.round(progressToNext),
+                        level: nextLevel.level,
+                      })
+                    : t('wellness.gamification.allStagesComplete')}
                 </p>
               </div>
             </div>
@@ -109,18 +116,18 @@ export default function GamificationScoreCard({ compact = false }: GamificationS
             <div className="grid grid-cols-3 gap-2">
               <div className="text-center p-2.5 bg-muted/50 rounded-lg">
                 <p className="text-lg font-bold text-foreground">{totalScans}</p>
-                <p className="text-[10px] text-muted-foreground">Ciclos Concluídos</p>
+                <p className="text-[10px] text-muted-foreground">{t('wellness.gamification.cyclesCompleted')}</p>
               </div>
               <div className="text-center p-2.5 bg-muted/50 rounded-lg">
                 <p className="text-lg font-bold text-foreground flex items-center justify-center gap-1">
                   <span>{streak}</span>
                   <Flame className="h-4 w-4 text-orange-500 inline" />
                 </p>
-                <p className="text-[10px] text-muted-foreground">Sequência de Monitoramento</p>
+                <p className="text-[10px] text-muted-foreground">{t('wellness.gamification.monitoringStreak')}</p>
               </div>
               <div className="text-center p-2.5 bg-muted/50 rounded-lg">
                 <p className="text-lg font-bold text-foreground">{badges.length}</p>
-                <p className="text-[10px] text-muted-foreground">Protocolos em Dia</p>
+                <p className="text-[10px] text-muted-foreground">{t('wellness.gamification.protocolsUpToDate')}</p>
               </div>
             </div>
           )}

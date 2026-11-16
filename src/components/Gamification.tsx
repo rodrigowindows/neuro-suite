@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useConnectionMode } from '@/hooks/useConnectionMode';
 import { enqueue } from '@/lib/offlineOutbox';
+import { useI18n } from '@/i18n';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge as BadgeUI } from '@/components/ui/badge';
@@ -41,6 +42,7 @@ function renderBadgeIcon(icon: string, id: string) {
 }
 
 export default function Gamification({ stressLevel, hrvValue }: GamificationProps) {
+  const { t } = useI18n();
   const { user } = useAuth();
   const { isAutonomous } = useConnectionMode();
   const [currentStreak, setCurrentStreak] = useState(0);
@@ -174,7 +176,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
           setShowNewBadge(true);
           setTimeout(() => setShowNewBadge(false), 5000);
         }
-        toast.success('Registro salvo localmente — será enviado ao restabelecer o uplink');
+        toast.success(t('wellness.gamification.toastOffline'));
         return;
       }
 
@@ -216,7 +218,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Trophy className="h-5 w-5 text-yellow-500" />
-          Disciplina de Missão
+          {t('wellness.gamification.title')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -225,24 +227,24 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
           <div className="p-4 bg-gradient-to-br from-orange-500/10 to-red-500/10 rounded-lg border border-orange-500/20">
             <div className="flex items-center gap-2 mb-2">
               <Flame className="h-5 w-5 text-orange-500" />
-              <span className="text-sm font-medium">Sequência de Monitoramento</span>
+              <span className="text-sm font-medium">{t('wellness.gamification.monitoringStreak')}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-3xl font-bold text-orange-500">{currentStreak}</span>
               {currentStreak > 0 && <Flame className="h-6 w-6 text-orange-500" />}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {currentStreak > 0 ? 'Sequência de monitoramento ativa' : 'Inicie seus ciclos diários'}
+              {currentStreak > 0 ? t('wellness.gamification.streakActive') : t('wellness.gamification.streakInactive')}
             </p>
           </div>
 
           <div className="p-4 bg-gradient-to-br from-yellow-500/10 to-amber-500/10 rounded-lg border border-yellow-500/20">
             <div className="flex items-center gap-2 mb-2">
               <Star className="h-5 w-5 text-yellow-500" />
-              <span className="text-sm font-medium">Recorde</span>
+              <span className="text-sm font-medium">{t('wellness.gamification.longestStreakTitle')}</span>
             </div>
             <p className="text-3xl font-bold text-yellow-500">{longestStreak}</p>
-            <p className="text-xs text-muted-foreground mt-1">Maior sequência de monitoramento</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('wellness.gamification.longestStreakDesc')}</p>
           </div>
         </div>
 
@@ -250,7 +252,7 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
         <div className="p-3 bg-primary/5 rounded-lg border border-primary/20 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Target className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium">Ciclos Concluídos</span>
+            <span className="text-sm font-medium">{t('wellness.gamification.cyclesCompleted')}</span>
           </div>
           <span className="text-2xl font-bold text-primary">{totalScans}</span>
         </div>
@@ -260,22 +262,31 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
           <div className="space-y-2">
             <h4 className="text-sm font-semibold flex items-center gap-2">
               <Award className="h-4 w-4 text-yellow-500" />
-              Protocolos em Dia ({badges.length})
+              {t('wellness.gamification.protocolsUpToDateCount', { count: badges.length })}
             </h4>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {badges.map((badge) => (
-                <BadgeUI
-                  key={badge.id}
-                  variant="secondary"
-                  className="p-2 sm:p-3 justify-start gap-1.5 sm:gap-2 text-xs"
-                >
-                  <div className="flex-shrink-0">{renderBadgeIcon(badge.icon, badge.id)}</div>
-                  <div className="text-left">
-                    <p className="font-semibold text-[10px] sm:text-xs leading-tight">{badge.name}</p>
-                    <p className="text-[9px] sm:text-xs text-muted-foreground">{badge.description}</p>
-                  </div>
-                </BadgeUI>
-              ))}
+              {badges.map((badge) => {
+                const nameKey = `wellness.badge.${badge.id}.name`;
+                const descKey = `wellness.badge.${badge.id}.desc`;
+                const translatedName = t(nameKey);
+                const badgeName = translatedName !== nameKey ? translatedName : badge.name;
+                const translatedDesc = t(descKey);
+                const badgeDesc = translatedDesc !== descKey ? translatedDesc : badge.description;
+
+                return (
+                  <BadgeUI
+                    key={badge.id}
+                    variant="secondary"
+                    className="p-2 sm:p-3 justify-start gap-1.5 sm:gap-2 text-xs"
+                  >
+                    <div className="flex-shrink-0">{renderBadgeIcon(badge.icon, badge.id)}</div>
+                    <div className="text-left">
+                      <p className="font-semibold text-[10px] sm:text-xs leading-tight">{badgeName}</p>
+                      <p className="text-[9px] sm:text-xs text-muted-foreground">{badgeDesc}</p>
+                    </div>
+                  </BadgeUI>
+                );
+              })}
             </div>
           </div>
         )}
@@ -287,8 +298,12 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
               <CardContent className="p-4 flex items-center gap-3">
                 <Zap className="h-8 w-8 text-yellow-500" />
                 <div>
-                  <p className="font-bold text-yellow-900 dark:text-yellow-200">Protocolo Desbloqueado</p>
-                  <p className="text-sm text-yellow-700 dark:text-yellow-400">Confira seus protocolos em dia.</p>
+                  <p className="font-bold text-yellow-900 dark:text-yellow-200">
+                    {t('wellness.gamification.protocolUnlockedTitle')}
+                  </p>
+                  <p className="text-sm text-yellow-700 dark:text-yellow-400">
+                    {t('wellness.gamification.protocolUnlockedDesc')}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -299,12 +314,12 @@ export default function Gamification({ stressLevel, hrvValue }: GamificationProp
         <div className="p-3 bg-secondary/5 rounded-lg border border-secondary/20">
           <p className="text-xs font-semibold text-secondary mb-1 flex items-center gap-1.5">
             <Target className="h-3.5 w-3.5" />
-            Próximo objetivo:
+            {t('wellness.gamification.nextGoal')}
           </p>
           <p className="text-xs text-muted-foreground">
-            {currentStreak < 7 && `Faça scan por mais ${7 - currentStreak} dias para Protocolo de Resiliência`}
-            {currentStreak >= 7 && currentStreak < 30 && 'Continue até 30 dias para completar o ciclo estendido de monitoramento'}
-            {currentStreak >= 30 && 'Sequência máxima atingida. Mantenha os padrões operacionais.'}
+            {currentStreak < 7 && t('wellness.gamification.goalResilience', { days: 7 - currentStreak })}
+            {currentStreak >= 7 && currentStreak < 30 && t('wellness.gamification.goal30Days')}
+            {currentStreak >= 30 && t('wellness.gamification.goalMax')}
           </p>
         </div>
       </CardContent>

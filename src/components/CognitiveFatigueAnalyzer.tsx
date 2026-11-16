@@ -7,6 +7,7 @@ import { Brain, AlertTriangle, CheckCircle, Loader2, Eye, Zap, Database, Heart }
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useConnectionMode } from '@/hooks/useConnectionMode';
+import { useI18n } from '@/i18n';
 import ResearchValidationModal from '@/components/ResearchValidationModal';
 
 interface FatigueAnalysis {
@@ -28,14 +29,15 @@ interface CognitiveFatigueAnalyzerProps {
   stressLevel?: string;
 }
 
-const levelConfig: Record<string, { color: string; icon: any; label: string }> = {
-  low: { color: 'text-green-500', icon: CheckCircle, label: 'Nominal' },
-  moderate: { color: 'text-yellow-500', icon: Eye, label: 'Moderada' },
-  high: { color: 'text-orange-500', icon: AlertTriangle, label: 'Alta' },
-  critical: { color: 'text-red-500', icon: AlertTriangle, label: 'Crítica' },
+const levelConfig: Record<string, { color: string; icon: React.ComponentType<{ className?: string }>; labelKey: string }> = {
+  low: { color: 'text-green-500', icon: CheckCircle, labelKey: 'wellness.fatigue.level.low' },
+  moderate: { color: 'text-yellow-500', icon: Eye, labelKey: 'wellness.fatigue.level.moderate' },
+  high: { color: 'text-orange-500', icon: AlertTriangle, labelKey: 'wellness.fatigue.level.high' },
+  critical: { color: 'text-red-500', icon: AlertTriangle, labelKey: 'wellness.fatigue.level.critical' },
 };
 
 export default function CognitiveFatigueAnalyzer({ stressLevel }: CognitiveFatigueAnalyzerProps) {
+  const { t } = useI18n();
   const { toast } = useToast();
   const { isAutonomous } = useConnectionMode();
   const [text, setText] = useState('');
@@ -44,7 +46,11 @@ export default function CognitiveFatigueAnalyzer({ stressLevel }: CognitiveFatig
 
   const analyzeText = async () => {
     if (text.trim().length < 20) {
-      toast({ title: 'Texto muito curto', description: 'Escreva pelo menos 20 caracteres para análise.', variant: 'destructive' });
+      toast({
+        title: t('wellness.fatigue.tooShortTitle'),
+        description: t('wellness.fatigue.tooShortDesc'),
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -56,20 +62,24 @@ export default function CognitiveFatigueAnalyzer({ stressLevel }: CognitiveFatig
         const localData: FatigueAnalysis = {
           fatigueLevel: localLevel,
           fatigueScore: localScore,
-          indicators: ['Cadência textual avaliada por regras heurísticas locais'],
+          indicators: [t('wellness.fatigue.local.indicator')],
           cognitiveAreas: {
             attention: stressLevel === 'high' ? 55 : 85,
             memory: stressLevel === 'high' ? 60 : 90,
             processing: stressLevel === 'high' ? 50 : 85,
             emotional: stressLevel === 'high' ? 50 : 80,
           },
-          recommendation: 'Gerado localmente (regras fixas, sem IA em nuvem): Mantenha hidratação e pausas operacionais programadas.',
+          recommendation: t('wellness.fatigue.local.recommendation'),
           alert: stressLevel === 'high',
-          alertMessage: stressLevel === 'high' ? 'Fadiga cognitiva elevada detectada por regras locais da nave.' : undefined,
+          alertMessage: stressLevel === 'high' ? t('wellness.fatigue.local.alertMessage') : undefined,
         };
         setAnalysis(localData);
         if (localData.alert) {
-          toast({ title: 'Alerta de Fadiga', description: localData.alertMessage || 'Fadiga cognitiva detectada.', variant: 'destructive' });
+          toast({
+            title: t('wellness.fatigue.alertToastTitle'),
+            description: localData.alertMessage || t('wellness.fatigue.alertToastFallback'),
+            variant: 'destructive',
+          });
         }
         return;
       }
@@ -82,11 +92,19 @@ export default function CognitiveFatigueAnalyzer({ stressLevel }: CognitiveFatig
       setAnalysis(data);
 
       if (data.alert) {
-        toast({ title: 'Alerta de Fadiga', description: data.alertMessage || 'Fadiga cognitiva detectada.', variant: 'destructive' });
+        toast({
+          title: t('wellness.fatigue.alertToastTitle'),
+          description: data.alertMessage || t('wellness.fatigue.alertToastFallback'),
+          variant: 'destructive',
+        });
       }
-    } catch (err: any) {
-      console.error('Erro análise:', err);
-      toast({ title: 'Erro', description: 'Não foi possível analisar. Tente novamente.', variant: 'destructive' });
+    } catch (err: unknown) {
+      console.error('Cognitive fatigue analysis error:', err);
+      toast({
+        title: t('wellness.fatigue.errorTitle'),
+        description: t('wellness.fatigue.errorDesc'),
+        variant: 'destructive',
+      });
     } finally {
       setIsAnalyzing(false);
     }
@@ -102,10 +120,10 @@ export default function CognitiveFatigueAnalyzer({ stressLevel }: CognitiveFatig
             <div>
               <CardTitle className="flex items-center gap-2 text-lg sm:text-xl font-display">
                 <Brain className="h-5 w-5 text-primary" />
-                Métricas de Fadiga Cognitiva
+                {t('wellness.fatigue.title')}
               </CardTitle>
               <CardDescription className="text-xs sm:text-sm mt-1">
-                Monitoramento de carga de trabalho e fadiga operacional (apoio operacional)
+                {t('wellness.fatigue.subtitle')}
               </CardDescription>
             </div>
 
@@ -117,23 +135,31 @@ export default function CognitiveFatigueAnalyzer({ stressLevel }: CognitiveFatig
         <CardContent className="space-y-4">
           <div>
             <label className="text-sm font-medium text-foreground">
-              Registre observações do turno para análise de carga cognitiva (não substitui avaliação médica).
+              {t('wellness.fatigue.inputLabel')}
             </label>
             <Textarea
-              placeholder="Registre observações do turno para análise de carga cognitiva (não substitui avaliação médica)..."
+              placeholder={t('wellness.fatigue.inputPlaceholder')}
               value={text}
               onChange={(e) => setText(e.target.value)}
               rows={5}
               className="mt-2"
             />
-            <p className="text-xs text-muted-foreground mt-1">{text.length} caracteres · mínimo 20</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {t('wellness.fatigue.charCount', { count: text.length })}
+            </p>
           </div>
 
           <Button onClick={analyzeText} disabled={isAnalyzing || text.length < 20} className="w-full">
             {isAnalyzing ? (
-              <><Loader2 className="h-4 w-4 animate-spin mr-2" />Analisando padrões linguísticos e carga cognitiva...</>
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                {t('wellness.fatigue.analyzing')}
+              </>
             ) : (
-              <><Brain className="h-4 w-4 mr-2" />Analisar Carga Cognitiva</>
+              <>
+                <Brain className="h-4 w-4 mr-2" />
+                {t('wellness.fatigue.analyzeButton')}
+              </>
             )}
           </Button>
         </CardContent>
@@ -144,7 +170,10 @@ export default function CognitiveFatigueAnalyzer({ stressLevel }: CognitiveFatig
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <config.icon className={`h-5 w-5 ${config.color}`} />
-              Fadiga {config.label}: {analysis.fatigueScore}/100
+              {t('wellness.fatigue.scoreTitle', {
+                label: t(config.labelKey),
+                score: analysis.fatigueScore,
+              })}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -152,10 +181,10 @@ export default function CognitiveFatigueAnalyzer({ stressLevel }: CognitiveFatig
 
             <div className="grid grid-cols-2 gap-4">
               {[
-                { key: 'attention', label: 'Atenção', icon: Eye, value: analysis.cognitiveAreas.attention },
-                { key: 'memory', label: 'Memória', icon: Database, value: analysis.cognitiveAreas.memory },
-                { key: 'processing', label: 'Processamento', icon: Zap, value: analysis.cognitiveAreas.processing },
-                { key: 'emotional', label: 'Regulação Emocional', icon: Heart, value: analysis.cognitiveAreas.emotional },
+                { key: 'attention', label: t('wellness.fatigue.area.attention'), icon: Eye, value: analysis.cognitiveAreas.attention },
+                { key: 'memory', label: t('wellness.fatigue.area.memory'), icon: Database, value: analysis.cognitiveAreas.memory },
+                { key: 'processing', label: t('wellness.fatigue.area.processing'), icon: Zap, value: analysis.cognitiveAreas.processing },
+                { key: 'emotional', label: t('wellness.fatigue.area.emotional'), icon: Heart, value: analysis.cognitiveAreas.emotional },
               ].map((area) => (
                 <div key={area.key} className="p-3 bg-muted/50 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
@@ -170,7 +199,7 @@ export default function CognitiveFatigueAnalyzer({ stressLevel }: CognitiveFatig
 
             {analysis.indicators.length > 0 && (
               <div>
-                <h4 className="text-sm font-semibold mb-2">Indicadores Detectados</h4>
+                <h4 className="text-sm font-semibold mb-2">{t('wellness.fatigue.indicatorsTitle')}</h4>
                 <div className="flex flex-wrap gap-2">
                   {analysis.indicators.map((ind, i) => (
                     <span key={i} className="px-2 py-1 text-xs bg-muted rounded-full">{ind}</span>
@@ -180,7 +209,7 @@ export default function CognitiveFatigueAnalyzer({ stressLevel }: CognitiveFatig
             )}
 
             <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-              <h4 className="text-sm font-semibold mb-1">Recomendação Operacional</h4>
+              <h4 className="text-sm font-semibold mb-1">{t('wellness.fatigue.recommendationTitle')}</h4>
               <p className="text-sm">{analysis.recommendation}</p>
             </div>
           </CardContent>

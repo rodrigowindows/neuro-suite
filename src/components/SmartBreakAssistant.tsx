@@ -7,6 +7,7 @@ import { Coffee, Wind, Dumbbell, Eye, Users, Loader2, Clock, AlertTriangle, Time
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useConnectionMode } from '@/hooks/useConnectionMode';
+import { useI18n } from '@/i18n';
 
 interface BreakSuggestion {
   name: string;
@@ -25,9 +26,10 @@ interface BreakResponse {
   warning: string | null;
 }
 
-const typeIcons: Record<string, any> = {
+const typeIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   breathing: Wind,
   movement: Dumbbell,
+  physical: Dumbbell,
   sensory: Eye,
   meditation: Coffee,
   social: Users,
@@ -46,6 +48,7 @@ interface SmartBreakAssistantProps {
 }
 
 export default function SmartBreakAssistant({ stressLevel, hrvValue }: SmartBreakAssistantProps) {
+  const { t } = useI18n();
   const { toast } = useToast();
   const { isAutonomous } = useConnectionMode();
   const [mood, setMood] = useState('');
@@ -56,6 +59,8 @@ export default function SmartBreakAssistant({ stressLevel, hrvValue }: SmartBrea
   const [activeBreak, setActiveBreak] = useState<number | null>(null);
 
   const now = new Date();
+  const periodKey = now.getHours() < 12 ? 'morning' : now.getHours() < 18 ? 'afternoon' : 'evening';
+  const periodLabel = t(`wellness.breaks.period.${periodKey}`);
   const timeOfDay = now.getHours() < 12 ? 'manhã' : now.getHours() < 18 ? 'tarde' : 'noite';
 
   const getSuggestions = async () => {
@@ -63,29 +68,35 @@ export default function SmartBreakAssistant({ stressLevel, hrvValue }: SmartBrea
     try {
       if (isAutonomous) {
         const localResponse: BreakResponse = {
-          currentAssessment: 'Gerado localmente (regras fixas, sem IA em nuvem): Avaliação operacional baseada no nível de estresse atual.',
           urgency: stressLevel === 'high' ? 'high' : stressLevel === 'moderate' ? 'medium' : 'low',
-          suggestions: [
+          nextBreakIn: '~45 min',
+          dailyBreakPlan: t('wellness.breaks.local.dailyPlan'),
+          warning: null,
+          suggestedBreaks: [
             {
-              name: 'Ciclo 4-7-8 Guiado',
-              duration: '3 min',
+              name: t('wellness.breaks.local.b1.name'),
+              duration: t('wellness.breaks.local.b1.duration'),
               type: 'breathing',
               instructions: [
-                'Inspire suavemente pelo nariz por 4 segundos',
-                'Retenha o ar nos pulmões por 7 segundos',
-                'Expire lentamente pela boca por 8 segundos',
+                t('wellness.breaks.local.b1.step1'),
+                t('wellness.breaks.local.b1.step2'),
+                t('wellness.breaks.local.b1.step3'),
               ],
-              science: 'Gerado localmente (regras fixas, sem IA em nuvem): Estimulação parassimpática vagal.',
+              science: t('wellness.breaks.local.b1.science'),
+              expectedBenefit: t('wellness.breaks.local.b1.benefit'),
             },
             {
-              name: 'Pausa Ergonômica e Hidratação',
-              duration: '2 min',
-              type: 'physical',
-              instructions: ['Beba 250ml de água', 'Alongue pescoço e trapézios'],
-              science: 'Gerado localmente (regras fixas, sem IA em nuvem): Alívio de tensão cervical.',
+              name: t('wellness.breaks.local.b2.name'),
+              duration: t('wellness.breaks.local.b2.duration'),
+              type: 'movement',
+              instructions: [
+                t('wellness.breaks.local.b2.step1'),
+                t('wellness.breaks.local.b2.step2'),
+              ],
+              science: t('wellness.breaks.local.b2.science'),
+              expectedBenefit: t('wellness.breaks.local.b2.benefit'),
             },
           ],
-          quickTip: 'Gerado localmente (regras fixas, sem IA em nuvem): Descanse a visão focando um ponto distante.',
         };
         setResponse(localResponse);
         return;
@@ -105,9 +116,13 @@ export default function SmartBreakAssistant({ stressLevel, hrvValue }: SmartBrea
 
       if (error) throw error;
       setResponse(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erro pausas:', err);
-      toast({ title: 'Erro', description: 'Não foi possível gerar sugestões.', variant: 'destructive' });
+      toast({
+        title: t('wellness.breaks.errorTitle'),
+        description: t('wellness.breaks.errorDesc'),
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -119,48 +134,56 @@ export default function SmartBreakAssistant({ stressLevel, hrvValue }: SmartBrea
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Coffee className="h-5 w-5 text-primary" />
-            Assistente de Pausas Inteligentes
+            {t('wellness.breaks.title')}
           </CardTitle>
           <CardDescription>
-            Micro-pausas personalizadas baseadas em cronobiologia e seus dados biométricos
+            {t('wellness.breaks.description')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="text-sm font-medium">Carga cognitiva atual</label>
+              <label className="text-sm font-medium">{t('wellness.breaks.cognitiveLoadLabel')}</label>
               <Select value={mood} onValueChange={setMood}>
-                <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder={t('wellness.breaks.selectPlaceholder')} />
+                </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="otimo">Ótimo</SelectItem>
-                  <SelectItem value="bem">Bem</SelectItem>
-                  <SelectItem value="neutro">Nominal</SelectItem>
-                  <SelectItem value="cansado">Cansado</SelectItem>
-                  <SelectItem value="estressado">Estressado</SelectItem>
+                  <SelectItem value="otimo">{t('wellness.breaks.mood.otimo')}</SelectItem>
+                  <SelectItem value="bem">{t('wellness.breaks.mood.bem')}</SelectItem>
+                  <SelectItem value="neutro">{t('wellness.breaks.mood.neutro')}</SelectItem>
+                  <SelectItem value="cansado">{t('wellness.breaks.mood.cansado')}</SelectItem>
+                  <SelectItem value="estressado">{t('wellness.breaks.mood.estressado')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium">Energia (1-5)</label>
+              <label className="text-sm font-medium">{t('wellness.breaks.energyLabel')}</label>
               <Select value={energy} onValueChange={setEnergy}>
-                <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder={t('wellness.breaks.selectPlaceholder')} />
+                </SelectTrigger>
                 <SelectContent>
                   {[1, 2, 3, 4, 5].map((v) => (
-                    <SelectItem key={v} value={String(v)}>{v} - {['Muito baixa', 'Baixa', 'Média', 'Alta', 'Muito alta'][v - 1]}</SelectItem>
+                    <SelectItem key={v} value={String(v)}>
+                      {t(`wellness.breaks.energy.${v}`)}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium">Última pausa (min atrás)</label>
+              <label className="text-sm font-medium">{t('wellness.breaks.lastBreakLabel')}</label>
               <Select value={lastBreak} onValueChange={setLastBreak}>
-                <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder={t('wellness.breaks.selectPlaceholder')} />
+                </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="15">~15 min</SelectItem>
-                  <SelectItem value="30">~30 min</SelectItem>
-                  <SelectItem value="60">~1 hora</SelectItem>
-                  <SelectItem value="90">~1h30</SelectItem>
-                  <SelectItem value="120">+2 horas</SelectItem>
+                  <SelectItem value="15">{t('wellness.breaks.lastBreak.15')}</SelectItem>
+                  <SelectItem value="30">{t('wellness.breaks.lastBreak.30')}</SelectItem>
+                  <SelectItem value="60">{t('wellness.breaks.lastBreak.60')}</SelectItem>
+                  <SelectItem value="90">{t('wellness.breaks.lastBreak.90')}</SelectItem>
+                  <SelectItem value="120">{t('wellness.breaks.lastBreak.120')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -168,14 +191,26 @@ export default function SmartBreakAssistant({ stressLevel, hrvValue }: SmartBrea
 
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Clock className="h-3 w-3" />
-            <span>Período: {timeOfDay} · Estresse: {stressLevel || 'N/A'} · HRV: {hrvValue || 'N/A'}ms</span>
+            <span>
+              {t('wellness.breaks.statusLine', {
+                period: periodLabel,
+                stress: stressLevel || 'N/A',
+                hrv: hrvValue || 'N/A',
+              })}
+            </span>
           </div>
 
           <Button onClick={getSuggestions} disabled={isLoading} className="w-full">
             {isLoading ? (
-              <><Loader2 className="h-4 w-4 animate-spin mr-2" />Gerando pausas personalizadas...</>
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                {t('wellness.breaks.generating')}
+              </>
             ) : (
-              <><Coffee className="h-4 w-4 mr-2" />Gerar Sugestões de Pausa</>
+              <>
+                <Coffee className="h-4 w-4 mr-2" />
+                {t('wellness.breaks.generateButton')}
+              </>
             )}
           </Button>
         </CardContent>
@@ -194,11 +229,13 @@ export default function SmartBreakAssistant({ stressLevel, hrvValue }: SmartBrea
 
           <div className="flex items-center gap-3">
             <Badge className={urgencyColors[response.urgency]}>
-              Urgência: {response.urgency}
+              {t('wellness.breaks.urgencyBadge', {
+                urgency: t(`wellness.breaks.urgency.${response.urgency}`) || response.urgency,
+              })}
             </Badge>
             <Badge variant="outline" className="gap-1">
               <Timer className="h-3 w-3" />
-              Próxima pausa em: {response.nextBreakIn}
+              {t('wellness.breaks.nextBreakBadge', { time: response.nextBreakIn })}
             </Badge>
           </div>
 
@@ -218,7 +255,9 @@ export default function SmartBreakAssistant({ stressLevel, hrvValue }: SmartBrea
                       <Badge variant="secondary">{brk.duration}</Badge>
                     </div>
 
-                    <p className="text-xs text-muted-foreground italic">Evidência: {brk.science}</p>
+                    <p className="text-xs text-muted-foreground italic">
+                      {t('wellness.breaks.evidenceLabel', { science: brk.science })}
+                    </p>
 
                     {isActive && (
                       <div className="space-y-2">
@@ -227,7 +266,9 @@ export default function SmartBreakAssistant({ stressLevel, hrvValue }: SmartBrea
                             <li key={j}>{step}</li>
                           ))}
                         </ol>
-                        <p className="text-sm text-primary font-medium">Benefício esperado: {brk.expectedBenefit}</p>
+                        <p className="text-sm text-primary font-medium">
+                          {t('wellness.breaks.expectedBenefitLabel', { benefit: brk.expectedBenefit })}
+                        </p>
                       </div>
                     )}
 
@@ -236,7 +277,7 @@ export default function SmartBreakAssistant({ stressLevel, hrvValue }: SmartBrea
                       size="sm"
                       onClick={() => setActiveBreak(isActive ? null : i)}
                     >
-                      {isActive ? 'Concluir' : 'Iniciar Pausa'}
+                      {isActive ? t('wellness.breaks.completeButton') : t('wellness.breaks.startButton')}
                     </Button>
                   </CardContent>
                 </Card>
@@ -247,7 +288,7 @@ export default function SmartBreakAssistant({ stressLevel, hrvValue }: SmartBrea
           {response.dailyBreakPlan && (
             <Card>
               <CardContent className="pt-4">
-                <h4 className="font-semibold text-sm mb-2">Plano de Pausas para Hoje</h4>
+                <h4 className="font-semibold text-sm mb-2">{t('wellness.breaks.dailyPlanTitle')}</h4>
                 <p className="text-sm text-muted-foreground">{response.dailyBreakPlan}</p>
               </CardContent>
             </Card>
