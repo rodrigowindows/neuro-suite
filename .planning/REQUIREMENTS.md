@@ -157,3 +157,13 @@ SEC-04 aparece em duas fases porque o contrato tem dois lados (função e recept
 - [x] **I18N-10**: README em EN e PT, sem emojis nos títulos
 - [x] **I18N-11**: Checklist, `LINKS.md` e textos de submissão em EN e PT, com links `?lang=en` e `?lang=pt`
 - [x] **I18N-12**: Revisão de termos e auditoria final com gates verdes, blindados intactos e UAT em `docs/publicacao/UAT-v1.3.md`
+
+## v1.4 Requirements — App logado em EN e PT
+
+- [x] **I18N-13**: `LangProvider` único e global (acima do `AuthProvider`); seletor EN | PT no cabeçalho do Dashboard; barra lateral e títulos traduzidos
+- [x] **I18N-14**: Cockpit (semáforo, três números, ação primária, log, conexão) em EN e PT, sem alterar `readiness.ts` nem dados persistidos
+- [x] **I18N-15**: Contramedidas e Histórico de Voo em EN e PT (respostas de IA e rótulos gravados ficam como estão)
+- [x] **I18N-16**: BioScore (webcam, resultado) e check-in diário em EN e PT, com estimativas nunca descritas como medição
+- [ ] **I18N-17** (parcial: textos de fallback local ainda em português, ver UAT-v1.4 D3): Telas de gestão, segurança, relatórios e integrações em EN e PT, sem alterar a lógica de OAuth, sessão ou pontuação
+- [x] **I18N-18**: Perfil, redefinição de senha, admin, 404, toasts de autenticação e validações em EN e PT
+- [x] **I18N-19** (auditoria em `docs/publicacao/UAT-v1.4.md`, aprovada com ressalvas D1 a D5; fluxo no navegador NÃO VERIFICADO): Auditoria final: gates verdes, blindados intactos, paridade de chaves sem duplicatas, PT preservado, UAT em `docs/publicacao/UAT-v1.4.md`

@@ -105,3 +105,12 @@ Phase: 31 — Auditoria Final do Marco v1.3
 Plan: Concluído
 Status: Marco v1.3 auditado e homologado para submissão da banca
 Last activity: 2026-11-15 — Auditoria técnica completa (599 testes, tsc, build, eslint, diff e consistência aprovados)
+
+## Marco v1.4 — App logado em EN e PT (planejado em 2026-11-15)
+
+- **Status:** planejado. Prompts prontos em `.planning/prompts-v1.4/` (fases 32 a 45). Nada executado.
+- **Causa do pedido:** após o login não aparecia o seletor de idioma, porque o `LangProvider` só cobria `/`, `/auth` e `/demo`.
+- **Ordem:** 32 a 44 em paralelo (sem dependência entre si, só do núcleo da fase 21); 45 por último. Não publicar no Lovable com fases pela metade (idiomas misturados).
+- **Pendências herdadas (dono):** log de rede real em `/demo`, ensaio em janela anônima, hospedar deck e vídeo, trocar a senha da conta demo antiga.
+
+- **Atualização v1.4 (2026-11-15):** fases 32 a 44 executadas; auditoria da fase 45 = APROVADO COM RESSALVAS. 680 testes (duas execuções), tsc, eslint do escopo e build limpos; blindados intactos; 18 locales, 1.495 chaves, sem duplicatas. Abertos: D1 (linha do tempo nova em `MissionLog`, fora de escopo), D2 (selo NASA e "tempo real" herdados), D3 (fallbacks locais ainda em português), D4 (`resetPassword` morto em `useAuth`), D5 (rastreabilidade). Pendências do dono: fluxo logado no navegador, log de rede em `/demo`, trocar a senha da conta demo antiga.

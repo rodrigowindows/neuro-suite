@@ -174,3 +174,35 @@ Fases 12, 13, 14 e 15 não compartilham arquivos. A fase 16 depende das quatro.
 | 29 | 1/1 | Concluída na documentação (commit 6f69a3a) |
 | 30 | 1/1 | Revisão concluída (conforme SUMMARY sem necessidade de alterações no código) |
 | 31 | 1/1 | Auditoria e UAT concluídos com sucesso (`docs/publicacao/UAT-v1.3.md`) |
+
+---
+
+# Marco v1.4 — App logado em EN e PT
+
+**Motivo:** depois do login não havia seletor de idioma nem tradução (o `LangProvider` do v1.3 cobria só `/`, `/auth` e `/demo`). Provider passa a ser único e global; as telas logadas são traduzidas em fases paralelas, cada uma com arquivos e dicionário exclusivos. Prompts em `.planning/prompts-v1.4/`.
+
+| # | Phase | Goal | Requirements |
+|---|-------|------|--------------|
+| 32 | Casca e Dashboard | Provider global, seletor no cabeçalho, títulos | I18N-13 |
+| 33 | Navegação | Barra lateral e abas | I18N-13 |
+| 34 | Cockpit | BridgeConsole, status, conexão, downlink | I18N-14 |
+| 35 | Contramedidas | NeuroCoach | I18N-15 |
+| 36 | Histórico de Voo | MissionLog | I18N-15 |
+| 37 | BioScore | Scan por webcam e resultado | I18N-16 |
+| 38 | Check-in | Check-in, histórico, PDF, meditação | I18N-16 |
+| 39 | Bem-estar | Disciplina, pausas, carga, liderança | I18N-17 |
+| 40 | Insights e alertas | IA Insights, alertas, ROI | I18N-17 |
+| 41 | Painel de Comando | Indicadores de gestão | I18N-17 |
+| 42 | Segurança e relatórios | NR-1, PGR, chatbot | I18N-17 |
+| 43 | Integrações | Calendar e check-in de reunião | I18N-17 |
+| 44 | Conta e mensagens | Perfil, admin, toasts, validações | I18N-18 |
+| 45 | Auditoria v1.4 | Gates, cobertura, PT preservado, UAT | I18N-19 |
+
+Fases 32 a 44 em paralelo, sem dependência entre si; 45 por último.
+
+## Progress v1.4
+
+| Phase | Status |
+|-------|--------|
+| 32 a 44 | Concluídas e commitadas (fase 32 foi commitada junto com a 37, `8a84c59`; fase 43 sem SUMMARY) |
+| 45 | Auditoria feita em 2026-11-15: APROVADO COM RESSALVAS (D1 a D5 em `docs/publicacao/UAT-v1.4.md`) |
