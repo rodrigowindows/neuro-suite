@@ -6,6 +6,8 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import neuroSuiteLogo from '@/assets/neurosuite-logo.jpg';
 import { APP_CONFIG } from '@/lib/constants';
+import { useI18n } from '@/i18n';
+import LanguageToggle from '@/components/LanguageToggle';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -13,39 +15,46 @@ const fadeUp = {
 };
 
 const features = [
-  { icon: Eye, title: 'Análise de Fadiga', desc: 'Câmeras da nave detectam sinais de fadiga e micro-expressões. Monitoramento contínuo do estado cognitivo da tripulação em tempo real.' },
-  { icon: MessageCircle, title: 'AstroAssist Espacial', desc: 'Coach de IA com suporte psicológico adaptativo — essencial quando a comunicação com a Terra leva minutos para chegar.' },
-  { icon: Trophy, title: 'Disciplina de Missão', desc: 'Ciclos concluídos, protocolos em dia e sequência de monitoramento. Transforme o cuidado com a saúde em um hábito recompensador durante a missão.' },
-  { icon: Rocket, title: 'Painel de Comando', desc: 'Visão consolidada da saúde da tripulação, métricas de fadiga e insights acionáveis para o controle da missão.' },
+  { icon: Eye, titleKey: 'landing.features.fatigue.title', descKey: 'landing.features.fatigue.desc' },
+  { icon: MessageCircle, titleKey: 'landing.features.astroAssist.title', descKey: 'landing.features.astroAssist.desc' },
+  { icon: Trophy, titleKey: 'landing.features.discipline.title', descKey: 'landing.features.discipline.desc' },
+  { icon: Rocket, titleKey: 'landing.features.commandDeck.title', descKey: 'landing.features.commandDeck.desc' },
 ];
 
 const contextCards = [
-  { icon: Orbit, title: 'Latência de comunicação com a Terra', desc: 'O sinal entre a nave e a Terra leva tempo para ir e voltar, e esse atraso cresce com a distância. Decisões de saúde precisam poder ser tomadas a bordo.' },
-  { icon: Moon, title: 'Isolamento e confinamento', desc: 'Ambientes fechados, equipe reduzida e pouca variação de rotina exigem acompanhamento contínuo de sono, fadiga e humor.' },
-  { icon: Dumbbell, title: 'Microgravidade', desc: 'Sem carga gravitacional, músculos, ossos e o sistema vestibular se alteram. Registrar exercícios e acompanhar a saúde faz parte da rotina da missão.' },
+  { icon: Orbit, titleKey: 'landing.context.latency.title', descKey: 'landing.context.latency.desc' },
+  { icon: Moon, titleKey: 'landing.context.isolation.title', descKey: 'landing.context.isolation.desc' },
+  { icon: Dumbbell, titleKey: 'landing.context.microgravity.title', descKey: 'landing.context.microgravity.desc' },
 ];
 
 const stats = [
-  { value: 'RLS', label: 'Isolamento de dados por usuário', icon: Shield },
-  { value: 'Modo Autônomo', label: 'Simulado nesta versão', icon: Orbit },
-  { value: 'Webcam', label: 'Estimativas, não diagnóstico', icon: Eye },
-  { value: 'DSS', label: 'Apoio à decisão', icon: Brain },
+  { valueKey: 'landing.stats.rls.value', labelKey: 'landing.stats.rls.label', icon: Shield },
+  { valueKey: 'landing.stats.autonomous.value', labelKey: 'landing.stats.autonomous.label', icon: Orbit },
+  { valueKey: 'landing.stats.webcam.value', labelKey: 'landing.stats.webcam.label', icon: Eye },
+  { valueKey: 'landing.stats.dss.value', labelKey: 'landing.stats.dss.label', icon: Brain },
 ];
 
 const modules = [
-  { icon: CalendarCheck, title: 'Avaliação de Prontidão', desc: 'Triagem operacional com IA que gera recomendações personalizadas baseadas na prontidão e carga cognitiva do tripulante.', tag: 'Tripulação' },
-  { icon: Activity, title: 'BioScore', desc: 'Análise facial via câmeras da nave detecta fadiga e estima variabilidade cardíaca para calcular o estado cognitivo.', tag: 'Tripulação' },
-  { icon: MessageCircle, title: 'AstroAssist IA', desc: 'Coach de prontidão operacional com suporte psicológico adaptado ao nível de estresse e isolamento da missão.', tag: 'Tripulação' },
-  { icon: Trophy, title: 'Disciplina de Missão', desc: 'Ciclos concluídos, protocolos em dia e sequência de monitoramento que transformam o cuidado com a saúde em hábito motivador durante a missão.', tag: 'Tripulação' },
-  { icon: Moon, title: 'Registro de Sono', desc: 'Registro de horas dormidas e qualidade do sono — relevante para o ritmo circadiano em ambiente sem ciclo dia/noite.', tag: 'Tripulação' },
-  { icon: Dumbbell, title: 'Log de Exercícios', desc: 'Registro de treinos diários para acompanhar a perda óssea e muscular em microgravidade.', tag: 'Tripulação' },
-  { icon: Brain, title: 'IA Insights', desc: 'Estimativas de fadiga cognitiva, análise de sentimento e relatórios para o controle da missão.', tag: 'Comando' },
-  { icon: Bell, title: 'Alertas Proativos', desc: 'Notificações quando tripulantes atingem níveis críticos de fadiga por dias consecutivos.', tag: 'Comando' },
-  { icon: Sparkles, title: 'Apoio ao Comando', desc: 'Apoio ao comandante da missão em decisões críticas, com sugestões geradas por IA.', tag: 'Comando' },
+  { icon: CalendarCheck, titleKey: 'landing.modules.readiness.title', descKey: 'landing.modules.readiness.desc', tagKey: 'crew' as const },
+  { icon: Activity, titleKey: 'landing.modules.bioscore.title', descKey: 'landing.modules.bioscore.desc', tagKey: 'crew' as const },
+  { icon: MessageCircle, titleKey: 'landing.modules.astroassist.title', descKey: 'landing.modules.astroassist.desc', tagKey: 'crew' as const },
+  { icon: Trophy, titleKey: 'landing.modules.discipline.title', descKey: 'landing.modules.discipline.desc', tagKey: 'crew' as const },
+  { icon: Moon, titleKey: 'landing.modules.sleep.title', descKey: 'landing.modules.sleep.desc', tagKey: 'crew' as const },
+  { icon: Dumbbell, titleKey: 'landing.modules.exercise.title', descKey: 'landing.modules.exercise.desc', tagKey: 'crew' as const },
+  { icon: Brain, titleKey: 'landing.modules.insights.title', descKey: 'landing.modules.insights.desc', tagKey: 'command' as const },
+  { icon: Bell, titleKey: 'landing.modules.alerts.title', descKey: 'landing.modules.alerts.desc', tagKey: 'command' as const },
+  { icon: Sparkles, titleKey: 'landing.modules.commandSupport.title', descKey: 'landing.modules.commandSupport.desc', tagKey: 'command' as const },
+];
+
+const steps = [
+  { step: '01', badgeKey: 'landing.howItWorks.step1.badge', titleKey: 'landing.howItWorks.step1.title', descKey: 'landing.howItWorks.step1.desc', icon: Eye },
+  { step: '02', badgeKey: 'landing.howItWorks.step2.badge', titleKey: 'landing.howItWorks.step2.title', descKey: 'landing.howItWorks.step2.desc', icon: Brain },
+  { step: '03', badgeKey: 'landing.howItWorks.step3.badge', titleKey: 'landing.howItWorks.step3.title', descKey: 'landing.howItWorks.step3.desc', icon: Target },
 ];
 
 export default function Index() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const heroRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
@@ -55,23 +64,24 @@ export default function Index() {
     <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Sticky Nav */}
       <header className="border-b bg-card/80 backdrop-blur-lg sticky top-0 z-50">
-        <nav className="container mx-auto px-4 py-3 flex items-center justify-between max-w-6xl" aria-label="Navegação principal">
+        <nav className="container mx-auto px-4 py-3 flex items-center justify-between max-w-6xl" aria-label={t('landing.nav.aria')}>
           <div className="flex items-center gap-3">
             <img src={neuroSuiteLogo} alt="CrewVitals" className="h-10 sm:h-12 w-auto object-contain rounded-lg" loading="eager" width={48} height={48} />
             <span className="font-display font-bold text-lg">CrewVitals</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Button variant="ghost" size="sm" onClick={() => document.getElementById('beneficios')?.scrollIntoView({ behavior: 'smooth' })} className="hidden md:flex">
-              Recursos
+              {t('landing.nav.features')}
             </Button>
             <Button variant="ghost" size="sm" onClick={() => document.getElementById('modulos')?.scrollIntoView({ behavior: 'smooth' })} className="hidden md:flex">
-              Sistemas
+              {t('landing.nav.systems')}
             </Button>
             <Button variant="ghost" size="sm" onClick={() => document.getElementById('depoimentos')?.scrollIntoView({ behavior: 'smooth' })} className="hidden md:flex">
-              Contexto
+              {t('landing.nav.context')}
             </Button>
+            <LanguageToggle />
             <Button onClick={() => navigate('/auth')} className="gap-2 shadow-elegant">
-              Acessar Painel do Astronauta <ArrowRight className="h-4 w-4" />
+              {t('landing.nav.access')} <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
         </nav>
@@ -91,17 +101,17 @@ export default function Index() {
 
           <motion.div initial="hidden" animate="visible" className="container mx-auto px-4 max-w-5xl text-center relative z-10">
             <motion.div variants={fadeUp} custom={0} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-              <Zap className="h-4 w-4" /> Missões de Longa Duração — NASA
+              <Zap className="h-4 w-4" /> {t('landing.hero.badge')}
             </motion.div>
 
             <motion.h1 variants={fadeUp} custom={1} id="hero-heading" className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold leading-[1.1] mb-6">
-              Monitoramento de Saúde Contínuo em{' '}
-              <span className="text-gradient">Missões Espaciais</span>
+              {t('landing.hero.title')}{' '}
+              <span className="text-gradient">{t('landing.hero.titleHighlight')}</span>
             </motion.h1>
 
             <motion.p variants={fadeUp} custom={2} className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed">
-              IA analisa fadiga, sono e estado cognitivo da tripulação em tempo real.
-              <span className="font-semibold text-foreground"> Garanta a segurança da tripulação com análise de fadiga via câmeras da nave.</span>
+              {t('landing.hero.subtitle')}
+              <span className="font-semibold text-foreground">{t('landing.hero.subtitleBold')}</span>
             </motion.p>
 
             <motion.div variants={fadeUp} custom={3} className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">
@@ -110,7 +120,7 @@ export default function Index() {
                 size="lg"
                 className="text-lg px-8 py-6 min-h-[44px] shadow-elegant hover:shadow-glow transition-all"
               >
-                <Link to="/demo">Ver demonstração (sem login)</Link>
+                <Link to="/demo">{t('landing.hero.demoButton')}</Link>
               </Button>
               <Button
                 size="lg"
@@ -118,7 +128,7 @@ export default function Index() {
                 onClick={() => navigate('/auth')}
                 className="text-lg px-8 py-6 min-h-[44px]"
               >
-                Iniciar Missão
+                {t('landing.hero.startMissionButton')}
               </Button>
               <Button
                 size="lg"
@@ -126,16 +136,16 @@ export default function Index() {
                 onClick={() => document.getElementById('beneficios')?.scrollIntoView({ behavior: 'smooth' })}
                 className="text-lg px-8 py-6 min-h-[44px]"
               >
-                Ver Recursos
+                {t('landing.hero.viewFeaturesButton')}
               </Button>
             </motion.div>
 
             <motion.p variants={fadeUp} custom={4} className="text-xs text-muted-foreground max-w-md mx-auto mb-2">
-              Demonstração guiada com dados simulados de telemetria e biometria, sem necessidade de credenciais.
+              {t('landing.hero.demoDisclaimer')}
             </motion.p>
 
             <motion.p variants={fadeUp} custom={5} className="text-[11px] text-muted-foreground max-w-md mx-auto">
-              ATENÇÃO — NÃO SUBSTITUI AVALIAÇÃO MÉDICA. Ferramenta de apoio ao bem-estar da tripulação.
+              {t('landing.hero.medicalDisclaimer')}
             </motion.p>
 
             <motion.div variants={fadeUp} custom={6} className="mt-12">
@@ -148,11 +158,11 @@ export default function Index() {
         <section className="border-y bg-card/50 backdrop-blur-sm py-8">
           <div className="container mx-auto px-4 max-w-5xl">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {stats.map((s, i) => (
-                <motion.div key={s.value} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="text-center">
+              {stats.map((s) => (
+                <motion.div key={s.valueKey} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }} className="text-center">
                   <s.icon className="h-6 w-6 text-primary mx-auto mb-2" />
-                  <p className="text-2xl sm:text-3xl font-display font-bold">{s.value}</p>
-                  <p className="text-xs text-muted-foreground">{s.label}</p>
+                  <p className="text-2xl sm:text-3xl font-display font-bold">{t(s.valueKey)}</p>
+                  <p className="text-xs text-muted-foreground">{t(s.labelKey)}</p>
                 </motion.div>
               ))}
             </div>
@@ -164,23 +174,23 @@ export default function Index() {
           <div className="container mx-auto px-4 max-w-5xl">
             <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-12">
               <h2 id="features-heading" className="text-3xl sm:text-4xl font-display font-bold mb-4">
-                Recursos para a Missão
+                {t('landing.features.heading')}
               </h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">Neurociência + IA integradas em uma plataforma completa de saúde espacial.</p>
+              <p className="text-muted-foreground max-w-xl mx-auto">{t('landing.features.subheading')}</p>
             </motion.div>
 
             <div className="grid sm:grid-cols-2 gap-5">
               {features.map((f, i) => (
-                <motion.div key={f.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1, duration: 0.5 }}>
+                <motion.div key={f.titleKey} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1, duration: 0.5 }}>
                   <Card className="h-full hover:shadow-elegant transition-all duration-300 group border-border/50">
                     <CardHeader className="pb-3">
                       <div className="p-2.5 bg-primary/10 rounded-lg w-fit group-hover:bg-primary/15 transition-colors" aria-hidden="true">
                         <f.icon className="h-5 w-5 text-primary" />
                       </div>
-                      <CardTitle className="text-lg mt-3">{f.title}</CardTitle>
+                      <CardTitle className="text-lg mt-3">{t(f.titleKey)}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <CardDescription className="text-sm leading-relaxed">{f.desc}</CardDescription>
+                      <CardDescription className="text-sm leading-relaxed">{t(f.descKey)}</CardDescription>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -194,20 +204,20 @@ export default function Index() {
           <div className="container mx-auto px-4 max-w-6xl">
             <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-12">
               <h2 id="modules-heading" className="text-3xl sm:text-4xl font-display font-bold mb-4">
-                Sistemas Integrados de Bordo
+                {t('landing.modules.heading')}
               </h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">Da tripulação ao controle da missão, cada sistema foi projetado com neurociência e IA para máxima segurança.</p>
+              <p className="text-muted-foreground max-w-xl mx-auto">{t('landing.modules.subheading')}</p>
             </motion.div>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {modules.map((m, i) => {
-                const tagColors: Record<string, string> = {
-                  Tripulação: 'bg-primary/10 text-primary',
-                  Comando: 'bg-accent/20 text-accent-foreground',
+                const tagColors: Record<'crew' | 'command', string> = {
+                  crew: 'bg-primary/10 text-primary',
+                  command: 'bg-accent/20 text-accent-foreground',
                 };
                 return (
                   <motion.div
-                    key={m.title}
+                    key={m.titleKey}
                     initial={{ opacity: 0, y: 16 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
@@ -220,12 +230,12 @@ export default function Index() {
                         </div>
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-sm">{m.title}</h3>
-                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${tagColors[m.tag] || 'bg-muted text-muted-foreground'}`}>
-                              {m.tag}
+                            <h3 className="font-semibold text-sm">{t(m.titleKey)}</h3>
+                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${tagColors[m.tagKey] || 'bg-muted text-muted-foreground'}`}>
+                              {t(m.tagKey === 'crew' ? 'landing.modules.tag.crew' : 'landing.modules.tag.command')}
                             </span>
                           </div>
-                          <p className="text-xs text-muted-foreground leading-relaxed">{m.desc}</p>
+                          <p className="text-xs text-muted-foreground leading-relaxed">{t(m.descKey)}</p>
                         </div>
                       </CardContent>
                     </Card>
@@ -236,7 +246,7 @@ export default function Index() {
 
             <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mt-10">
               <Button size="lg" onClick={() => navigate('/auth')} className="gap-2 shadow-elegant">
-                Explorar Todos os Sistemas <ArrowRight className="h-4 w-4" />
+                {t('landing.modules.exploreButton')} <ArrowRight className="h-4 w-4" />
               </Button>
             </motion.div>
           </div>
@@ -247,22 +257,22 @@ export default function Index() {
           <div className="container mx-auto px-4 max-w-5xl">
             <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-12">
               <h2 id="contexto-heading" className="text-3xl sm:text-4xl font-display font-bold mb-4">
-                Contexto da missão
+                {t('landing.context.heading')}
               </h2>
             </motion.div>
 
             <div className="grid md:grid-cols-3 gap-5">
               {contextCards.map((c, i) => (
-                <motion.div key={c.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.12 }}>
+                <motion.div key={c.titleKey} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.12 }}>
                   <Card className="h-full border-border/50">
                     <CardHeader className="pb-3">
                       <div className="p-2.5 bg-primary/10 rounded-lg w-fit" aria-hidden="true">
                         <c.icon className="h-5 w-5 text-primary" />
                       </div>
-                      <CardTitle className="text-base mt-3">{c.title}</CardTitle>
+                      <CardTitle className="text-base mt-3">{t(c.titleKey)}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <CardDescription className="text-sm leading-relaxed">{c.desc}</CardDescription>
+                      <CardDescription className="text-sm leading-relaxed">{t(c.descKey)}</CardDescription>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -284,13 +294,13 @@ export default function Index() {
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,hsl(var(--primary)/0.15),transparent_60%)]" />
               <div className="relative z-10 text-center py-12 sm:py-16 px-6 sm:px-12">
                 <h2 id="cta-heading" className="text-3xl sm:text-4xl font-display font-bold text-white mb-4">
-                  Pronto para a Decolagem?
+                  {t('landing.cta.heading')}
                 </h2>
                 <p className="text-white/80 text-base sm:text-lg mb-8 max-w-xl mx-auto">
-                  Acesse agora. Neurociência + IA protegendo a saúde da sua tripulação em qualquer ponto do sistema solar.
+                  {t('landing.cta.subheading')}
                 </p>
                 <Button size="lg" variant="secondary" onClick={() => navigate('/auth')} className="text-lg px-8 py-6 shadow-soft">
-                  Acessar Painel do Astronauta
+                  {t('landing.cta.button')}
                 </Button>
               </div>
             </motion.div>
@@ -298,22 +308,18 @@ export default function Index() {
         </section>
 
         {/* How it works */}
-        <section className="py-16 sm:py-24 border-t" aria-label="Como funciona">
+        <section className="py-16 sm:py-24 border-t" aria-label={t('landing.howItWorks.aria')}>
           <div className="container mx-auto px-4 max-w-4xl">
-            <h2 className="text-3xl sm:text-4xl font-display font-bold text-center mb-12">Como Funciona em 3 Passos</h2>
+            <h2 className="text-3xl sm:text-4xl font-display font-bold text-center mb-12">{t('landing.howItWorks.heading')}</h2>
             <div className="grid md:grid-cols-3 gap-8">
-              {[
-                { step: '01', title: 'Análise Facial', desc: 'As câmeras da nave fazem uma análise rápida. Sem wearables, sem equipamento extra.', icon: Eye },
-                { step: '02', title: 'IA Processa Localmente', desc: 'Algoritmos de neurociência processam fadiga e variabilidade cardíaca direto na nave — sem depender da Terra.', icon: Brain },
-                { step: '03', title: 'Ação Imediata', desc: 'Receba um plano personalizado de recuperação com técnicas validadas para ambientes de isolamento.', icon: Target },
-              ].map((s, i) => (
+              {steps.map((s, i) => (
                 <motion.div key={s.step} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.15 }} className="text-center">
                   <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                     <s.icon className="h-6 w-6 text-primary" />
                   </div>
-                  <p className="text-xs font-bold text-primary mb-1">PASSO {s.step}</p>
-                  <h3 className="font-display font-bold text-lg mb-2">{s.title}</h3>
-                  <p className="text-sm text-muted-foreground">{s.desc}</p>
+                  <p className="text-xs font-bold text-primary mb-1">{t(s.badgeKey)}</p>
+                  <h3 className="font-display font-bold text-lg mb-2">{t(s.titleKey)}</h3>
+                  <p className="text-sm text-muted-foreground">{t(s.descKey)}</p>
                 </motion.div>
               ))}
             </div>
@@ -330,11 +336,11 @@ export default function Index() {
                 <span className="font-display font-bold">{APP_CONFIG.name}</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Zero-Trust Privacy
+                {t('landing.footer.privacy')}
               </p>
             </div>
             <div>
-              <h3 className="font-semibold mb-3">Contato</h3>
+              <h3 className="font-semibold mb-3">{t('landing.footer.contact')}</h3>
               <address className="text-sm text-muted-foreground not-italic space-y-1">
                 <p>{APP_CONFIG.contact.email}</p>
                 <p>{APP_CONFIG.contact.whatsapp}</p>
