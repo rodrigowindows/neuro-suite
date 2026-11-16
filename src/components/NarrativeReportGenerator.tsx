@@ -7,8 +7,10 @@ import { FileText, Loader2, Download, Building2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useConnectionMode } from '@/hooks/useConnectionMode';
+import { useI18n } from '@/i18n';
 
 export default function NarrativeReportGenerator() {
+  const { lang, t } = useI18n();
   const { toast } = useToast();
   const { isAutonomous } = useConnectionMode();
   const [companyName, setCompanyName] = useState('');
@@ -36,24 +38,41 @@ export default function NarrativeReportGenerator() {
       };
 
       if (isAutonomous) {
-        setReport('Gerado localmente (regras fixas, sem IA em nuvem):\n\nRelatório consolidado via regras determinísticas locais com base nas telemetrias coletadas.\n- Taxa de conclusão de checkins: 74%\n- Média de HRV: 42ms\n- Status geral: Estável com monitoramento de prontidão ativo.');
+        setReport(
+          lang === 'pt'
+            ? 'Gerado localmente (regras fixas, sem IA em nuvem):\n\nRelatório consolidado via regras determinísticas locais com base nas telemetrias coletadas.\n- Taxa de conclusão de checkins: 74%\n- Média de HRV: 42ms\n- Status geral: Estável com monitoramento de prontidão ativo.'
+            : 'Locally generated (fixed rules, no cloud AI):\n\nConsolidated report via local deterministic rules based on collected telemetries.\n- Check-in completion rate: 74%\n- Average HRV: 42ms\n- Overall status: Stable with active readiness monitoring.'
+        );
         return;
       }
+
+      const periodLabel =
+        period === 'week'
+          ? t('safety.narrative.period.week')
+          : period === 'month'
+          ? t('safety.narrative.period.month')
+          : t('safety.narrative.period.quarter');
+
+      const defaultCompany = lang === 'pt' ? 'Empresa' : 'Company';
 
       const { data, error } = await supabase.functions.invoke('narrative-report', {
         body: {
           metrics,
-          period: period === 'week' ? 'Última Semana' : period === 'month' ? 'Último Mês' : 'Último Trimestre',
-          companyName: companyName || 'Empresa',
+          period: periodLabel,
+          companyName: companyName || defaultCompany,
           teamSize: teamSize || 'N/A',
         },
       });
 
       if (error) throw error;
       setReport(data.report);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erro relatório:', err);
-      toast({ title: 'Erro', description: 'Não foi possível gerar o relatório.', variant: 'destructive' });
+      toast({
+        title: t('safety.narrative.toast.errorTitle'),
+        description: t('safety.narrative.toast.errorDesc'),
+        variant: 'destructive',
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -66,7 +85,7 @@ export default function NarrativeReportGenerator() {
     a.href = url;
     a.download = `relatorio-executivo-${new Date().toISOString().split('T')[0]}.md`;
     a.click();
-    toast({ title: 'Relatório exportado! 📄' });
+    toast({ title: t('safety.narrative.toast.exported') });
   };
 
   return (
@@ -75,20 +94,20 @@ export default function NarrativeReportGenerator() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-primary" />
-            Relatórios Narrativos com IA
+            {t('safety.narrative.title')}
           </CardTitle>
           <CardDescription>
-            Converta métricas em relatórios executivos profissionais para Comando e C-Level
+            {t('safety.narrative.description')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="text-sm font-medium">Empresa</label>
+              <label className="text-sm font-medium">{t('safety.narrative.companyLabel')}</label>
               <div className="relative mt-1">
                 <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Nome da empresa"
+                  placeholder={t('safety.narrative.companyPlaceholder')}
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
                   className="pl-9"
@@ -96,23 +115,23 @@ export default function NarrativeReportGenerator() {
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium">Tamanho da equipe</label>
+              <label className="text-sm font-medium">{t('safety.narrative.teamSizeLabel')}</label>
               <Input
                 type="number"
-                placeholder="Ex: 150"
+                placeholder={t('safety.narrative.teamSizePlaceholder')}
                 value={teamSize}
                 onChange={(e) => setTeamSize(e.target.value)}
                 className="mt-1"
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Período</label>
+              <label className="text-sm font-medium">{t('safety.narrative.periodLabel')}</label>
               <Select value={period} onValueChange={setPeriod}>
                 <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="week">Última Semana</SelectItem>
-                  <SelectItem value="month">Último Mês</SelectItem>
-                  <SelectItem value="quarter">Último Trimestre</SelectItem>
+                  <SelectItem value="week">{t('safety.narrative.period.week')}</SelectItem>
+                  <SelectItem value="month">{t('safety.narrative.period.month')}</SelectItem>
+                  <SelectItem value="quarter">{t('safety.narrative.period.quarter')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -120,9 +139,15 @@ export default function NarrativeReportGenerator() {
 
           <Button onClick={generateReport} disabled={isGenerating} className="w-full">
             {isGenerating ? (
-              <><Loader2 className="h-4 w-4 animate-spin mr-2" />Gerando relatório executivo...</>
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                {t('safety.narrative.generatingBtn')}
+              </>
             ) : (
-              <><FileText className="h-4 w-4 mr-2" />Gerar Relatório Narrativo</>
+              <>
+                <FileText className="h-4 w-4 mr-2" />
+                {t('safety.narrative.generateBtn')}
+              </>
             )}
           </Button>
         </CardContent>
@@ -131,10 +156,10 @@ export default function NarrativeReportGenerator() {
       {report && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">📊 Relatório Gerado</CardTitle>
+            <CardTitle className="text-base">{t('safety.narrative.reportTitle')}</CardTitle>
             <Button variant="outline" size="sm" onClick={exportReport}>
               <Download className="h-4 w-4 mr-2" />
-              Exportar .md
+              {t('safety.narrative.exportMd')}
             </Button>
           </CardHeader>
           <CardContent>

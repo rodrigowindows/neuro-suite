@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FileText, Download, Shield, AlertTriangle, CheckCircle, Sparkles, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useConnectionMode } from '@/hooks/useConnectionMode';
+import { useI18n } from '@/i18n';
 import ExportPDFButton from './ExportPDFButton';
 import NR1ComplianceScoreCard from './NR1ComplianceScoreCard';
 import PGRReportGenerator from './PGRReportGenerator';
@@ -14,29 +15,31 @@ interface ReportData {
   moderatePercent: number;
   highPercent: number;
   avgHRV: number;
-  period: string;
+  startDate: Date;
+  endDate: Date;
   riskLevel: 'low' | 'moderate' | 'high';
-  recommendations: string[];
-  aiInsights?: any;
+  recommendationKeys: string[];
 }
 
 interface NR1AIInsights {
   riskClassification: string;
   legalAnalysis: string;
   requiredActions: string[];
-  suggestedActions: string[];
+  suggestedActions?: string[];
   complianceGaps: string[];
-  documentationNeeded: string[];
+  documentationNeeded?: string[];
   executiveText: string;
 }
 
 export default function NR1Report() {
+  const { lang, t } = useI18n();
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [aiInsights, setAiInsights] = useState<NR1AIInsights | null>(null);
   const [loadingAI, setLoadingAI] = useState(false);
   const { isAutonomous } = useConnectionMode();
+
   useEffect(() => {
     loadReportData();
   }, []);
@@ -48,6 +51,7 @@ export default function NR1Report() {
 
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const now = new Date();
 
       // No user_id filter - managers see all team data via RLS
       const { data: scans } = await supabase
@@ -74,13 +78,13 @@ export default function NR1Report() {
         if (highPercent > 30) riskLevel = 'high';
         else if (moderatePercent > 50 || highPercent > 15) riskLevel = 'moderate';
 
-        const recommendations: string[] = [];
-        if (highPercent > 20) recommendations.push('Implementar programa de pausas ativas obrigatórias');
-        if (avgHRV < 30) recommendations.push('Avaliação médica recomendada para colaboradores com HRV baixo');
-        if (moderatePercent > 40) recommendations.push('Workshop de técnicas de regulação emocional');
-        if (highPercent > 30) recommendations.push('Revisão de carga de trabalho e redistribuição de tarefas');
-        recommendations.push('Manter monitoramento contínuo via CrewVitals');
-        recommendations.push('Documentar ações para Segurança de Missão Segurança de Missão (gestão de riscos psicossociais)');
+        const recommendationKeys: string[] = [];
+        if (highPercent > 20) recommendationKeys.push('safety.report.rec.activeBreaks');
+        if (avgHRV < 30) recommendationKeys.push('safety.report.rec.medicalEval');
+        if (moderatePercent > 40) recommendationKeys.push('safety.report.rec.workshop');
+        if (highPercent > 30) recommendationKeys.push('safety.report.rec.workload');
+        recommendationKeys.push('safety.report.rec.monitoring');
+        recommendationKeys.push('safety.report.rec.documentation');
 
         setReportData({
           totalScans: total,
@@ -88,9 +92,10 @@ export default function NR1Report() {
           moderatePercent,
           highPercent,
           avgHRV: Math.round(avgHRV),
-          period: `${thirtyDaysAgo.toLocaleDateString('pt-BR')} a ${new Date().toLocaleDateString('pt-BR')}`,
+          startDate: thirtyDaysAgo,
+          endDate: now,
           riskLevel,
-          recommendations,
+          recommendationKeys,
         });
       }
     } catch (error) {
@@ -100,55 +105,94 @@ export default function NR1Report() {
     }
   };
 
+  const dateLocale = lang === 'pt' ? 'pt-BR' : 'en-US';
+  const periodStr = reportData
+    ? t('safety.report.periodFormat', {
+        start: reportData.startDate.toLocaleDateString(dateLocale),
+        end: reportData.endDate.toLocaleDateString(dateLocale),
+      })
+    : '';
+
+  const recommendations = reportData ? reportData.recommendationKeys.map(k => t(k)) : [];
+
+  const riskLabel = reportData
+    ? reportData.riskLevel === 'high'
+      ? t('safety.report.riskLevel.high')
+      : reportData.riskLevel === 'moderate'
+      ? t('safety.report.riskLevel.moderate')
+      : t('safety.report.riskLevel.low')
+    : '';
+
+  const hrvStatus = reportData
+    ? reportData.avgHRV > 50
+      ? `✅ ${t('safety.report.hrvGood')}`
+      : reportData.avgHRV > 30
+      ? `⚡ ${t('safety.report.hrvNormal')}`
+      : `⚠️ ${t('safety.report.hrvWarning')}`
+    : '';
+
+  const riskAnalysis = reportData
+    ? reportData.riskLevel === 'high'
+      ? t('safety.report.riskAnalysis.high')
+      : reportData.riskLevel === 'moderate'
+      ? t('safety.report.riskAnalysis.moderate')
+      : t('safety.report.riskAnalysis.low')
+    : '';
+
   const generatePDFContent = (): string => {
     if (!reportData) return '';
-    const now = new Date().toLocaleDateString('pt-BR');
+    const nowStr = new Date().toLocaleDateString(dateLocale);
+    const riskBadge =
+      reportData.riskLevel === 'high'
+        ? `${riskLabel} ⚠️`
+        : reportData.riskLevel === 'moderate'
+        ? `${riskLabel} ⚡`
+        : `${riskLabel} ✅`;
+
     return `
-RELATÓRIO DE GESTÃO DE RISCOS PSICOSSOCIAIS — Segurança de Missão
+${t('safety.report.txt.header')}
 ====================================================
-Gerado por CrewVitals | Data: ${now}
-Período de Análise: ${reportData.period}
+${t('safety.report.txt.generatedBy', { date: nowStr })}
+${t('safety.report.txt.period', { period: periodStr })}
 
-1. RESUMO EXECUTIVO
+${t('safety.report.txt.section1')}
 --------------------
-Total de Avaliações: ${reportData.totalScans}
-Nível de Risco Geral: ${reportData.riskLevel === 'high' ? 'ALTO ⚠️' : reportData.riskLevel === 'moderate' ? 'MODERADO ⚡' : 'BAIXO ✅'}
+${t('safety.report.txt.totalScans', { count: reportData.totalScans })}
+${t('safety.report.txt.overallRisk', { risk: riskBadge })}
 
-2. DISTRIBUIÇÃO DE ESTRESSE
+${t('safety.report.txt.section2')}
 -----------------------------
-• Baixo Estresse: ${reportData.lowPercent}%
-• Estresse Moderado: ${reportData.moderatePercent}%
-• Estresse Alto: ${reportData.highPercent}%
+${t('safety.report.txt.lowPercent', { pct: reportData.lowPercent })}
+${t('safety.report.txt.modPercent', { pct: reportData.moderatePercent })}
+${t('safety.report.txt.highPercent', { pct: reportData.highPercent })}
 
-3. INDICADORES BIOMÉTRICOS
+${t('safety.report.txt.section3')}
 -----------------------------
-• HRV Médio: ${reportData.avgHRV}ms
-• Status HRV: ${reportData.avgHRV > 50 ? 'Boa resiliência autonômica' : reportData.avgHRV > 30 ? 'Normal — monitorar' : 'Atenção — possível sobrecarga'}
+${t('safety.report.txt.avgHrv', { hrv: reportData.avgHRV })}
+${t('safety.report.txt.hrvStatus', { status: hrvStatus })}
 
-4. ANÁLISE DE RISCO (Segurança de Missão, Art. 157)
+${t('safety.report.txt.section4')}
 ---------------------------------------
-${reportData.riskLevel === 'high' ? 'AÇÃO URGENTE: Mais de 30% dos colaboradores apresentam estresse alto. Risco de adoecimento ocupacional e passivo trabalhista.' : reportData.riskLevel === 'moderate' ? 'ATENÇÃO: Níveis moderados de estresse detectados. Intervenções preventivas recomendadas.' : 'SITUAÇÃO CONTROLADA: Níveis de estresse dentro dos parâmetros aceitáveis.'}
+${riskAnalysis}
 
-5. RECOMENDAÇÕES
+${t('safety.report.txt.section5')}
 ------------------
-${reportData.recommendations.map((r, i) => `${i + 1}. ${r}`).join('\n')}
+${recommendations.map((r, i) => `${i + 1}. ${r}`).join('\n')}
 
-6. BASE LEGAL
+${t('safety.report.txt.section6')}
 ---------------
-• Segurança de Missão (Portaria MTP 4.219/2022) — Gerenciamento de Riscos Ocupacionais
-• Lei 14.457/2022 — Programa Emprega + Mulheres (saúde mental)
-• Portaria MTE 1.419/2024 — Riscos psicossociais no PGR
-• OIT C155 — Convenção sobre Segurança e Saúde dos Trabalhadores
+${t('safety.report.txt.legal1')}
+${t('safety.report.txt.legal2')}
+${t('safety.report.txt.legal3')}
+${t('safety.report.txt.legal4')}
 
-7. DECLARAÇÃO
+${t('safety.report.txt.section7')}
 ---------------
-Este relatório foi gerado automaticamente pelo sistema CrewVitals com base em dados biométricos coletados de forma anônima e em conformidade com a Zero-Trust Privacy (Lei 13.709/2018).
-
-Os dados são agregados e não permitem identificação individual dos colaboradores.
+${t('safety.report.txt.declaration')}
 
 ____________________________________
-Responsável Técnico
-CrewVitals — Plataforma de Neuroperformance Corporativa
+${t('safety.report.txt.techResp')}
+${t('safety.report.txt.companySub')}
     `.trim();
   };
 
@@ -170,15 +214,15 @@ CrewVitals — Plataforma de Neuroperformance Corporativa
 
   const exportCSV = () => {
     if (!reportData) return;
-    const csv = `Métrica,Valor,Unidade
-Período,"${reportData.period}",
-Total de Avaliações,${reportData.totalScans},scans
-Estresse Baixo,${reportData.lowPercent},%
-Estresse Moderado,${reportData.moderatePercent},%
-Estresse Alto,${reportData.highPercent},%
-HRV Médio,${reportData.avgHRV},ms
-Nível de Risco,${reportData.riskLevel},
-${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).join('\n')}`;
+    const csv = `${t('safety.report.csv.metric')},${t('safety.report.csv.value')},${t('safety.report.csv.unit')}
+${t('safety.report.csv.period')},"${periodStr}",
+${t('safety.report.csv.totalScans')},${reportData.totalScans},scans
+${t('safety.report.csv.lowStress')},${reportData.lowPercent},%
+${t('safety.report.csv.modStress')},${reportData.moderatePercent},%
+${t('safety.report.csv.highStress')},${reportData.highPercent},%
+${t('safety.report.csv.avgHrv')},${reportData.avgHRV},ms
+${t('safety.report.csv.riskLevel')},${reportData.riskLevel},
+${recommendations.map((r, i) => `${t('safety.report.csv.recPrefix')} ${i + 1},"${r}",`).join('\n')}`;
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -194,7 +238,7 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
       <Card>
         <CardContent className="p-12 text-center">
           <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-muted-foreground">Gerando relatório Segurança de Missão...</p>
+          <p className="text-muted-foreground">{t('safety.report.generating')}</p>
         </CardContent>
       </Card>
     );
@@ -205,7 +249,7 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
       <Card>
         <CardContent className="p-12 text-center">
           <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">Sem dados suficientes para gerar relatório. Realize scans primeiro.</p>
+          <p className="text-muted-foreground">{t('safety.report.noData')}</p>
         </CardContent>
       </Card>
     );
@@ -231,40 +275,54 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            Relatório Segurança de Missão — Riscos Psicossociais
+            {t('safety.report.title')}
           </CardTitle>
           <CardDescription>
-            Relatório de Segurança de Missão para gestão de riscos psicossociais conforme Segurança de Missão e Portaria MTE 1.419/2024
+            {t('safety.report.description')}
           </CardDescription>
           <div className="flex gap-2 mt-3 flex-wrap">
             <Button onClick={exportReport} variant="default" size="sm" disabled={generating}>
               <Download className="mr-2 h-4 w-4" />
-              Exportar (.txt)
+              {t('safety.report.exportTxt')}
             </Button>
             <Button onClick={exportCSV} variant="outline" size="sm">
               <Download className="mr-2 h-4 w-4" />
-              Exportar CSV
+              {t('safety.report.exportCsv')}
             </Button>
             <ExportPDFButton
-              reportTitle="Relatório Segurança de Missão — Riscos Psicossociais"
+              reportTitle={t('safety.report.title')}
               stats={[
-                { label: 'Total Scans', value: String(reportData.totalScans) },
-                { label: 'Estresse Baixo', value: `${reportData.lowPercent}%` },
-                { label: 'Estresse Moderado', value: `${reportData.moderatePercent}%` },
-                { label: 'Estresse Alto', value: `${reportData.highPercent}%` },
-                { label: 'HRV Médio', value: `${reportData.avgHRV}ms` },
+                { label: t('safety.report.metric.assessments'), value: String(reportData.totalScans) },
+                { label: t('safety.report.metric.lowStress'), value: `${reportData.lowPercent}%` },
+                { label: t('safety.report.metric.moderate'), value: `${reportData.moderatePercent}%` },
+                { label: t('safety.report.metric.high'), value: `${reportData.highPercent}%` },
+                { label: t('safety.report.hrvShort'), value: `${reportData.avgHRV}ms` },
               ]}
               sections={[
-                { title: '1. Resumo Executivo', content: `Período: ${reportData.period}\nTotal de Avaliações: ${reportData.totalScans}\nNível de Risco: ${reportData.riskLevel === 'high' ? 'ALTO ⚠️' : reportData.riskLevel === 'moderate' ? 'MODERADO' : 'BAIXO ✅'}` },
-                { title: '2. Distribuição de Estresse', content: `Baixo: ${reportData.lowPercent}%\nModerado: ${reportData.moderatePercent}%\nAlto: ${reportData.highPercent}%` },
-                { title: '3. Recomendações', content: reportData.recommendations.map((r, i) => `${i + 1}. ${r}`).join('\n') },
-                ...(aiInsights ? [
-                  { title: '4. Análise IA (Segurança de Missão)', content: aiInsights.legalAnalysis },
-                  { title: '5. Texto para PGR', content: aiInsights.executiveText },
-                ] : []),
-                { title: 'Base Legal', content: 'Segurança de Missão (Portaria MTP 4.219/2022)\nLei 14.457/2022\nPortaria MTE 1.419/2024\nOIT C155' },
+                {
+                  title: t('safety.report.section.execSummary'),
+                  content: `${t('safety.report.period', { period: periodStr })}\n${t('safety.report.txt.totalScans', { count: reportData.totalScans })}\n${t('safety.report.riskLevel', { level: riskLabel })}`,
+                },
+                {
+                  title: t('safety.report.section.stressDist'),
+                  content: `${t('safety.report.metric.lowStress')}: ${reportData.lowPercent}%\n${t('safety.report.metric.moderate')}: ${reportData.moderatePercent}%\n${t('safety.report.metric.high')}: ${reportData.highPercent}%`,
+                },
+                {
+                  title: t('safety.report.section.recommendations'),
+                  content: recommendations.map((r, i) => `${i + 1}. ${r}`).join('\n'),
+                },
+                ...(aiInsights
+                  ? [
+                      { title: t('safety.report.section.aiAnalysis'), content: aiInsights.legalAnalysis },
+                      { title: t('safety.report.section.pgrText'), content: aiInsights.executiveText },
+                    ]
+                  : []),
+                {
+                  title: t('safety.report.legalBasisTitle'),
+                  content: `${t('safety.report.txt.legal1')}\n${t('safety.report.txt.legal2')}\n${t('safety.report.txt.legal3')}\n${t('safety.report.txt.legal4')}`,
+                },
               ]}
-              footer="Gerado automaticamente por CrewVitals · Dados protegidos por Zero-Trust Privacy"
+              footer={t('safety.report.pdfFooter')}
             />
           </div>
         </CardHeader>
@@ -279,9 +337,9 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
               )}
               <div>
                 <p className={`font-bold ${colors.text}`}>
-                  Nível de Risco: {reportData.riskLevel === 'high' ? 'ALTO' : reportData.riskLevel === 'moderate' ? 'MODERADO' : 'BAIXO'}
+                  {t('safety.report.riskLevel', { level: riskLabel })}
                 </p>
-                <p className="text-xs text-muted-foreground">Período: {reportData.period}</p>
+                <p className="text-xs text-muted-foreground">{t('safety.report.period', { period: periodStr })}</p>
               </div>
             </CardContent>
           </Card>
@@ -289,37 +347,37 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
           {/* Metrics Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="p-3 bg-muted/30 rounded-lg text-center">
-              <p className="text-[10px] text-muted-foreground uppercase">Avaliações</p>
+              <p className="text-[10px] text-muted-foreground uppercase">{t('safety.report.metric.assessments')}</p>
               <p className="text-2xl font-bold text-primary">{reportData.totalScans}</p>
             </div>
             <div className="p-3 bg-green-500/10 rounded-lg text-center">
-              <p className="text-[10px] text-muted-foreground uppercase">Baixo Estresse</p>
+              <p className="text-[10px] text-muted-foreground uppercase">{t('safety.report.metric.lowStress')}</p>
               <p className="text-2xl font-bold text-green-600">{reportData.lowPercent}%</p>
             </div>
             <div className="p-3 bg-yellow-500/10 rounded-lg text-center">
-              <p className="text-[10px] text-muted-foreground uppercase">Moderado</p>
+              <p className="text-[10px] text-muted-foreground uppercase">{t('safety.report.metric.moderate')}</p>
               <p className="text-2xl font-bold text-yellow-600">{reportData.moderatePercent}%</p>
             </div>
             <div className="p-3 bg-red-500/10 rounded-lg text-center">
-              <p className="text-[10px] text-muted-foreground uppercase">Alto</p>
+              <p className="text-[10px] text-muted-foreground uppercase">{t('safety.report.metric.high')}</p>
               <p className="text-2xl font-bold text-red-600">{reportData.highPercent}%</p>
             </div>
           </div>
 
           {/* HRV */}
           <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-            <p className="text-xs text-muted-foreground mb-1">HRV Médio (Variabilidade da Frequência Cardíaca)</p>
+            <p className="text-xs text-muted-foreground mb-1">{t('safety.report.hrvTitle')}</p>
             <p className="text-3xl font-bold text-primary">{reportData.avgHRV}<span className="text-sm">ms</span></p>
             <p className="text-xs text-muted-foreground mt-1">
-              {reportData.avgHRV > 50 ? '✅ Boa resiliência autonômica' : reportData.avgHRV > 30 ? '⚡ Normal — continuar monitorando' : '⚠️ Atenção — possível sobrecarga do SNA'}
+              {hrvStatus}
             </p>
           </div>
 
           {/* Recommendations */}
           <div className="space-y-3">
-            <p className="text-sm font-semibold">📋 Recomendações para Segurança de Missão Segurança de Missão:</p>
+            <p className="text-sm font-semibold">📋 {t('safety.report.recommendationsTitle')}</p>
             <div className="space-y-2">
-              {reportData.recommendations.map((rec, i) => (
+              {recommendations.map((rec, i) => (
                 <div key={i} className="flex items-start gap-2 p-2 bg-muted/30 rounded-lg">
                   <span className="text-xs font-bold text-primary mt-0.5">{i + 1}.</span>
                   <p className="text-xs text-muted-foreground">{rec}</p>
@@ -334,13 +392,23 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
               setLoadingAI(true);
               try {
                 if (isAutonomous) {
-                  setAiInsights({
-                    riskClassification: 'Risco Operacional Monitorado',
-                    legalAnalysis: 'Gerado localmente (regras fixas, sem IA em nuvem): Análise de conformidade preliminar calculada por regras fixas locais da nave.',
-                    requiredActions: ['Manter registro sistemático de telemetrias', 'Aplicar pausas ativas regulares'],
-                    complianceGaps: [],
-                    executiveText: 'Gerado localmente (regras fixas, sem IA em nuvem): Indicadores em conformidade com as diretrizes operacionais locais.',
-                  });
+                  setAiInsights(
+                    lang === 'pt'
+                      ? {
+                          riskClassification: 'Risco Operacional Monitorado',
+                          legalAnalysis: 'Gerado localmente (regras fixas, sem IA em nuvem): Análise de conformidade preliminar calculada por regras fixas locais da nave. Ferramenta de suporte à decisão.',
+                          requiredActions: ['Manter registro sistemático de telemetrias', 'Aplicar pausas ativas regulares'],
+                          complianceGaps: [],
+                          executiveText: 'Gerado localmente (regras fixas, sem IA em nuvem): Indicadores em conformidade com as diretrizes operacionais locais.',
+                        }
+                      : {
+                          riskClassification: 'Monitored Operational Risk',
+                          legalAnalysis: 'Locally generated (fixed rules, no cloud AI): Preliminary compliance analysis calculated by local fixed rules. Decision-support tool.',
+                          requiredActions: ['Maintain systematic telemetry logging', 'Apply regular active breaks'],
+                          complianceGaps: [],
+                          executiveText: 'Locally generated (fixed rules, no cloud AI): Indicators aligned with local operational guidelines.',
+                        }
+                  );
                   return;
                 }
 
@@ -349,7 +417,7 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
                     type: 'nr1_insights',
                     data: {
                       totalScans: reportData.totalScans,
-                      period: reportData.period,
+                      period: periodStr,
                       lowPercent: reportData.lowPercent,
                       moderatePercent: reportData.moderatePercent,
                       highPercent: reportData.highPercent,
@@ -361,7 +429,7 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
                 if (error) throw error;
                 if (data?.error) throw new Error(data.error);
                 setAiInsights(data.result);
-              } catch (e: any) {
+              } catch (e: unknown) {
                 console.error('Erro AI Segurança de Missão:', e);
               } finally {
                 setLoadingAI(false);
@@ -372,7 +440,7 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
             className="w-full gap-2"
           >
             {loadingAI ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4 text-accent" />}
-            {loadingAI ? 'Gerando análise jurídica...' : 'Gerar Insights Segurança de Missão com IA'}
+            {loadingAI ? t('safety.report.aiButtonLoading') : t('safety.report.aiButton')}
           </Button>
 
           {aiInsights && (
@@ -380,13 +448,15 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
               <CardContent className="p-4 space-y-3">
                 <p className="font-bold text-sm flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-accent" />
-                  Análise Jurídica IA — {aiInsights.riskClassification}
+                  {t('safety.report.aiAnalysisTitle', { classification: aiInsights.riskClassification })}
                 </p>
                 <p className="text-xs text-muted-foreground">{aiInsights.legalAnalysis}</p>
 
                 {aiInsights.requiredActions?.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-semibold text-destructive uppercase mb-1">Ações Obrigatórias:</p>
+                    <p className="text-[10px] font-semibold text-destructive uppercase mb-1">
+                      {t('safety.report.aiRequiredActions')}
+                    </p>
                     {aiInsights.requiredActions.map((a, i) => (
                       <p key={i} className="text-xs text-muted-foreground pl-2">• {a}</p>
                     ))}
@@ -395,7 +465,9 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
 
                 {aiInsights.complianceGaps?.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-semibold text-yellow-600 uppercase mb-1">Lacunas de Segurança de Missão:</p>
+                    <p className="text-[10px] font-semibold text-yellow-600 uppercase mb-1">
+                      {t('safety.report.aiGaps')}
+                    </p>
                     {aiInsights.complianceGaps.map((g, i) => (
                       <p key={i} className="text-xs text-muted-foreground pl-2">• {g}</p>
                     ))}
@@ -403,7 +475,7 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
                 )}
 
                 <div className="p-2 bg-muted/30 rounded-lg">
-                  <p className="text-[10px] font-semibold mb-1">📄 Texto para PGR:</p>
+                  <p className="text-[10px] font-semibold mb-1">📄 {t('safety.report.aiPgrText')}</p>
                   <p className="text-[10px] text-muted-foreground italic">{aiInsights.executiveText}</p>
                 </div>
               </CardContent>
@@ -412,10 +484,11 @@ ${reportData.recommendations.map((r, i) => `Recomendação ${i + 1},"${r}",`).jo
 
           {/* Legal Reference */}
           <div className="p-3 bg-muted/20 rounded-lg text-[10px] text-muted-foreground space-y-1">
-            <p className="font-semibold">⚖️ Base Legal:</p>
-            <p>• Segurança de Missão (Portaria MTP 4.219/2022) — Gerenciamento de Riscos Ocupacionais</p>
-            <p>• Portaria MTE 1.419/2024 — Inclusão de riscos psicossociais no PGR</p>
-            <p>• Zero-Trust Privacy (Lei 13.709/2018) — Dados anonimizados e agregados</p>
+            <p className="font-semibold">⚖️ {t('safety.report.legalBasisTitle')}</p>
+            <p>{t('safety.report.legalBasisLine1')}</p>
+            <p>{t('safety.report.legalBasisLine2')}</p>
+            <p>{t('safety.report.legalBasisLine3')}</p>
+            <p className="text-[10px] text-muted-foreground/80 italic pt-1">{t('safety.report.dssDisclaimer')}</p>
           </div>
         </CardContent>
       </Card>

@@ -5,6 +5,7 @@ import { FileText, Download, Loader2, Shield, ClipboardList, Calendar, BarChart3
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useConnectionMode } from '@/hooks/useConnectionMode';
+import { useI18n } from '@/i18n';
 
 interface PGRReport {
   titulo: string;
@@ -29,6 +30,7 @@ interface PGRReport {
 }
 
 export default function PGRReportGenerator() {
+  const { lang, t } = useI18n();
   const [report, setReport] = useState<PGRReport | null>(null);
   const [loading, setLoading] = useState(false);
   const { isAutonomous } = useConnectionMode();
@@ -39,6 +41,8 @@ export default function PGRReportGenerator() {
     try {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const now = new Date();
+      const dateLocale = lang === 'pt' ? 'pt-BR' : 'en-US';
 
       const { data: scans } = await supabase
         .from('stress_scans')
@@ -48,7 +52,11 @@ export default function PGRReportGenerator() {
         .limit(1000);
 
       if (!scans || scans.length === 0) {
-        toast({ title: 'Sem dados', description: 'Sem dados de scans para gerar o PGR.', variant: 'destructive' });
+        toast({
+          title: t('safety.pgr.toast.noDataTitle'),
+          description: t('safety.pgr.toast.noDataDesc'),
+          variant: 'destructive',
+        });
         return;
       }
 
@@ -62,65 +70,132 @@ export default function PGRReportGenerator() {
       const highPercent = Math.round((high / total) * 100);
       const riskLevel = highPercent > 30 ? 'high' : highPercent > 15 ? 'moderate' : 'low';
 
-      const period = `${thirtyDaysAgo.toLocaleDateString('pt-BR')} a ${new Date().toLocaleDateString('pt-BR')}`;
+      const period = t('safety.report.periodFormat', {
+        start: thirtyDaysAgo.toLocaleDateString(dateLocale),
+        end: now.toLocaleDateString(dateLocale),
+      });
 
       if (isAutonomous) {
-        const localReport: PGRReport = {
-          titulo: 'Relatório Técnico PGR (Regras Fixas Locais)',
-          versao: '1.0-autonomo',
-          identificacaoEmpresa: { nota: 'Modo Autônomo da Missão (sem uplink)' },
-          objetivos: ['Gerenciamento operacional contínuo de riscos psicossociais'],
-          fundamentacaoLegal: [
-            {
-              norma: 'NR-1',
-              dispositivo: 'Item 1.5.3',
-              descricao: 'Gerado localmente (regras fixas, sem IA em nuvem): Avaliação preliminar de risco ocupacional.',
-            },
-          ],
-          inventarioRiscos: {
-            fatoresIdentificados: [
-              {
-                fator: 'Carga Mental e Fadiga no Cockpit',
-                fonte: 'Telemetria Biocognitiva Local',
-                classificacao: riskLevel === 'high' ? 'grave' : riskLevel === 'moderate' ? 'moderado' : 'leve',
-                populacaoExposta: `${uniqueUsers.size} tripulante(s)`,
-                medidasControle: 'Gerado localmente (regras fixas, sem IA em nuvem): Protocolo de contramedidas e pausas 4-7-8',
-              },
-            ],
-          },
-          analiseQuantitativa: {
-            resumo: 'Gerado localmente (regras fixas, sem IA em nuvem): Análise quantitativa consolidada via regras locais.',
-            indicadores: [
-              { indicador: 'Total de Scans Locais', valor: String(total), interpretacao: 'Amostragem operacional' },
-              { indicador: 'HRV Médio', valor: `${avgHRV}ms`, interpretacao: 'Índice de tônus parassimpático' },
-            ],
-          },
-          planoAcao: [
-            {
-              acao: 'Gerado localmente (regras fixas, sem IA em nuvem): Manter hidratação e pausas guiadas',
-              responsavel: 'Operador de Voo',
-              prazo: 'Imediato',
-              prioridade: 'Alta',
-              indicadorEficacia: 'Estabilidade de HRV',
-            },
-          ],
-          cronograma: [
-            {
-              fase: 'Turno Atual',
-              periodo: '24 horas',
-              atividades: ['Registro sistemático de fadiga e contramedidas'],
-            },
-          ],
-          monitoramento: {
-            frequencia: 'Diária',
-            indicadores: ['BioScore', 'Percepção de Fadiga'],
-            responsavel: 'Oficial Médico / Sistema Autônomo',
-          },
-          declaracaoLGPD: 'Dados protegidos e tratados localmente na espaçonave.',
-          conclusao: 'Gerado localmente (regras fixas, sem IA em nuvem): Tripulação em condições de prontidão operacional monitorada.',
-        };
+        const localReport: PGRReport =
+          lang === 'pt'
+            ? {
+                titulo: 'Relatório Técnico PGR (Regras Fixas Locais)',
+                versao: '1.0-autonomo',
+                identificacaoEmpresa: { nota: 'Modo Autônomo da Missão (sem uplink)' },
+                objetivos: ['Gerenciamento operacional contínuo de riscos psicossociais'],
+                fundamentacaoLegal: [
+                  {
+                    norma: 'NR-1',
+                    dispositivo: 'Item 1.5.3',
+                    descricao: 'Gerado localmente (regras fixas, sem IA em nuvem): Avaliação preliminar de risco ocupacional.',
+                  },
+                ],
+                inventarioRiscos: {
+                  fatoresIdentificados: [
+                    {
+                      fator: 'Carga Mental e Fadiga no Cockpit',
+                      fonte: 'Telemetria Biocognitiva Local',
+                      classificacao: riskLevel === 'high' ? 'grave' : riskLevel === 'moderate' ? 'moderado' : 'leve',
+                      populacaoExposta: `${uniqueUsers.size} tripulante(s)`,
+                      medidasControle: 'Gerado localmente (regras fixas, sem IA em nuvem): Protocolo de contramedidas e pausas 4-7-8',
+                    },
+                  ],
+                  classificacaoGeral: riskLevel === 'high' ? 'Alto Risco Operacional' : riskLevel === 'moderate' ? 'Risco Moderado' : 'Baixo Risco',
+                  metodologia: 'Avaliação biocognitiva e telemetria de prontidão operacional',
+                },
+                analiseQuantitativa: {
+                  resumo: 'Gerado localmente (regras fixas, sem IA em nuvem): Análise quantitativa consolidada via regras locais.',
+                  indicadores: [
+                    { indicador: 'Total de Scans Locais', valor: String(total), interpretacao: 'Amostragem operacional' },
+                    { indicador: 'HRV Médio', valor: `${avgHRV}ms`, interpretacao: 'Índice de tônus parassimpático' },
+                  ],
+                },
+                planoAcao: [
+                  {
+                    acao: 'Gerado localmente (regras fixas, sem IA em nuvem): Manter hidratação e pausas guiadas',
+                    responsavel: 'Operador de Voo',
+                    prazo: 'Imediato',
+                    prioridade: 'alta',
+                    indicadorEficacia: 'Estabilidade de HRV',
+                  },
+                ],
+                cronograma: [
+                  {
+                    fase: 'Turno Atual',
+                    periodo: '24 horas',
+                    atividades: ['Registro sistemático de fadiga e contramedidas'],
+                  },
+                ],
+                monitoramento: {
+                  frequencia: 'Diária',
+                  indicadores: ['BioScore', 'Percepção de Fadiga'],
+                  responsavel: 'Oficial Médico / Sistema Autônomo',
+                },
+                declaracaoLGPD: 'Dados protegidos e tratados localmente na espaçonave em conformidade com a Zero-Trust Privacy.',
+                conclusao: 'Gerado localmente (regras fixas, sem IA em nuvem): Tripulação em condições de prontidão operacional monitorada.',
+              }
+            : {
+                titulo: 'PGR Technical Report (Local Fixed Rules)',
+                versao: '1.0-autonomous',
+                identificacaoEmpresa: { nota: 'Mission Autonomous Mode (no uplink)' },
+                objetivos: ['Continuous operational management of psychosocial risks'],
+                fundamentacaoLegal: [
+                  {
+                    norma: 'NR-1 (Brazilian workplace safety regulation)',
+                    dispositivo: 'Item 1.5.3',
+                    descricao: 'Locally generated (fixed rules, no cloud AI): Preliminary occupational risk assessment.',
+                  },
+                ],
+                inventarioRiscos: {
+                  fatoresIdentificados: [
+                    {
+                      fator: 'Mental Workload and Cockpit Fatigue',
+                      fonte: 'Local Biocognitive Telemetry',
+                      classificacao: riskLevel === 'high' ? 'grave' : riskLevel === 'moderate' ? 'moderado' : 'leve',
+                      populacaoExposta: `${uniqueUsers.size} crew member(s)`,
+                      medidasControle: 'Locally generated (fixed rules, no cloud AI): Countermeasure protocol and 4-7-8 breathing breaks',
+                    },
+                  ],
+                  classificacaoGeral: riskLevel === 'high' ? 'High Operational Risk' : riskLevel === 'moderate' ? 'Moderate Risk' : 'Low Risk',
+                  metodologia: 'Biocognitive evaluation and operational readiness telemetry',
+                },
+                analiseQuantitativa: {
+                  resumo: 'Locally generated (fixed rules, no cloud AI): Consolidated quantitative analysis via local rules.',
+                  indicadores: [
+                    { indicador: 'Total Local Scans', valor: String(total), interpretacao: 'Operational sample' },
+                    { indicador: 'Average HRV', valor: `${avgHRV}ms`, interpretacao: 'Parasympathetic tone index' },
+                  ],
+                },
+                planoAcao: [
+                  {
+                    acao: 'Locally generated (fixed rules, no cloud AI): Maintain hydration and guided breaks',
+                    responsavel: 'Flight Operator',
+                    prazo: 'Immediate',
+                    prioridade: 'alta',
+                    indicadorEficacia: 'HRV Stability',
+                  },
+                ],
+                cronograma: [
+                  {
+                    fase: 'Current Shift',
+                    periodo: '24 hours',
+                    atividades: ['Systematic fatigue logging and countermeasures'],
+                  },
+                ],
+                monitoramento: {
+                  frequencia: 'Daily',
+                  indicadores: ['BioScore', 'Perceived Fatigue'],
+                  responsavel: 'Medical Officer / Autonomous System',
+                },
+                declaracaoLGPD: 'Data protected and processed locally aboard the spacecraft under Zero-Trust Privacy.',
+                conclusao: 'Locally generated (fixed rules, no cloud AI): Crew in monitored operational readiness condition.',
+              };
+
         setReport(localReport);
-        toast({ title: 'PGR gerado', description: 'Documento técnico pronto para download.' });
+        toast({
+          title: t('safety.pgr.toast.successTitle'),
+          description: t('safety.pgr.toast.successDesc'),
+        });
         return;
       }
 
@@ -146,9 +221,17 @@ export default function PGRReportGenerator() {
       if (error) throw error;
       if (result?.error) throw new Error(result.error);
       setReport(result.result);
-      toast({ title: 'PGR gerado', description: 'Documento técnico pronto para download.' });
-    } catch (e: any) {
-      toast({ title: 'Erro', description: e.message, variant: 'destructive' });
+      toast({
+        title: t('safety.pgr.toast.successTitle'),
+        description: t('safety.pgr.toast.successDesc'),
+      });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast({
+        title: t('safety.pgr.toast.errorTitle'),
+        description: msg,
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -156,7 +239,8 @@ export default function PGRReportGenerator() {
 
   const exportPDF = () => {
     if (!report) return;
-    const now = new Date().toLocaleDateString('pt-BR');
+    const dateLocale = lang === 'pt' ? 'pt-BR' : 'en-US';
+    const now = new Date().toLocaleDateString(dateLocale);
 
     const fundamentacaoHtml = report.fundamentacaoLegal?.map(f => `
       <tr><td style="padding:6px 8px;border:1px solid #ddd;font-size:11px;font-weight:600;">${f.norma}</td>
@@ -180,7 +264,7 @@ export default function PGRReportGenerator() {
         <td style="padding:6px 8px;border:1px solid #ddd;font-size:11px;">${a.acao}</td>
         <td style="padding:6px 8px;border:1px solid #ddd;font-size:11px;">${a.responsavel}</td>
         <td style="padding:6px 8px;border:1px solid #ddd;font-size:11px;">${a.prazo}</td>
-        <td style="padding:6px 8px;border:1px solid #ddd;font-size:11px;font-weight:600;color:${a.prioridade === 'alta' ? '#dc2626' : a.prioridade === 'média' ? '#d97706' : '#16a34a'}">${a.prioridade?.toUpperCase()}</td>
+        <td style="padding:6px 8px;border:1px solid #ddd;font-size:11px;font-weight:600;color:${a.prioridade?.toLowerCase() === 'alta' ? '#dc2626' : a.prioridade?.toLowerCase() === 'média' || a.prioridade?.toLowerCase() === 'media' ? '#d97706' : '#16a34a'}">${a.prioridade?.toUpperCase()}</td>
         <td style="padding:6px 8px;border:1px solid #ddd;font-size:11px;">${a.indicadorEficacia}</td>
       </tr>
     `).join('') || '';
@@ -202,7 +286,7 @@ export default function PGRReportGenerator() {
     `).join('') || '';
 
     const html = `<!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="${lang === 'pt' ? 'pt-BR' : 'en'}">
 <head>
   <meta charset="UTF-8">
   <title>${report.titulo}</title>
@@ -222,7 +306,7 @@ export default function PGRReportGenerator() {
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
     <div>
       <h1 style="margin:0;border:none;padding:0;">${report.titulo}</h1>
-      <p style="color:#888;font-size:11px;margin:4px 0 0;">${report.versao} · Gerado por CrewVitals · ${now}</p>
+      <p style="color:#888;font-size:11px;margin:4px 0 0;">${t('safety.pgr.pdf.generatedBy', { version: report.versao, date: now })}</p>
     </div>
     <div style="font-size:28px;font-weight:800;color:#1a7a7a;">NS</div>
   </div>
@@ -232,71 +316,70 @@ export default function PGRReportGenerator() {
     <p style="font-size:10px;color:#666;margin:0;">${report.identificacaoEmpresa?.nota || ''}</p>
   </div>
 
-  <h2>1. OBJETIVOS</h2>
+  <h2>${t('safety.pgr.section.objectives')}</h2>
   <ul>${report.objetivos?.map(o => `<li>${o}</li>`).join('') || ''}</ul>
 
-  <h2>2. FUNDAMENTAÇÃO LEGAL</h2>
+  <h2>${t('safety.pgr.section.legalBasis')}</h2>
   <table>
-    <thead><tr><th>Norma</th><th>Dispositivo</th><th>Descrição</th></tr></thead>
+    <thead><tr><th>${t('safety.pgr.th.standard')}</th><th>${t('safety.pgr.th.provision')}</th><th>${t('safety.pgr.th.description')}</th></tr></thead>
     <tbody>${fundamentacaoHtml}</tbody>
   </table>
 
-  <h2>3. INVENTÁRIO DE RISCOS PSICOSSOCIAIS</h2>
-  <h3>3.1 Metodologia</h3>
+  <h2>${t('safety.pgr.section.riskInventory')}</h2>
+  <h3>${t('safety.pgr.section.methodology')}</h3>
   <p>${report.inventarioRiscos?.metodologia || ''}</p>
-  <h3>3.2 Classificação Geral</h3>
+  <h3>${t('safety.pgr.section.generalClassification')}</h3>
   <p>${report.inventarioRiscos?.classificacaoGeral || ''}</p>
-  <h3>3.3 Fatores de Risco Identificados</h3>
+  <h3>${t('safety.pgr.section.identifiedFactors')}</h3>
   <table>
-    <thead><tr><th>Fator</th><th>Fonte</th><th>Classificação</th><th>Pop. Exposta</th><th>Medidas de Controle</th></tr></thead>
+    <thead><tr><th>${t('safety.pgr.th.factor')}</th><th>${t('safety.pgr.th.source')}</th><th>${t('safety.pgr.th.classification')}</th><th>${t('safety.pgr.th.exposedPop')}</th><th>${t('safety.pgr.th.controlMeasures')}</th></tr></thead>
     <tbody>${inventarioHtml}</tbody>
   </table>
 
-  <h2>4. ANÁLISE QUANTITATIVA</h2>
+  <h2>${t('safety.pgr.section.quantitative')}</h2>
   <p>${report.analiseQuantitativa?.resumo || ''}</p>
   <table>
-    <thead><tr><th>Indicador</th><th>Valor</th><th>Interpretação</th></tr></thead>
+    <thead><tr><th>${t('safety.pgr.th.indicator')}</th><th>${t('safety.pgr.th.value')}</th><th>${t('safety.pgr.th.interpretation')}</th></tr></thead>
     <tbody>${indicadoresHtml}</tbody>
   </table>
 
-  <h2>5. PLANO DE AÇÃO</h2>
+  <h2>${t('safety.pgr.section.actionPlan')}</h2>
   <table>
-    <thead><tr><th>#</th><th>Ação</th><th>Responsável</th><th>Prazo</th><th>Prioridade</th><th>Indicador de Eficácia</th></tr></thead>
+    <thead><tr><th>#</th><th>${t('safety.pgr.th.action')}</th><th>${t('safety.pgr.th.owner')}</th><th>${t('safety.pgr.th.deadline')}</th><th>${t('safety.pgr.th.priority')}</th><th>${t('safety.pgr.th.effectiveness')}</th></tr></thead>
     <tbody>${planoHtml}</tbody>
   </table>
 
-  <h2>6. CRONOGRAMA DE IMPLEMENTAÇÃO</h2>
+  <h2>${t('safety.pgr.section.schedule')}</h2>
   <table>
-    <thead><tr><th>Fase</th><th>Período</th><th>Atividades</th></tr></thead>
+    <thead><tr><th>${t('safety.pgr.th.phase')}</th><th>${t('safety.pgr.th.period')}</th><th>${t('safety.pgr.th.activities')}</th></tr></thead>
     <tbody>${cronogramaHtml}</tbody>
   </table>
 
-  <h2>7. MONITORAMENTO E REVISÃO</h2>
-  <p><strong>Frequência:</strong> ${report.monitoramento?.frequencia || ''}</p>
-  <p><strong>Responsável:</strong> ${report.monitoramento?.responsavel || ''}</p>
-  <p><strong>Indicadores:</strong></p>
+  <h2>${t('safety.pgr.section.monitoring')}</h2>
+  <p><strong>${t('safety.pgr.th.period')}:</strong> ${report.monitoramento?.frequencia || ''}</p>
+  <p><strong>${t('safety.pgr.th.owner')}:</strong> ${report.monitoramento?.responsavel || ''}</p>
+  <p><strong>${t('safety.pgr.card.monitoring')}:</strong></p>
   <ul>${report.monitoramento?.indicadores?.map(i => `<li>${i}</li>`).join('') || ''}</ul>
 
-  <h2>8. PROTEÇÃO DE DADOS (Zero-Trust Privacy)</h2>
+  <h2>${t('safety.pgr.section.dataProtection')}</h2>
   <p>${report.declaracaoLGPD || ''}</p>
 
-  <h2>9. CONCLUSÃO</h2>
+  <h2>${t('safety.pgr.section.conclusion')}</h2>
   <p>${report.conclusao || ''}</p>
 
   <div style="margin-top:40px;padding-top:16px;border-top:2px solid #1a7a7a;">
     <p style="font-size:10px;color:#999;text-align:center;">
-      Documento gerado automaticamente pelo sistema CrewVitals — Plataforma de Neuroperformance Corporativa<br>
-      Dados agregados e anonimizados em conformidade com a Zero-Trust Privacy (Lei 13.709/2018)
+      ${t('safety.pgr.pdf.disclaimer')}
     </p>
     <div style="display:flex;justify-content:space-between;margin-top:24px;">
       <div style="text-align:center;flex:1;">
         <div style="border-top:1px solid #333;width:200px;margin:0 auto;padding-top:4px;">
-          <p style="font-size:10px;color:#666;">Responsável Técnico SST</p>
+          <p style="font-size:10px;color:#666;">${t('safety.pgr.pdf.techResp')}</p>
         </div>
       </div>
       <div style="text-align:center;flex:1;">
         <div style="border-top:1px solid #333;width:200px;margin:0 auto;padding-top:4px;">
-          <p style="font-size:10px;color:#666;">Representante Legal da Empresa</p>
+          <p style="font-size:10px;color:#666;">${t('safety.pgr.pdf.legalRep')}</p>
         </div>
       </div>
     </div>
@@ -319,14 +402,16 @@ export default function PGRReportGenerator() {
   };
 
   const getPriorityColor = (p: string) => {
-    if (p === 'alta') return 'text-destructive';
-    if (p === 'média') return 'text-yellow-600';
+    const lower = p?.toLowerCase();
+    if (lower === 'alta' || lower === 'high') return 'text-destructive';
+    if (lower === 'média' || lower === 'media' || lower === 'medium') return 'text-yellow-600';
     return 'text-green-600';
   };
 
   const getClassColor = (c: string) => {
-    if (c === 'grave') return 'bg-destructive/10 text-destructive';
-    if (c === 'moderado') return 'bg-yellow-500/10 text-yellow-600';
+    const lower = c?.toLowerCase();
+    if (lower === 'grave' || lower === 'severe' || lower === 'high') return 'bg-destructive/10 text-destructive';
+    if (lower === 'moderado' || lower === 'moderate') return 'bg-yellow-500/10 text-yellow-600';
     return 'bg-green-500/10 text-green-600';
   };
 
@@ -336,22 +421,22 @@ export default function PGRReportGenerator() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            Relatório PGR — Riscos Psicossociais
+            {t('safety.pgr.title')}
           </CardTitle>
           <CardDescription>
-            Documento técnico do Programa de Gerenciamento de Riscos conforme Segurança de Missão e Portaria MTE 1.419/2024, gerado automaticamente com IA
+            {t('safety.pgr.description')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2 flex-wrap">
             <Button onClick={generatePGR} disabled={loading} className="gap-2">
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
-              {loading ? 'Gerando documento PGR...' : 'Gerar Relatório PGR com IA'}
+              {loading ? t('safety.pgr.generatingBtn') : t('safety.pgr.generateBtn')}
             </Button>
             {report && (
               <Button onClick={exportPDF} variant="outline" className="gap-2">
                 <Download className="h-4 w-4" />
-                Exportar PDF
+                {t('safety.pgr.exportPdf')}
               </Button>
             )}
           </div>
@@ -359,8 +444,8 @@ export default function PGRReportGenerator() {
           {loading && (
             <div className="text-center py-8">
               <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary mb-3" />
-              <p className="text-sm text-muted-foreground">A IA está elaborando o documento técnico completo...</p>
-              <p className="text-xs text-muted-foreground mt-1">Isso pode levar alguns segundos</p>
+              <p className="text-sm text-muted-foreground">{t('safety.pgr.loadingText')}</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('safety.pgr.loadingSubtext')}</p>
             </div>
           )}
         </CardContent>
@@ -373,7 +458,7 @@ export default function PGRReportGenerator() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2">
                 <ClipboardList className="h-4 w-4 text-primary" />
-                Objetivos do PGR
+                {t('safety.pgr.card.objectives')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -392,7 +477,7 @@ export default function PGRReportGenerator() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2">
                 <Shield className="h-4 w-4 text-primary" />
-                Fundamentação Legal
+                {t('safety.pgr.card.legalBasis')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -412,7 +497,7 @@ export default function PGRReportGenerator() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2">
                 <BarChart3 className="h-4 w-4 text-destructive" />
-                Inventário de Riscos Psicossociais
+                {t('safety.pgr.card.riskInventory')}
               </CardTitle>
               <CardDescription className="text-xs">{report.inventarioRiscos?.metodologia}</CardDescription>
             </CardHeader>
@@ -427,9 +512,9 @@ export default function PGRReportGenerator() {
                         {f.classificacao?.toUpperCase()}
                       </span>
                     </div>
-                    <p className="text-[10px] text-muted-foreground">Fonte: {f.fonte}</p>
-                    <p className="text-[10px] text-muted-foreground">Pop. Exposta: {f.populacaoExposta}</p>
-                    <p className="text-[10px] text-muted-foreground">Medidas: {f.medidasControle}</p>
+                    <p className="text-[10px] text-muted-foreground">{t('safety.pgr.label.source', { source: f.fonte })}</p>
+                    <p className="text-[10px] text-muted-foreground">{t('safety.pgr.label.exposedPop', { pop: f.populacaoExposta })}</p>
+                    <p className="text-[10px] text-muted-foreground">{t('safety.pgr.label.measures', { measures: f.medidasControle })}</p>
                   </div>
                 ))}
               </div>
@@ -441,7 +526,7 @@ export default function PGRReportGenerator() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2">
                 <BarChart3 className="h-4 w-4 text-primary" />
-                Análise Quantitativa
+                {t('safety.pgr.card.quantitative')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -463,22 +548,22 @@ export default function PGRReportGenerator() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2">
                 <ClipboardList className="h-4 w-4 text-accent" />
-                Plano de Ação
+                {t('safety.pgr.card.actionPlan')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
                 {report.planoAcao?.map((a, i) => (
-                  <div key={i} className="p-3 bg-muted/20 rounded-lg border-l-4" style={{ borderLeftColor: a.prioridade === 'alta' ? 'hsl(var(--destructive))' : a.prioridade === 'média' ? '#d97706' : '#16a34a' }}>
+                  <div key={i} className="p-3 bg-muted/20 rounded-lg border-l-4" style={{ borderLeftColor: a.prioridade?.toLowerCase() === 'alta' ? 'hsl(var(--destructive))' : a.prioridade?.toLowerCase() === 'média' || a.prioridade?.toLowerCase() === 'media' ? '#d97706' : '#16a34a' }}>
                     <div className="flex items-center justify-between mb-1">
                       <p className="text-xs font-semibold">{i + 1}. {a.acao}</p>
                       <span className={`text-[10px] font-bold ${getPriorityColor(a.prioridade)}`}>{a.prioridade?.toUpperCase()}</span>
                     </div>
                     <div className="flex gap-4 text-[10px] text-muted-foreground">
-                      <span>👤 {a.responsavel}</span>
-                      <span>⏱️ {a.prazo}</span>
+                      <span>👤 {t('safety.pgr.label.owner', { owner: a.responsavel })}</span>
+                      <span>⏱️ {t('safety.pgr.label.deadline', { deadline: a.prazo })}</span>
                     </div>
-                    <p className="text-[10px] text-muted-foreground mt-1">📊 {a.indicadorEficacia}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">📊 {t('safety.pgr.label.effectiveness', { indicator: a.indicadorEficacia })}</p>
                   </div>
                 ))}
               </div>
@@ -490,7 +575,7 @@ export default function PGRReportGenerator() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-primary" />
-                Cronograma de Implementação
+                {t('safety.pgr.card.schedule')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -512,8 +597,8 @@ export default function PGRReportGenerator() {
           <Card className="shadow-soft">
             <CardContent className="p-4 space-y-4">
               <div>
-                <p className="text-xs font-semibold mb-1">📡 Monitoramento</p>
-                <p className="text-[10px] text-muted-foreground">Frequência: {report.monitoramento?.frequencia} · Responsável: {report.monitoramento?.responsavel}</p>
+                <p className="text-xs font-semibold mb-1">📡 {t('safety.pgr.card.monitoring')}</p>
+                <p className="text-[10px] text-muted-foreground">{t('safety.pgr.card.monitoringDetail', { freq: report.monitoramento?.frequencia, resp: report.monitoramento?.responsavel })}</p>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {report.monitoramento?.indicadores?.map((ind, i) => (
                     <span key={i} className="text-[10px] px-2 py-0.5 bg-primary/10 text-primary rounded-full">{ind}</span>
@@ -521,11 +606,11 @@ export default function PGRReportGenerator() {
                 </div>
               </div>
               <div>
-                <p className="text-xs font-semibold mb-1">🔒 Zero-Trust Privacy</p>
+                <p className="text-xs font-semibold mb-1">🔒 {t('safety.pgr.card.privacy')}</p>
                 <p className="text-[10px] text-muted-foreground">{report.declaracaoLGPD}</p>
               </div>
               <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
-                <p className="text-xs font-semibold mb-1">✅ Conclusão</p>
+                <p className="text-xs font-semibold mb-1">✅ {t('safety.pgr.card.conclusion')}</p>
                 <p className="text-xs text-muted-foreground">{report.conclusao}</p>
               </div>
             </CardContent>
@@ -536,8 +621,8 @@ export default function PGRReportGenerator() {
       {!report && !loading && (
         <div className="text-center py-8 text-muted-foreground">
           <FileText className="h-12 w-12 mx-auto mb-3 opacity-30" />
-          <p className="text-sm">Clique no botão acima para gerar o documento PGR completo</p>
-          <p className="text-xs mt-1">O relatório inclui inventário de riscos, plano de ação, cronograma e fundamentação legal</p>
+          <p className="text-sm">{t('safety.pgr.empty.title')}</p>
+          <p className="text-xs mt-1">{t('safety.pgr.empty.desc')}</p>
         </div>
       )}
     </div>

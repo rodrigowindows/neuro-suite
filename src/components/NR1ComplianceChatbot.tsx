@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,44 +6,55 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Shield, Send, Bot, User, Trash2, Square } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useStreamingChat } from '@/hooks/useStreamingChat';
-import { useEffect, useRef, useState } from 'react';
+import { useI18n } from '@/i18n';
 
-const INITIAL_MESSAGE = {
-  role: 'assistant' as const,
-  content: 'Olá! Sou o assistente especialista em **Segurança de Missão** e regulamentação brasileira de SST.\n\nPosso ajudar com:\n- Obrigações da Segurança de Missão e Portaria 1.419/2024\n- Riscos psicossociais no GRO/PGR\n- Multas e penalidades\n- Ferramentas de avaliação aceitas\n- Integração com eSocial\n\nComo posso ajudar?',
-};
-
-const SUGGESTIONS = [
-  'Quais são as obrigações da Segurança de Missão sobre riscos psicossociais?',
-  'Como incluir riscos psicossociais no PGR?',
-  'Quais as penalidades por descumprimento da Segurança de Missão?',
-  'Como a Portaria 1.419/2024 impacta minha empresa?',
-  'Quais ferramentas de avaliação são aceitas para riscos psicossociais?',
-];
+interface ChatMessage {
+  role: 'assistant' | 'user';
+  content: string;
+}
 
 export default function NR1ComplianceChatbot() {
+  const { t } = useI18n();
   const { toast } = useToast();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState('');
 
   const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/nr1-chatbot`;
 
-  const buildBody = useCallback((msgs: any[], userMsg: any) => ({
+  const initialMessage = useMemo(() => ({
+    role: 'assistant' as const,
+    content: t('safety.chatbot.initialMessage'),
+  }), [t]);
+
+  const suggestions = useMemo(() => [
+    t('safety.chatbot.suggestion1'),
+    t('safety.chatbot.suggestion2'),
+    t('safety.chatbot.suggestion3'),
+    t('safety.chatbot.suggestion4'),
+    t('safety.chatbot.suggestion5'),
+  ], [t]);
+
+  const buildBody = useCallback((msgs: ChatMessage[], userMsg: ChatMessage) => ({
     messages: [...msgs, userMsg],
   }), []);
 
   const { messages, isLoading, sendMessage, cancelGeneration, resetMessages } = useStreamingChat({
     endpoint: CHAT_URL,
     buildBody,
-    onError: (error) => toast({ title: 'Erro', description: error.message || 'Não foi possível obter resposta.', variant: 'destructive' }),
+    onError: (error) =>
+      toast({
+        title: t('safety.chatbot.toast.errorTitle'),
+        description: error.message || t('safety.chatbot.toast.errorDesc'),
+        variant: 'destructive',
+      }),
   });
 
   // Initialize with welcome message
   useEffect(() => {
     if (messages.length === 0) {
-      resetMessages([INITIAL_MESSAGE]);
+      resetMessages([initialMessage]);
     }
-  }, []);
+  }, [initialMessage, messages.length, resetMessages]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -65,7 +76,7 @@ export default function NR1ComplianceChatbot() {
   };
 
   const clearChat = () => {
-    resetMessages([INITIAL_MESSAGE]);
+    resetMessages([initialMessage]);
   };
 
   return (
@@ -75,24 +86,36 @@ export default function NR1ComplianceChatbot() {
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Shield className="h-5 w-5 text-primary" />
-              Chatbot Segurança de Missão
+              {t('safety.chatbot.title')}
             </div>
             {messages.length > 1 && (
-              <Button variant="ghost" size="sm" onClick={clearChat}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearChat}
+                title={t('safety.chatbot.clear')}
+                aria-label={t('safety.chatbot.clear')}
+              >
                 <Trash2 className="h-4 w-4" />
               </Button>
             )}
           </CardTitle>
           <CardDescription>
-            Tire dúvidas sobre Segurança de Missão, Portaria 1.419/2024, PGR, riscos psicossociais e eSocial
+            {t('safety.chatbot.description')}
           </CardDescription>
         </CardHeader>
 
         <CardContent className="flex-1 flex flex-col min-h-0 space-y-3">
           {messages.length <= 1 && (
             <div className="flex flex-wrap gap-2">
-              {SUGGESTIONS.map((s, i) => (
-                <Button key={i} variant="outline" size="sm" className="text-xs h-auto py-1.5 whitespace-normal text-left" onClick={() => handleSend(s)}>
+              {suggestions.map((s, i) => (
+                <Button
+                  key={i}
+                  variant="outline"
+                  size="sm"
+                  className="text-xs h-auto py-1.5 whitespace-normal text-left"
+                  onClick={() => handleSend(s)}
+                >
                   {s}
                 </Button>
               ))}
@@ -129,7 +152,7 @@ export default function NR1ComplianceChatbot() {
                   </div>
                   <div className="bg-muted/50 border rounded-lg p-3">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm text-muted-foreground">Consultando Segurança de Missão</p>
+                      <p className="text-sm text-muted-foreground">{t('safety.chatbot.consulting')}</p>
                       <div className="flex gap-1">
                         <span className="w-2 h-2 bg-primary rounded-full animate-[pulse_1.4s_ease-in-out_0s_infinite]" />
                         <span className="w-2 h-2 bg-primary rounded-full animate-[pulse_1.4s_ease-in-out_0.2s_infinite]" />
@@ -144,22 +167,37 @@ export default function NR1ComplianceChatbot() {
 
           <div className="flex gap-2 flex-shrink-0">
             <Input
-              placeholder="Pergunte sobre Segurança de Missão, PGR, riscos psicossociais..."
+              placeholder={t('safety.chatbot.inputPlaceholder')}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={isLoading}
             />
             {isLoading ? (
-              <Button onClick={cancelGeneration} variant="destructive" size="icon" title="Cancelar geração">
+              <Button
+                onClick={cancelGeneration}
+                variant="destructive"
+                size="icon"
+                title={t('safety.chatbot.cancel')}
+                aria-label={t('safety.chatbot.cancel')}
+              >
                 <Square className="h-4 w-4" />
               </Button>
             ) : (
-              <Button onClick={() => handleSend(input)} disabled={!input.trim()} size="icon">
+              <Button
+                onClick={() => handleSend(input)}
+                disabled={!input.trim()}
+                size="icon"
+                title={t('safety.chatbot.send')}
+                aria-label={t('safety.chatbot.send')}
+              >
                 <Send className="h-4 w-4" />
               </Button>
             )}
           </div>
+          <p className="text-[10px] text-muted-foreground text-center">
+            {t('safety.chatbot.supportDisclaimer')}
+          </p>
         </CardContent>
       </Card>
     </div>
