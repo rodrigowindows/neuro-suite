@@ -159,6 +159,9 @@ describe('Index page', () => {
       expect(screen.getByRole('heading', { name: 'Mission Context' })).toBeTruthy();
       expect(screen.getByText('Communication latency with Earth')).toBeTruthy();
       expect(screen.getByText('User data isolation')).toBeTruthy();
+      expect(screen.getByText('Long-Duration Missions')).toBeTruthy();
+      expect(container.textContent).toContain('Webcam-based monitoring');
+      expect(container.textContent).toContain('recovery techniques');
 
       // Assert: Portuguese texts are absent
       expect(container.textContent).not.toContain('Ver demonstração');
@@ -168,6 +171,9 @@ describe('Index page', () => {
       expect(container.textContent).not.toContain('100% Offline');
       expect(container.textContent).not.toContain('0 Dados Vazados');
       expect(container.textContent).not.toContain('0 data leaks');
+      expect(container.textContent).not.toContain('Long-Duration Missions — NASA');
+      expect(container.textContent).not.toContain('in real time');
+      expect(container.textContent).not.toContain('techniques validated');
       const emoji = /\p{Extended_Pictographic}/u;
       expect(emoji.test(container.innerHTML)).toBe(false);
     });
@@ -182,6 +188,9 @@ describe('Index page', () => {
       expect(demoLink.getAttribute('href')).toBe('/demo');
       expect(screen.getByRole('button', { name: 'Iniciar Missão' })).toBeTruthy();
       expect(screen.getByRole('heading', { name: 'Contexto da missão' })).toBeTruthy();
+      expect(screen.getByText('Missões de longa duração')).toBeTruthy();
+      expect(container.textContent).toContain('monitoramento por webcam');
+      expect(container.textContent).toContain('técnicas de recuperação');
 
       // Assert: English texts are absent
       expect(container.textContent).not.toContain('View demo');
@@ -191,6 +200,9 @@ describe('Index page', () => {
       expect(container.textContent).not.toContain('100% Offline');
       expect(container.textContent).not.toContain('0 Dados Vazados');
       expect(container.textContent).not.toContain('0 data leaks');
+      expect(container.textContent).not.toContain('Missões de Longa Duração — NASA');
+      expect(container.textContent).not.toContain('em tempo real');
+      expect(container.textContent).not.toContain('técnicas validadas');
       const emoji = /\p{Extended_Pictographic}/u;
       expect(emoji.test(container.innerHTML)).toBe(false);
     });
