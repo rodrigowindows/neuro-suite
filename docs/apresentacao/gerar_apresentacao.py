@@ -112,17 +112,17 @@ SLIDES_PT: tuple[Slide, ...] = (
         rows=(
             (
                 "Etapa 1: Abertura",
-                "NO-GO — Não Apto (BioScore 34, 14 piscadas/min, sono 5,5 h; HRV 28 ms nos bastidores)",
+                "NO-GO — Não Apto (BioScore 34, 14 piscadas/min, sono 5,5 h)",
                 "Acesso direto à rota pública /demo com selo DEMO e controle 'Reiniciar demonstração'. Botão primário: 'Iniciar Protocolo 4-7-8'.",
             ),
             (
                 "Etapa 2: Recuperação",
-                "ATENÇÃO — Vigilância (BioScore 52, 14 piscadas/min, sono 5,5 h; HRV 45 ms nos bastidores)",
+                "ATENÇÃO — Vigilância (BioScore 52, 14 piscadas/min, sono 5,5 h)",
                 "Transição após contramedida executada. Botão primário atualizado para: 'Simular novo scan'.",
             ),
             (
                 "Etapa 3: Estabilização",
-                "GO — Apto para o Turno (BioScore 72, 18 piscadas/min, sono 5,5 h; HRV 62 ms nos bastidores)",
+                "GO — Apto para o Turno (BioScore 72, 18 piscadas/min, sono 5,5 h)",
                 "Clique em 'Simular novo scan' confirma recuperação. Botão primário: 'Iniciar Turno'.",
             ),
         ),
@@ -219,17 +219,17 @@ SLIDES_EN: tuple[Slide, ...] = (
         rows=(
             (
                 "Stage 1: Opening",
-                "NO-GO — Not Fit (BioScore 34, 14 blinks/min, sleep 5.5 h; scenario-only HRV 28 ms)",
+                "NO-GO — Not Fit (BioScore 34, 14 blinks/min, sleep 5.5 h)",
                 "Direct access to public route /demo with DEMO seal and 'Restart demo' control. Primary button: 'Start 4-7-8 Protocol'.",
             ),
             (
                 "Stage 2: Recovery",
-                "CAUTION — Watch (BioScore 52, 14 blinks/min, sleep 5.5 h; scenario-only HRV 45 ms)",
+                "CAUTION — Watch (BioScore 52, 14 blinks/min, sleep 5.5 h)",
                 "Transition after countermeasure execution. Primary button updated to: 'Simulate new scan'.",
             ),
             (
                 "Stage 3: Stabilization",
-                "GO — Fit for Shift (BioScore 72, 18 blinks/min, sleep 5.5 h; scenario-only HRV 62 ms)",
+                "GO — Fit for Shift (BioScore 72, 18 blinks/min, sleep 5.5 h)",
                 "Clicking 'Simulate new scan' confirms recovery. Primary button: 'Start Shift'.",
             ),
         ),
