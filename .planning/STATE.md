@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Endurecimento de Seguranca e Demo com Conta Compartilhada
-status: planning
-last_updated: "2026-11-15T18:32:00.000Z"
+milestone: v1.3
+milestone_name: Demo Multilingue (EN e PT)
+status: completed
+last_updated: "2026-11-15T21:15:00.000Z"
 last_activity: 2026-11-15
 progress:
-  total_phases: 0
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_phases: 11
+  completed_phases: 11
+  total_plans: 11
+  completed_plans: 11
+  percent: 100
 ---
 
 # Project State — CrewVitals
@@ -65,20 +65,6 @@ progress:
   - Conferir manualmente o arquivo dentro de `Feedbacks/` e revogar se for chave ativa
 - **Detalhes:** `.planning/phases/11-auditoria/UAT.md`
 
-## Proximos Passos
-
-1. Revogar as 2 chaves do relatorio AppSec e conferir o arquivo em `Feedbacks/` (acao do dono).
-2. Fazer o deploy em producao e executar o teste 401 do `neuro-coach` (UAT secao 9).
-3. Executar o roteiro visual cronometrado da conta demo no navegador (UAT secao 8) e registrar os resultados reais.
-
-## Current Position
-
-Phase: 11 — Auditoria e UAT (codigo e gates validados; ensaio visual e teste 401 pos-deploy mantidos NAO VERIFICADO)
-Plan: —
-Status: Gates e codigo 100% validados; aguarda resultados informados de producao e ensaio visual
-Last activity: 2026-11-15 — Reexecucao de auditoria completa da Phase 11 (550 testes, tsc, build, diff blindados e greps aprovados)
-
-
 ## Marco v1.2 — Demo Pública sem Login (auditoria final em 2026-11-15)
 
 - **Status:** Auditoria final aprovada no repositório (commit cfcbe26): 562 testes, tsc, eslint e build limpos, blindados intactos, e-mail da conta demo removido do código e do bundle. Pendente (dono): log de rede real em `/demo`, ensaio em janela anônima, hospedar deck e vídeo, trocar a senha da conta demo.
@@ -96,10 +82,26 @@ Last activity: 2026-11-15 — Reexecucao de auditoria completa da Phase 11 (550 
   - Hospedar o deck (PDF/PPTX) e vídeo de 30s com link público e preencher `docs/publicacao/LINKS.md`.
   - Executar o UAT cronometrado de 60s em janela anônima (`docs/publicacao/UAT-v1.2.md`).
 
+## Marco v1.3 — Demo Multilíngue EN e PT (auditoria final em 2026-11-15)
 
-## Marco v1.3 — Demo Multilíngue EN e PT (planejado em 2026-11-15)
+- **Status:** Auditoria final técnica 100% aprovada (Fase 31 concluída; relatório oficial em `docs/publicacao/UAT-v1.3.md`). 52 arquivos de teste e 599 testes passando, `npx tsc --noEmit` limpo (0 erros), `npm run build` limpo em 18.24s, ESLint limpo (0 erros em i18n e páginas), blindados intactos, segredos sanitizados.
+- **Entregas Validadas:**
+  - Núcleo i18n (`src/i18n/index.tsx`) leve, reativo e puro com detecção via `?lang=`, `localStorage`, navegador e fallback `en`.
+  - `LanguageToggle.tsx` acessível (alvo >= 44px) integrado nos headers de `/demo`, `/` e `/auth`, compatível com mobile 375px.
+  - Isolamento estrito de escopo: `LangProvider` restrito a rotas públicas; Dashboard e rotas operacionais internas 100% em português (`Dashboard.test.tsx` 27/27 testes passando).
+  - Paridade de chaves `en`/`pt` garantida em todos os namespaces (`common`, `demo`, `predictive`, `landing`, `auth`).
+  - Zero chamadas Supabase na `/demo` em inglês e português comprovadas em `Demo.test.tsx` (8/8 testes passando).
+  - Consistência de métricas (34/14/5,5; 52/14/5,5; 72/18/5,5) comprovada entre `Demo.tsx`, Decks (PPTX e PDF de exatamente 7 slides/páginas) e Roteiros de Vídeo (rigorosamente 30s).
+  - Hashes SHA-256 de `CrewVitals-Demo.pptx` e `CrewVitals-Demo.pdf` estritamente idênticos às versões `-EN.pptx` e `-EN.pdf`.
+  - Documentação de publicação e `README.md` bilíngues, sem emojis em títulos, com links `?lang=en` e `?lang=pt`.
+- **Ações Externas Pendentes (do Dono):**
+  - Publicação no Lovable com deploy público.
+  - Execução do roteiro de 90 segundos em janela anônima com conferência de DevTools Network (0 requisições a `supabase`).
+  - Upload externo do Deck e Vídeo e preenchimento dos placeholders `<FILL IN>` em `docs/publicacao/LINKS.md`.
 
-- **Status:** planejado. Prompts prontos em `.planning/prompts-v1.3/` (fases 21 a 31). Nada executado.
-- **Ordem:** 21, 26, 27, 28, 29 em paralelo; depois 22, 23, 24, 25 em paralelo; depois 30; por fim 31.
-- **Decisão:** módulo próprio `src/i18n/` sem dependência nova; `LangProvider` só em `/`, `/auth` e `/demo`; EN é o padrão para navegadores não portugueses.
-- **Pendências herdadas do v1.2 (dono):** log de rede real em `/demo`, ensaio em janela anônima, hospedar deck e vídeo, trocar a senha da conta demo antiga.
+## Current Position
+
+Phase: 31 — Auditoria Final do Marco v1.3
+Plan: Concluído
+Status: Marco v1.3 auditado e homologado para submissão da banca
+Last activity: 2026-11-15 — Auditoria técnica completa (599 testes, tsc, build, eslint, diff e consistência aprovados)

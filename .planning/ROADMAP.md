@@ -135,7 +135,7 @@ Fases 12, 13, 14 e 15 não compartilham arquivos. A fase 16 depende das quatro.
 | 17 | 1/1 | Concluída (commit c5c69bf): números reais, botões reais e acentos no deck e no vídeo |
 | 18 | 1/1 | Concluída (commit 9c70ed3): `useGuestDemoReadiness` separado, eslint limpo |
 | 19 | 1/1 | Reauditoria feita; resultado em `docs/publicacao/UAT-v1.2.md` |
-| 20 | 0/1 | Pendente: remover e-mail da conta demo do bundle (`.planning/prompts-v1.2/20-remover-email-demo.md`) |
+| 20 | 1/1 | Concluída (commit cfcbe26): e-mail da conta demo removido do bundle público |
 
 ---
 
@@ -159,4 +159,18 @@ Fases 12, 13, 14 e 15 não compartilham arquivos. A fase 16 depende das quatro.
 | 30 | Revisão de tradução | Termos, naturalidade, PT preservado | I18N-12 | `30-revisao-traducao.md` |
 | 31 | Auditoria v1.3 | Gates, escopo, consistência, UAT | I18N-12 | `31-auditoria-i18n.md` |
 
-Ondas: 21, 26, 27, 28, 29 em paralelo; depois 22, 23, 24, 25 em paralelo; depois 30; por fim 31.
+## Progress v1.3
+
+| Phase | Plans | Status |
+|-------|-------|--------|
+| 21 | 1/1 | Concluída no código (commits ea18d48, abc0e27) |
+| 22 | 1/1 | Concluída no código (commits c5d614b, 3adbb4c) |
+| 23 | 1/1 | Concluída no código (commit 88549d9) |
+| 24 | 1/1 | Concluída no código (commit 960a68e) |
+| 25 | 1/1 | Concluída no código (commit da359b0) |
+| 26 | 1/1 | Concluída nos materiais (commit 9dfbc15) |
+| 27 | 1/1 | Concluída nos materiais (commit 5eacb5e) |
+| 28 | 1/1 | Concluída na documentação (commit 9722fe7) |
+| 29 | 1/1 | Concluída na documentação (commit 6f69a3a) |
+| 30 | 1/1 | Revisão concluída (conforme SUMMARY sem necessidade de alterações no código) |
+| 31 | 1/1 | Auditoria e UAT concluídos com sucesso (`docs/publicacao/UAT-v1.3.md`) |

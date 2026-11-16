@@ -89,7 +89,17 @@ Marco "Endurecimento de Segurança e Demo com Conta Compartilhada". Cada requisi
 | PUB-05, PUB-06 | Phase 13 | Complete |
 | PUB-07, PUB-08, PUB-09 | Phase 14 | Complete |
 | PUB-10, PUB-11 | Phase 15 | Complete |
-| PUB-12 | Phase 16 | Complete (código e sanitização; ensaio do dono pendente fora do código) |
+| PUB-12 | Phase 16, 18, 19 | Complete (código e sanitização; ensaio do dono pendente fora do código) |
+| I18N-01, I18N-02, I18N-03 | Phase 21 | Complete |
+| I18N-04 | Phase 22 | Complete |
+| I18N-05 | Phase 23 | Complete |
+| I18N-06 | Phase 24 | Complete |
+| I18N-07 | Phase 25 | Complete |
+| I18N-08 | Phase 26 | Complete |
+| I18N-09 | Phase 27 | Complete |
+| I18N-10 | Phase 28 | Complete |
+| I18N-11 | Phase 29 | Complete |
+| I18N-12 | Phase 30, Phase 31 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 27 total
@@ -99,6 +109,9 @@ Marco "Endurecimento de Segurança e Demo com Conta Compartilhada". Cada requisi
 - v1.2 requirements: 12 total
 - Complete (código, materiais e sanitização): 12 (PUB-01 a PUB-12), auditoria final no commit cfcbe26. Pendente fora do código: log de rede real, ensaio em janela anônima, links públicos
 - Pendências de produção do v1.2: Ensaio visual ao vivo em produção pelo dono (documentado em `docs/publicacao/UAT-v1.2.md`)
+- v1.3 requirements: 12 total
+- Complete (código, testes, paridade e documentação): 12 (I18N-01 a I18N-12), auditoria final no commit docs(v1.3)
+- Pendências de produção do v1.3: Ensaio visual de 90s ao vivo em produção pelo dono e preenchimento de links externos hospedados (documentado em `docs/publicacao/UAT-v1.3.md`)
 - Unmapped: 0
 
 SEC-04 aparece em duas fases porque o contrato tem dois lados (função e receptor). A Phase 11 confere os dois.
@@ -128,19 +141,19 @@ SEC-04 aparece em duas fases porque o contrato tem dois lados (função e recept
 
 ---
 *Requirements defined: 2026-11-15*
-*Last updated: 2026-11-15 após reauditoria da Fase 19 (Fases 17 e 18 commitadas: 562 testes, tsc, build e eslint limpos, consistência deck x demo e blindados intactos)*
+*Last updated: 2026-11-15 após auditoria final da Fase 31 do Marco v1.3 (599 testes, tsc, build e eslint limpos, 12/12 requisitos I18N concluídos)*
 
 ## v1.3 Requirements — Demo Multilíngue (EN e PT)
 
-- [ ] **I18N-01**: Módulo `src/i18n/` com `LangProvider`, `useI18n`, `translate`, `resolveInitialLang` (`?lang=` > localStorage > navegador `pt*` > `en`)
-- [ ] **I18N-02**: `LanguageToggle` (EN | PT) acessível, com alvo de 44 px, em 375 px sem rolagem horizontal
-- [ ] **I18N-03**: Teste de paridade de chaves EN/PT por namespace; `LangProvider` só em `/`, `/auth` e `/demo`; demais rotas em português e inalteradas
-- [ ] **I18N-04**: `/demo` completa em EN e PT (selo, estados, botões, números, log) com zero chamada ao Supabase nas duas línguas
-- [ ] **I18N-05**: `PredictiveAlert` em EN e PT, rotulado como demonstração; Dashboard continua em português
-- [ ] **I18N-06**: Landing em EN e PT sem alegações proibidas
-- [ ] **I18N-07**: Login em EN e PT com fluxo intacto
-- [ ] **I18N-08**: Deck de 7 slides e PDF de 7 páginas em EN e em PT; `CrewVitals-Demo.pptx/.pdf` = versão EN
-- [ ] **I18N-09**: Roteiro de vídeo de até 30 s em EN e PT, com botões reais
-- [ ] **I18N-10**: README em EN e PT, sem emojis nos títulos
-- [ ] **I18N-11**: Checklist, `LINKS.md` e textos de submissão em EN e PT, com links `?lang=en` e `?lang=pt`
-- [ ] **I18N-12**: Revisão de termos e auditoria final com gates verdes, blindados intactos e UAT em `docs/publicacao/UAT-v1.3.md`
+- [x] **I18N-01**: Módulo `src/i18n/` com `LangProvider`, `useI18n`, `translate`, `resolveInitialLang` (`?lang=` > localStorage > navegador `pt*` > `en`)
+- [x] **I18N-02**: `LanguageToggle` (EN | PT) acessível, com alvo de 44 px, em 375 px sem rolagem horizontal
+- [x] **I18N-03**: Teste de paridade de chaves EN/PT por namespace; `LangProvider` só em `/`, `/auth` e `/demo`; demais rotas em português e inalteradas
+- [x] **I18N-04**: `/demo` completa em EN e PT (selo, estados, botões, números, log) com zero chamada ao Supabase nas duas línguas
+- [x] **I18N-05**: `PredictiveAlert` em EN e PT, rotulado como demonstração; Dashboard continua em português
+- [x] **I18N-06**: Landing em EN e PT sem alegações proibidas
+- [x] **I18N-07**: Login em EN e PT com fluxo intacto
+- [x] **I18N-08**: Deck de 7 slides e PDF de 7 páginas em EN e em PT; `CrewVitals-Demo.pptx/.pdf` = versão EN
+- [x] **I18N-09**: Roteiro de vídeo de até 30 s em EN e PT, com botões reais
+- [x] **I18N-10**: README em EN e PT, sem emojis nos títulos
+- [x] **I18N-11**: Checklist, `LINKS.md` e textos de submissão em EN e PT, com links `?lang=en` e `?lang=pt`
+- [x] **I18N-12**: Revisão de termos e auditoria final com gates verdes, blindados intactos e UAT em `docs/publicacao/UAT-v1.3.md`
