@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useI18n, translate } from '@/i18n';
 
 export interface FeatureScores {
   neuroscore: { label: string; color: string } | null;
@@ -26,9 +27,21 @@ const defaultScores: FeatureScores = {
   'dashboard-rh': null,
 };
 
-export function computeNeuroscoreLabel(stressLevel: string): { label: string; color: string } {
+export function computeNeuroscoreLabel(
+  stressLevel: string,
+  t?: (key: string) => string
+): { label: string; color: string } {
+  let label: string;
+  if (stressLevel === 'low') {
+    label = t ? t('nav.score.low') : translate('pt', 'nav.score.low');
+  } else if (stressLevel === 'moderate') {
+    label = t ? t('nav.score.moderate') : translate('pt', 'nav.score.moderate');
+  } else {
+    label = t ? t('nav.score.high') : translate('pt', 'nav.score.high');
+  }
+
   return {
-    label: stressLevel === 'low' ? 'Baixo' : stressLevel === 'moderate' ? 'Moderado' : 'Alto',
+    label,
     color: stressLevel === 'low' ? 'bg-green-500' : stressLevel === 'moderate' ? 'bg-yellow-500' : 'bg-red-500',
   };
 }
@@ -40,7 +53,10 @@ export function computeGamificationLabel(streak: number, totalScans: number): { 
   };
 }
 
-export function computeInsightsFromScans(scans: { stress_level: string; hrv_value: number | null }[]): {
+export function computeInsightsFromScans(
+  scans: { stress_level: string; hrv_value: number | null }[],
+  t?: (key: string) => string
+): {
   aiInsights: { label: string; color: string };
   alerts: { label: string; color: string };
   roi: { label: string; color: string };
@@ -56,8 +72,12 @@ export function computeInsightsFromScans(scans: { stress_level: string; hrv_valu
   const hrvValues = scans.filter(s => s.hrv_value).map(s => Number(s.hrv_value));
   const avgHRV = hrvValues.length > 0 ? Math.round(hrvValues.reduce((a, b) => a + b, 0) / hrvValues.length) : 0;
 
+  const alertLabel = t ? t('nav.score.alert') : translate('pt', 'nav.score.alert');
+  const cautionLabel = t ? t('nav.score.caution') : translate('pt', 'nav.score.caution');
+  const okLabel = t ? t('nav.score.ok') : translate('pt', 'nav.score.ok');
+
   const aiInsights = {
-    label: highPercent > 30 ? 'Alerta' : highPercent > 15 ? 'Atenção' : 'OK',
+    label: highPercent > 30 ? alertLabel : highPercent > 15 ? cautionLabel : okLabel,
     color: highPercent > 30 ? 'bg-red-500' : highPercent > 15 ? 'bg-yellow-500' : 'bg-green-500',
   };
 
@@ -68,7 +88,7 @@ export function computeInsightsFromScans(scans: { stress_level: string; hrv_valu
     label: `${alertCount}`,
     color: 'bg-red-500',
   } : {
-    label: 'OK',
+    label: okLabel,
     color: 'bg-green-500',
   };
 
@@ -80,7 +100,7 @@ export function computeInsightsFromScans(scans: { stress_level: string; hrv_valu
 
   const riskLevel = highPercent > 30 ? 'high' : highPercent > 15 ? 'moderate' : 'low';
   const nr1 = {
-    label: riskLevel === 'low' ? 'OK' : riskLevel === 'moderate' ? 'Atenção' : 'Alerta',
+    label: riskLevel === 'low' ? okLabel : riskLevel === 'moderate' ? cautionLabel : alertLabel,
     color: riskLevel === 'low' ? 'bg-green-500' : riskLevel === 'moderate' ? 'bg-yellow-500' : 'bg-red-500',
   };
 
@@ -91,6 +111,7 @@ export function computeInsightsFromScans(scans: { stress_level: string; hrv_valu
 
 export function useFeatureScores() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [scores, setScores] = useState<FeatureScores>(defaultScores);
 
   const loadScores = useCallback(async () => {
@@ -129,7 +150,7 @@ export function useFeatureScores() {
       const newScores: FeatureScores = { ...defaultScores };
 
       if (scansRes.data) {
-        newScores.neuroscore = computeNeuroscoreLabel(scansRes.data.stress_level);
+        newScores.neuroscore = computeNeuroscoreLabel(scansRes.data.stress_level, t);
       }
 
       if (progressRes.data) {
@@ -145,7 +166,7 @@ export function useFeatureScores() {
       }
 
       if (recentScansRes.data && recentScansRes.data.length > 0) {
-        const computed = computeInsightsFromScans(recentScansRes.data);
+        const computed = computeInsightsFromScans(recentScansRes.data, t);
         newScores['ai-insights'] = computed.aiInsights;
         newScores.alerts = computed.alerts;
         newScores.roi = computed.roi;
@@ -157,7 +178,7 @@ export function useFeatureScores() {
     } catch (error) {
       console.error('Error loading feature scores:', error);
     }
-  }, [user?.id]);
+  }, [user, t]);
 
   useEffect(() => {
     loadScores();
