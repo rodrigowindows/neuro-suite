@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useI18n } from '@/i18n';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CalendarDays, Smile, Meh, Frown, type LucideIcon } from 'lucide-react';
 import {
@@ -13,12 +14,12 @@ import {
   Cell,
 } from 'recharts';
 
-const MOOD_MAP: Record<string, { label: string; value: number; color: string; icon: LucideIcon }> = {
-  great: { label: 'Ótimo', value: 5, color: 'hsl(160, 84%, 39%)', icon: Smile },
-  good:  { label: 'Bem', value: 4, color: 'hsl(168, 76%, 42%)', icon: Smile },
-  okay:  { label: 'Nominal', value: 3, color: 'hsl(38, 92%, 50%)', icon: Meh },
-  low:   { label: 'Baixo', value: 2, color: 'hsl(25, 95%, 53%)', icon: Frown },
-  bad:   { label: 'Mal', value: 1, color: 'hsl(0, 84%, 60%)', icon: Frown },
+const MOOD_MAP: Record<string, { labelKey: string; value: number; color: string; icon: LucideIcon }> = {
+  great: { labelKey: 'checkin.history.mood.great', value: 5, color: 'hsl(160, 84%, 39%)', icon: Smile },
+  good:  { labelKey: 'checkin.history.mood.good', value: 4, color: 'hsl(168, 76%, 42%)', icon: Smile },
+  okay:  { labelKey: 'checkin.history.mood.okay', value: 3, color: 'hsl(38, 92%, 50%)', icon: Meh },
+  low:   { labelKey: 'checkin.history.mood.low', value: 2, color: 'hsl(25, 95%, 53%)', icon: Frown },
+  bad:   { labelKey: 'checkin.history.mood.bad', value: 1, color: 'hsl(0, 84%, 60%)', icon: Frown },
 };
 
 interface CheckinDay {
@@ -32,6 +33,7 @@ interface CheckinDay {
 
 export default function CheckinHistory() {
   const { user } = useAuth();
+  const { lang, t } = useI18n();
   const [data, setData] = useState<CheckinDay[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -58,11 +60,12 @@ export default function CheckinHistory() {
 
       // Build 7-day array
       const days: CheckinDay[] = [];
+      const locale = lang === 'pt' ? 'pt-BR' : 'en-US';
       for (let i = 0; i < 7; i++) {
         const d = new Date();
         d.setDate(d.getDate() - 6 + i);
         const dateStr = d.toISOString().split('T')[0];
-        const dayLabel = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
+        const dayLabel = d.toLocaleDateString(locale, { weekday: 'short' }).replace('.', '');
         const entry = byDate.get(dateStr);
         const moodInfo = entry ? MOOD_MAP[entry.mood] : null;
 
@@ -79,16 +82,21 @@ export default function CheckinHistory() {
       setLoading(false);
     };
     fetchHistory();
-  }, [user]);
+  }, [user, lang]);
 
   if (loading) return null;
 
   const hasData = data.some((d) => d.moodValue > 0);
   if (!hasData) return null;
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  interface CustomTooltipProps {
+    active?: boolean;
+    payload?: Array<{ payload: CheckinDay }>;
+  }
+
+  const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
     if (!active || !payload?.length) return null;
-    const d = payload[0].payload as CheckinDay;
+    const d = payload[0].payload;
     if (!d.mood) return null;
     const moodInfo = MOOD_MAP[d.mood];
     const MoodIcon = moodInfo?.icon;
@@ -97,9 +105,9 @@ export default function CheckinHistory() {
         <p className="font-medium">{d.dayLabel} — {d.date}</p>
         <p className="flex items-center gap-1.5 mt-0.5">
           {MoodIcon && <MoodIcon className="h-3.5 w-3.5" style={{ color: d.moodColor }} />}
-          <span>{moodInfo?.label}</span>
+          <span>{moodInfo ? t(moodInfo.labelKey) : ''}</span>
           <span className="text-muted-foreground">•</span>
-          <span>Energia: {d.energy}/5</span>
+          <span>{t('checkin.history.energy', { energy: d.energy })}</span>
         </p>
       </div>
     );
@@ -111,7 +119,7 @@ export default function CheckinHistory() {
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-base">
           <CalendarDays className="h-5 w-5 text-primary" />
-          Histórico — 7 dias
+          {t('checkin.history.title')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -127,7 +135,7 @@ export default function CheckinHistory() {
                   <MoodIcon
                     className="h-4 w-4"
                     style={{ color: d.moodColor }}
-                    aria-label={moodInfo?.label}
+                    aria-label={moodInfo ? t(moodInfo.labelKey) : undefined}
                   />
                 ) : (
                   <span className="text-xs text-muted-foreground">—</span>
@@ -159,7 +167,7 @@ export default function CheckinHistory() {
         </div>
 
         <p className="text-[10px] text-muted-foreground text-center">
-          Barras = prontidão/energia • Indicador = carga cognitiva do dia
+          {t('checkin.history.legend')}
         </p>
       </CardContent>
     </Card>

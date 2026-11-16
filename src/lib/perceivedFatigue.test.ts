@@ -8,6 +8,10 @@ import {
   perceivedFatigueValueSchema,
   perceivedFatigueEntrySchema,
   FATIGUE_DIVERGENCE_MESSAGE,
+  FATIGUE_DIVERGENCE_MESSAGE_EN,
+  getFatigueLabel,
+  getFatigueOptions,
+  getFatigueDivergenceMessage,
 } from './perceivedFatigue';
 
 describe('perceivedFatigue module (AAA Pattern)', () => {
@@ -147,6 +151,42 @@ describe('perceivedFatigue module (AAA Pattern)', () => {
       expect(checkFatigueDivergence(5, 'ATENÇÃO')).toBe(false);
       expect(checkFatigueDivergence(1, 'SEM DADOS')).toBe(false);
       expect(checkFatigueDivergence(null, 'GO')).toBe(false);
+    });
+  });
+
+  describe('4. Internacionalização (EN e PT) de rótulos e opções de fadiga', () => {
+    it('retorna rótulos de fadiga 1 a 5 em EN e PT com retrocompatibilidade', () => {
+      // Arrange & Act & Assert
+      expect(getFatigueLabel(1, 'en')).toBe('1 - No fatigue');
+      expect(getFatigueLabel(2, 'en')).toBe('2 - Mild fatigue');
+      expect(getFatigueLabel(3, 'en')).toBe('3 - Moderate fatigue');
+      expect(getFatigueLabel(4, 'en')).toBe('4 - High fatigue');
+      expect(getFatigueLabel(5, 'en')).toBe('5 - Exhaustion');
+
+      // PT default
+      expect(getFatigueLabel(1)).toBe('1 - Sem fadiga');
+      expect(getFatigueLabel(1, 'pt')).toBe('1 - Sem fadiga');
+      expect(getFatigueLabel(5, 'pt')).toBe('5 - Exaustão');
+
+      // Valor desconhecido retorna a string do valor
+      expect(getFatigueLabel(99, 'en')).toBe('99');
+    });
+
+    it('retorna lista de opções de fadiga em EN e PT', () => {
+      // Arrange & Act & Assert
+      const ptOpts = getFatigueOptions('pt');
+      const enOpts = getFatigueOptions('en');
+
+      expect(ptOpts.length).toBe(5);
+      expect(enOpts.length).toBe(5);
+      expect(ptOpts[0].label).toBe('1 - Sem fadiga');
+      expect(enOpts[0].label).toBe('1 - No fatigue');
+    });
+
+    it('retorna mensagem de divergência em EN e PT', () => {
+      // Arrange & Act & Assert
+      expect(getFatigueDivergenceMessage('pt')).toBe(FATIGUE_DIVERGENCE_MESSAGE);
+      expect(getFatigueDivergenceMessage('en')).toBe(FATIGUE_DIVERGENCE_MESSAGE_EN);
     });
   });
 });

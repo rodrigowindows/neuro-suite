@@ -9,6 +9,11 @@ import {
   getSymptomsStorageKey,
   DECISION_SUPPORT_DISCLAIMER,
   DECISION_SUPPORT_RECOMMENDATION,
+  DECISION_SUPPORT_DISCLAIMER_EN,
+  DECISION_SUPPORT_RECOMMENDATION_EN,
+  getSymptomLabel,
+  getDecisionSupportRecommendation,
+  getDecisionSupportDisclaimer,
   Symptom,
 } from './symptoms';
 
@@ -223,6 +228,53 @@ describe('symptoms module (AAA Pattern)', () => {
         'desconforto ocular',
       ]);
       expect(SYMPTOM_OPTIONS.length).toBe(8);
+    });
+  });
+
+  describe('3. Internacionalização (EN e PT) e retrocompatibilidade', () => {
+    it('retorna rótulos corretos para todos os sintomas em EN e PT', () => {
+      // Arrange & Act & Assert
+      expect(getSymptomLabel('febre ou calafrios', 'en')).toBe('Fever or chills');
+      expect(getSymptomLabel('dor de cabeça', 'en')).toBe('Headache');
+      expect(getSymptomLabel('náusea', 'en')).toBe('Nausea');
+      expect(getSymptomLabel('tontura', 'en')).toBe('Dizziness');
+      expect(getSymptomLabel('dor musculoesquelética', 'en')).toBe('Musculoskeletal pain');
+      expect(getSymptomLabel('humor rebaixado', 'en')).toBe('Low mood');
+      expect(getSymptomLabel('sono fragmentado', 'en')).toBe('Fragmented sleep');
+      expect(getSymptomLabel('desconforto ocular', 'en')).toBe('Eye discomfort');
+
+      // PT default
+      expect(getSymptomLabel('febre ou calafrios')).toBe('febre ou calafrios');
+      expect(getSymptomLabel('febre ou calafrios', 'pt')).toBe('febre ou calafrios');
+
+      // Desconhecido retorna a própria string
+      expect(getSymptomLabel('outro_sintoma', 'en')).toBe('outro_sintoma');
+    });
+
+    it('retorna textos de recomendação e disclaimer de apoio à decisão em EN e PT', () => {
+      // Arrange & Act & Assert
+      expect(getDecisionSupportRecommendation('pt')).toBe(DECISION_SUPPORT_RECOMMENDATION);
+      expect(getDecisionSupportRecommendation('en')).toBe(DECISION_SUPPORT_RECOMMENDATION_EN);
+      expect(getDecisionSupportDisclaimer('pt')).toBe(DECISION_SUPPORT_DISCLAIMER);
+      expect(getDecisionSupportDisclaimer('en')).toBe(DECISION_SUPPORT_DISCLAIMER_EN);
+    });
+
+    it('evaluateDecisionSupport respeita o parâmetro de idioma em EN', () => {
+      // Arrange
+      const twoSymptoms: Symptom[] = ['febre ou calafrios', 'náusea'];
+
+      // Act
+      const resultEn = evaluateDecisionSupport(twoSymptoms, 'NO-GO', 'en');
+      const resultPt = evaluateDecisionSupport(twoSymptoms, 'NO-GO', 'pt');
+
+      // Assert
+      expect(resultEn.triggered).toBe(true);
+      expect(resultEn.recommendation).toBe(DECISION_SUPPORT_RECOMMENDATION_EN);
+      expect(resultEn.disclaimer).toBe(DECISION_SUPPORT_DISCLAIMER_EN);
+
+      expect(resultPt.triggered).toBe(true);
+      expect(resultPt.recommendation).toBe(DECISION_SUPPORT_RECOMMENDATION);
+      expect(resultPt.disclaimer).toBe(DECISION_SUPPORT_DISCLAIMER);
     });
   });
 });

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import WellnessReportPDF from './WellnessReportPDF';
+import { LangProvider } from '@/i18n';
 
 // Mock dependencies
 vi.mock('@/hooks/useAuth', () => ({
@@ -218,5 +219,54 @@ describe('WellnessReportPDF', () => {
     expect(capturedHtml).not.toMatch(/humor/i);
     expect(capturedHtml).not.toMatch(/disciplina/i);
     expect(capturedHtml).not.toMatch(/disciplina de miss[aã]o/i);
+  });
+
+  describe('English report generation with LangProvider initialLang="en"', () => {
+    it('renders "PDF Report" button and generates report completely translated to English', async () => {
+      // Arrange
+      render(
+        <LangProvider initialLang="en">
+          <WellnessReportPDF />
+        </LangProvider>
+      );
+      const generateButton = screen.getByRole('button', { name: /PDF Report/i });
+      expect(screen.queryByRole('button', { name: /Relatório PDF/i })).not.toBeInTheDocument();
+
+      // Act
+      fireEvent.click(generateButton);
+
+      // Assert
+      await waitFor(() => {
+        expect(capturedHtml).not.toBe('');
+      });
+
+      // English elements present
+      expect(capturedHtml).toContain('<html lang="en">');
+      expect(capturedHtml).toContain('<title>Crew Health Telemetry Report - Shepard</title>');
+      expect(capturedHtml).toContain('<h1>Crew Health Telemetry Report</h1>');
+      expect(capturedHtml).toContain('Physiological Metrics and Telemetry (30 days)');
+      expect(capturedHtml).toContain('BioScore Scans');
+      expect(capturedHtml).toContain('Average HRV');
+      expect(capturedHtml).toContain('Sleep Hours (Last Log)');
+      expect(capturedHtml).toContain('Average Readiness');
+      expect(capturedHtml).toContain('Physical Exercise Log (ARED / Counter Microgravity):');
+      expect(capturedHtml).toContain('Load and Fatigue Distribution (30 days)');
+      expect(capturedHtml).toContain('Readiness Assessment History (last 15)');
+      expect(capturedHtml).toContain(
+        'Operational support tool. Does not replace professional medical evaluation.'
+      );
+      expect(capturedHtml).toContain(
+        'CrewVitals by Dark Sector · Zero-Trust Privacy · Period: last 30 days of mission telemetry.'
+      );
+
+      // Portuguese elements absent
+      expect(capturedHtml).not.toContain('Relatório de Telemetria de Saúde da Tripulação');
+      expect(capturedHtml).not.toContain('Métricas Fisiológicas e Telemetria');
+      expect(capturedHtml).not.toContain('Ferramenta de apoio operacional');
+
+      // Zero mentions of humor or disciplina
+      expect(capturedHtml).not.toMatch(/humor/i);
+      expect(capturedHtml).not.toMatch(/disciplina/i);
+    });
   });
 });

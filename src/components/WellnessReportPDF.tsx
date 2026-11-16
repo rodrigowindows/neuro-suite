@@ -1,17 +1,27 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useStressData } from '@/hooks/useStressData';
+import { useI18n, translate, type Lang } from '@/i18n';
 import { Button } from '@/components/ui/button';
 import { FileText, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const COGNITIVE_LOAD_LABELS: Record<string, string> = {
-  great: 'Nominal (Carga Baixa)',
-  good: 'Estável (Carga Nominal)',
-  okay: 'Moderada (Carga Adequada)',
-  low: 'Elevada (Atenção)',
-  bad: 'Crítica (Sobrecarga)',
+  great: translate('pt', 'checkin.report.load.great'),
+  good: translate('pt', 'checkin.report.load.good'),
+  okay: translate('pt', 'checkin.report.load.okay'),
+  low: translate('pt', 'checkin.report.load.low'),
+  bad: translate('pt', 'checkin.report.load.bad'),
+};
+
+export const COGNITIVE_LOAD_LABELS_EN: Record<string, string> = {
+  great: translate('en', 'checkin.report.load.great'),
+  good: translate('en', 'checkin.report.load.good'),
+  okay: translate('en', 'checkin.report.load.okay'),
+  low: translate('en', 'checkin.report.load.low'),
+  bad: translate('en', 'checkin.report.load.bad'),
 };
 
 export const COGNITIVE_LOAD_VALUES: Record<string, number> = {
@@ -28,6 +38,7 @@ export interface BuildWellnessReportParams {
   trend?: { direction: string } | null;
   consecutiveHighDays?: number;
   periodLabel?: string;
+  lang?: Lang;
 }
 
 export function buildWellnessReportHtml({
@@ -40,7 +51,17 @@ export function buildWellnessReportHtml({
   trend,
   consecutiveHighDays = 0,
   periodLabel = '30 dias',
+  lang = 'pt',
 }: BuildWellnessReportParams): string {
+  const isEn = lang === 'en';
+  const t = (key: string, vars?: Record<string, string | number>) => translate(lang, key, vars);
+
+  const effectivePeriodLabel = isEn
+    ? periodLabel === '30 dias'
+      ? t('checkin.report.default_period')
+      : periodLabel
+    : periodLabel || t('checkin.report.default_period');
+
   // Compute averages
   const avgEnergy = checkins && checkins.length > 0
     ? (checkins.reduce((s, c) => s + c.energy_level, 0) / checkins.length).toFixed(1)
@@ -60,60 +81,101 @@ export function buildWellnessReportHtml({
 
   const sleepHoursText = profile?.horas_sono !== null && profile?.horas_sono !== undefined
     ? `${profile.horas_sono}h`
-    : 'Não informado';
+    : t('checkin.report.not_reported');
 
   const exerciseLogText = profile?.treino_realizado
     ? profile.treino_realizado
-    : 'Não registrado';
+    : t('checkin.report.not_recorded');
 
   // Build check-in history table
+  const labelMap = isEn ? COGNITIVE_LOAD_LABELS_EN : COGNITIVE_LOAD_LABELS;
   const checkinRows = (checkins || []).slice(0, 15).map(c => {
-    const date = new Date(c.created_at!).toLocaleDateString('pt-BR');
+    const date = new Date(c.created_at!).toLocaleDateString(isEn ? 'en-US' : 'pt-BR');
     return `<tr>
       <td style="padding:6px 8px;border-bottom:1px solid #eee;">${date}</td>
-      <td style="padding:6px 8px;border-bottom:1px solid #eee;">${COGNITIVE_LOAD_LABELS[c.mood] || c.mood}</td>
+      <td style="padding:6px 8px;border-bottom:1px solid #eee;">${labelMap[c.mood] || c.mood}</td>
       <td style="padding:6px 8px;border-bottom:1px solid #eee;">${c.energy_level}/5</td>
     </tr>`;
   }).join('');
 
   // Build stress bar chart (CSS-based)
+  const lowLabel = t('checkin.report.dist.nominal');
+  const modLabel = t('checkin.report.dist.moderate');
+  const highLabel = t('checkin.report.dist.elevated');
+  const emptyScansText = t('checkin.report.dist.no_scans');
+
   const stressBarChart = totalScans > 0 ? `
     <div style="display:flex;gap:16px;align-items:end;height:120px;margin:12px 0;">
       <div style="flex:1;text-align:center;">
         <div style="background:rgba(34,197,94,0.6);height:${Math.max((lowScans / totalScans) * 100, 2)}px;border-radius:4px 4px 0 0;"></div>
-        <div style="font-size:10px;margin-top:4px;">Nominal (Baixo)<br><b>${lowPercent}%</b></div>
+        <div style="font-size:10px;margin-top:4px;">${lowLabel}<br><b>${lowPercent}%</b></div>
       </div>
       <div style="flex:1;text-align:center;">
         <div style="background:rgba(234,179,8,0.6);height:${Math.max((modScans / totalScans) * 100, 2)}px;border-radius:4px 4px 0 0;"></div>
-        <div style="font-size:10px;margin-top:4px;">Moderado<br><b>${modPercent}%</b></div>
+        <div style="font-size:10px;margin-top:4px;">${modLabel}<br><b>${modPercent}%</b></div>
       </div>
       <div style="flex:1;text-align:center;">
         <div style="background:rgba(239,68,68,0.6);height:${Math.max((highScans / totalScans) * 100, 2)}px;border-radius:4px 4px 0 0;"></div>
-        <div style="font-size:10px;margin-top:4px;">Elevado (Fadiga)<br><b>${highPercent}%</b></div>
+        <div style="font-size:10px;margin-top:4px;">${highLabel}<br><b>${highPercent}%</b></div>
       </div>
     </div>
-  ` : '<p style="color:#999;">Sem dados de scans no período.</p>';
+  ` : `<p style="color:#999;">${emptyScansText}</p>`;
 
   // Risk assessment
-  let riskLevel = 'Nominal / Baixo';
+  let riskLevel = t('checkin.report.risk.nominal');
   let riskColor = '#22c55e';
   if (consecutiveHighDays >= 5 || highPercent > 60) {
-    riskLevel = 'Crítico / Alerta Operacional';
+    riskLevel = t('checkin.report.risk.critical');
     riskColor = '#ef4444';
   } else if (consecutiveHighDays >= 3 || highPercent > 30) {
-    riskLevel = 'Moderado / Requer Contramedidas';
+    riskLevel = t('checkin.report.risk.moderate');
     riskColor = '#eab308';
   }
 
   const trendText = trend
-    ? trend.direction === 'improving' ? 'Estabilizando / Otimizado' : trend.direction === 'worsening' ? 'Atenção / Tendência de Fadiga' : 'Estável'
-    : 'Dados insuficientes';
+    ? trend.direction === 'improving'
+      ? t('checkin.report.trend.improving')
+      : trend.direction === 'worsening'
+      ? t('checkin.report.trend.worsening')
+      : t('checkin.report.trend.stable')
+    : t('checkin.report.trend.insufficient');
+
+  const docTitle = `${t('checkin.report.doc_title')} - ${userName}`;
+  const headerH1 = t('checkin.report.doc_title');
+  const subtitle = t('checkin.report.generated_on', { userName, date: now });
+  const trendPrefix = t('checkin.report.trend_prefix');
+  const sectionMetrics = t('checkin.report.section.metrics', { period: effectivePeriodLabel });
+
+  const scansMetricLabel = t('checkin.report.metrics.scans');
+  const hrvMetricLabel = t('checkin.report.metrics.avg_hrv');
+  const sleepMetricLabel = t('checkin.report.metrics.sleep');
+  const readinessMetricLabel = t('checkin.report.metrics.readiness');
+
+  const exerciseBox = `<b>${t('checkin.report.exercise_log')}</b> ${exerciseLogText}`;
+  const sectionDist = t('checkin.report.section.distribution', { period: effectivePeriodLabel });
+
+  const cardNominal = t('checkin.report.dist.nominal_card');
+  const cardModerate = t('checkin.report.dist.moderate_card');
+  const cardFatigue = t('checkin.report.dist.fatigue_card');
+
+  const alertText = consecutiveHighDays > 0
+    ? `<p style="background:#fef2f2;padding:8px 12px;border-radius:6px;border-left:3px solid #ef4444;font-size:11px;"><b>${t('checkin.report.operational_alert')}</b> ${t('checkin.report.consecutive_alert', { days: consecutiveHighDays })}</p>`
+    : '';
+
+  const sectionHistory = t('checkin.report.section.history');
+  const thDate = t('checkin.report.th.date');
+  const thCogLoad = t('checkin.report.th.cognitive_load');
+  const thReadiness = t('checkin.report.th.readiness');
+  const emptyHistory = `<p style="color:#999;">${t('checkin.report.no_history')}</p>`;
+
+  const disclaimerLine1 = t('checkin.report.disclaimer_line1');
+  const disclaimerLine2 = t('checkin.report.disclaimer_line2', { period: effectivePeriodLabel });
 
   return `<!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="${isEn ? 'en' : 'pt-BR'}">
 <head>
   <meta charset="UTF-8">
-  <title>Relatório de Telemetria de Saúde da Tripulação - ${userName}</title>
+  <title>${docTitle}</title>
   <style>
     @media print { body { margin: 0; } @page { margin: 1.5cm; } .no-print { display: none; } }
     body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 32px; color: #222; font-size: 12px; line-height: 1.6; }
@@ -133,8 +195,8 @@ export function buildWellnessReportHtml({
 <body>
   <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #1a7a7a;padding-bottom:12px;margin-bottom:18px;">
     <div>
-      <h1>Relatório de Telemetria de Saúde da Tripulação</h1>
-      <p style="margin:4px 0 0;font-size:11px;color:#888;">${userName} · Gerado em ${now} · CrewVitals</p>
+      <h1>${headerH1}</h1>
+      <p style="margin:4px 0 0;font-size:11px;color:#888;">${subtitle}</p>
     </div>
     <div style="font-size:24px;font-weight:800;color:#1a7a7a;letter-spacing:1px;">CREWVITALS</div>
   </div>
@@ -142,44 +204,44 @@ export function buildWellnessReportHtml({
   <div style="background:linear-gradient(135deg,#f0fdf4,#ecfeff);padding:14px;border-radius:8px;margin-bottom:18px;">
     <div style="display:flex;align-items:center;gap:12px;">
       <span class="risk-badge" style="background:${riskColor}20;color:${riskColor};">${riskLevel}</span>
-      <span style="font-size:11px;color:#555;">Tendência: <b>${trendText}</b></span>
+      <span style="font-size:11px;color:#555;">${trendPrefix} <b>${trendText}</b></span>
     </div>
   </div>
 
-  <h2>Métricas Fisiológicas e Telemetria (${periodLabel})</h2>
+  <h2>${sectionMetrics}</h2>
   <div class="stats-grid">
-    <div class="stat-card"><div class="stat-value">${totalScans}</div><div class="stat-label">Scans BioScore</div></div>
-    <div class="stat-card"><div class="stat-value">${avgHRV > 0 ? avgHRV + 'ms' : 'N/A'}</div><div class="stat-label">HRV Médio</div></div>
-    <div class="stat-card"><div class="stat-value">${sleepHoursText}</div><div class="stat-label">Horas de Sono (Último Log)</div></div>
-    <div class="stat-card"><div class="stat-value">${avgEnergy}/5</div><div class="stat-label">Prontidão Média</div></div>
+    <div class="stat-card"><div class="stat-value">${totalScans}</div><div class="stat-label">${scansMetricLabel}</div></div>
+    <div class="stat-card"><div class="stat-value">${avgHRV > 0 ? avgHRV + 'ms' : 'N/A'}</div><div class="stat-label">${hrvMetricLabel}</div></div>
+    <div class="stat-card"><div class="stat-value">${sleepHoursText}</div><div class="stat-label">${sleepMetricLabel}</div></div>
+    <div class="stat-card"><div class="stat-value">${avgEnergy}/5</div><div class="stat-label">${readinessMetricLabel}</div></div>
   </div>
 
   <div class="info-box">
-    <b>Log de Exercício Físico (ARED / Contra Microgravidade):</b> ${exerciseLogText}
+    ${exerciseBox}
   </div>
 
-  <h2>Distribuição de Carga e Fadiga (${periodLabel})</h2>
+  <h2>${sectionDist}</h2>
   ${stressBarChart}
 
   <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
-    <div class="stat-card" style="background:#dcfce720;"><div class="stat-value" style="color:#22c55e;">${lowPercent}%</div><div class="stat-label">Nominal</div></div>
-    <div class="stat-card" style="background:#fef9c320;"><div class="stat-value" style="color:#eab308;">${modPercent}%</div><div class="stat-label">Moderado</div></div>
-    <div class="stat-card" style="background:#fee2e220;"><div class="stat-value" style="color:#ef4444;">${highPercent}%</div><div class="stat-label">Fadiga Elevada</div></div>
+    <div class="stat-card" style="background:#dcfce720;"><div class="stat-value" style="color:#22c55e;">${lowPercent}%</div><div class="stat-label">${cardNominal}</div></div>
+    <div class="stat-card" style="background:#fef9c320;"><div class="stat-value" style="color:#eab308;">${modPercent}%</div><div class="stat-label">${cardModerate}</div></div>
+    <div class="stat-card" style="background:#fee2e220;"><div class="stat-value" style="color:#ef4444;">${highPercent}%</div><div class="stat-label">${cardFatigue}</div></div>
   </div>
 
-  ${consecutiveHighDays > 0 ? `<p style="background:#fef2f2;padding:8px 12px;border-radius:6px;border-left:3px solid #ef4444;font-size:11px;"><b>ALERTA OPERACIONAL:</b> <b>${consecutiveHighDays} ciclo(s) consecutivo(s)</b> com indicadores de fadiga elevada.</p>` : ''}
+  ${alertText}
 
-  <h2>Histórico de Avaliações de Prontidão (últimas 15)</h2>
+  <h2>${sectionHistory}</h2>
   ${checkinRows ? `
     <table>
-      <thead><tr><th>Data</th><th>Carga Cognitiva</th><th>Prontidão / Energia</th></tr></thead>
+      <thead><tr><th>${thDate}</th><th>${thCogLoad}</th><th>${thReadiness}</th></tr></thead>
       <tbody>${checkinRows}</tbody>
     </table>
-  ` : '<p style="color:#999;">Nenhuma avaliação registrada no período.</p>'}
+  ` : emptyHistory}
 
   <div class="disclaimer-footer">
-    <b>Ferramenta de apoio operacional. Não substitui avaliação médica profissional.</b><br>
-    CrewVitals by Dark Sector · Zero-Trust Privacy · Período: últimos ${periodLabel} de telemetria da missão.
+    <b>${disclaimerLine1}</b><br>
+    ${disclaimerLine2}
   </div>
 
   <script>window.onload = () => window.print();</script>
@@ -187,7 +249,7 @@ export function buildWellnessReportHtml({
 </html>`;
 }
 
-export function openOrDownloadHtmlReport(html: string, filename?: string): void {
+export function openOrDownloadHtmlReport(html: string, filename?: string, lang: Lang = 'pt'): void {
   const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   let w: Window | null = null;
@@ -199,7 +261,11 @@ export function openOrDownloadHtmlReport(html: string, filename?: string): void 
   if (!w) {
     const a = document.createElement('a');
     a.href = url;
-    a.download = filename || `relatorio-telemetria-tripulacao-${new Date().toISOString().split('T')[0]}.html`;
+    const dateStr = new Date().toISOString().split('T')[0];
+    const defaultName = lang === 'en'
+      ? `crew-health-telemetry-report-${dateStr}.html`
+      : `relatorio-telemetria-tripulacao-${dateStr}.html`;
+    a.download = filename || defaultName;
     try {
       a.click();
     } catch {
@@ -211,6 +277,7 @@ export function openOrDownloadHtmlReport(html: string, filename?: string): void 
 
 export default function WellnessReportPDF() {
   const { user } = useAuth();
+  const { lang, t } = useI18n();
   const { stats, trend, consecutiveHighDays } = useStressData({ days: 30, filterByUser: true });
   const [generating, setGenerating] = useState(false);
 
@@ -243,8 +310,9 @@ export default function WellnessReportPDF() {
           .single(),
       ]);
 
-      const userName = profile?.preferred_name || profile?.full_name || user.email || 'Tripulante';
-      const now = new Date().toLocaleDateString('pt-BR');
+      const defaultUser = lang === 'en' ? 'Crew Member' : 'Tripulante';
+      const userName = profile?.preferred_name || profile?.full_name || user.email || defaultUser;
+      const now = new Date().toLocaleDateString(lang === 'en' ? 'en-US' : 'pt-BR');
 
       const html = buildWellnessReportHtml({
         userName,
@@ -255,13 +323,20 @@ export default function WellnessReportPDF() {
         stats,
         trend,
         consecutiveHighDays,
+        periodLabel: lang === 'en' ? '30 days' : '30 dias',
+        lang,
       });
 
-      openOrDownloadHtmlReport(html);
-      toast.success('Relatório gerado! Use Ctrl+P / Cmd+P para salvar como PDF.');
+      const dateStr = new Date().toISOString().split('T')[0];
+      const filename = lang === 'en'
+        ? `crew-health-telemetry-report-${dateStr}.html`
+        : `relatorio-telemetria-tripulacao-${dateStr}.html`;
+
+      openOrDownloadHtmlReport(html, filename, lang);
+      toast.success(t('checkin.report.success'));
     } catch (err) {
       console.error(err);
-      toast.error('Erro ao gerar relatório');
+      toast.error(t('checkin.report.error'));
     } finally {
       setGenerating(false);
     }
@@ -270,7 +345,7 @@ export default function WellnessReportPDF() {
   return (
     <Button onClick={generate} disabled={generating} variant="outline" size="sm" className="gap-1.5">
       {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileText className="h-3.5 w-3.5" />}
-      {generating ? 'Gerando...' : 'Relatório PDF'}
+      {generating ? t('checkin.report.generating') : t('checkin.report.button')}
     </Button>
   );
 }

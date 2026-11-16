@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react';
-import { Play, Pause, Volume2, Timer, Wind } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Play, Pause, Timer, Wind } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useI18n } from '@/i18n';
 
 interface MiniMeditationProps {
   trigger: boolean; // Ativa quando HRV < 30
 }
 
 export default function MiniMeditation({ trigger }: MiniMeditationProps) {
+  const { lang, t } = useI18n();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentPhase, setCurrentPhase] = useState<'inhale' | 'hold' | 'exhale'>('inhale');
   const [countdown, setCountdown] = useState(4);
@@ -17,13 +19,23 @@ export default function MiniMeditation({ trigger }: MiniMeditationProps) {
 
   useEffect(() => {
     if (!synth) setTtsSupported(false);
-  }, []);
+  }, [synth]);
+
+  const speak = useCallback((text: string) => {
+    if (!synth) return;
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang === 'pt' ? 'pt-BR' : 'en-US';
+    utterance.rate = 0.9;
+    utterance.pitch = 1.0;
+    synth.speak(utterance);
+  }, [synth, lang]);
 
   useEffect(() => {
     if (trigger && !isPlaying) {
-      speak('Atenção, telemetria de HRV reduzida. Inicie o protocolo de respiração para reequilíbrio autonômico.');
+      speak(t('checkin.meditation.tts.trigger'));
     }
-  }, [trigger]);
+  }, [trigger, isPlaying, speak, t]);
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -33,15 +45,15 @@ export default function MiniMeditation({ trigger }: MiniMeditationProps) {
         if (prev <= 1) {
           // Trocar fase
           if (currentPhase === 'inhale') {
-            speak('Segure');
+            speak(t('checkin.meditation.tts.hold'));
             setCurrentPhase('hold');
             return 4;
           } else if (currentPhase === 'hold') {
-            speak('Solte o ar');
+            speak(t('checkin.meditation.tts.exhale'));
             setCurrentPhase('exhale');
             return 6;
           } else {
-            speak('Inspire');
+            speak(t('checkin.meditation.tts.inhale'));
             setCurrentPhase('inhale');
             return 4;
           }
@@ -54,7 +66,7 @@ export default function MiniMeditation({ trigger }: MiniMeditationProps) {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
           setIsPlaying(false);
-          speak('Protocolo concluído. Vitals estabilizados.');
+          speak(t('checkin.meditation.tts.done'));
           return 180;
         }
         return prev - 1;
@@ -65,43 +77,33 @@ export default function MiniMeditation({ trigger }: MiniMeditationProps) {
       clearInterval(phaseTimer);
       clearInterval(totalTimer);
     };
-  }, [isPlaying, currentPhase]);
-
-  const speak = (text: string) => {
-    if (!synth) return;
-    
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'pt-BR';
-    utterance.rate = 0.9;
-    utterance.pitch = 1.0;
-    synth.speak(utterance);
-  };
+  }, [isPlaying, currentPhase, speak, t]);
 
   const togglePlay = () => {
     if (!isPlaying) {
-      speak('Vamos começar. Inspire fundo pelo nariz');
+      speak(t('checkin.meditation.tts.start'));
       setCurrentPhase('inhale');
       setCountdown(4);
       setTimeRemaining(180);
     } else {
-      synth.cancel();
+      synth?.cancel();
     }
     setIsPlaying(!isPlaying);
   };
 
   const getPhaseText = () => {
     switch (currentPhase) {
-      case 'inhale': return 'Inspire fundo pelo nariz';
-      case 'hold': return 'Segure o ar';
-      case 'exhale': return 'Solte pela boca devagar';
+      case 'inhale': return t('checkin.meditation.action.inhale');
+      case 'hold': return t('checkin.meditation.action.hold');
+      case 'exhale': return t('checkin.meditation.action.exhale');
     }
   };
 
   const getPhaseStep = () => {
     switch (currentPhase) {
-      case 'inhale': return 'Fase 1/3: Inalação (4s)';
-      case 'hold': return 'Fase 2/3: Retenção (4s)';
-      case 'exhale': return 'Fase 3/3: Expiração (6s)';
+      case 'inhale': return t('checkin.meditation.step.inhale');
+      case 'hold': return t('checkin.meditation.step.hold');
+      case 'exhale': return t('checkin.meditation.step.exhale');
     }
   };
 
@@ -120,10 +122,10 @@ export default function MiniMeditation({ trigger }: MiniMeditationProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
           <Wind className="h-5 w-5" />
-          Protocolo de Respiração Guiada (3min)
+          {t('checkin.meditation.title')}
         </CardTitle>
         <CardDescription className="text-orange-700 dark:text-orange-300">
-          Seu HRV está reduzido. Reequilibre com respiração controlada guiada por voz.
+          {t('checkin.meditation.desc')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -143,17 +145,19 @@ export default function MiniMeditation({ trigger }: MiniMeditationProps) {
               </div>
               <p className="text-sm text-muted-foreground flex items-center justify-center gap-1">
                 <Timer className="h-3.5 w-3.5" />
-                Tempo restante: {Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}
+                {t('checkin.meditation.time_remaining', {
+                  time: `${Math.floor(timeRemaining / 60)}:${(timeRemaining % 60).toString().padStart(2, '0')}`,
+                })}
               </p>
             </div>
           </div>
         ) : (
           <div className="text-center space-y-3 p-6">
             <p className="text-sm font-medium text-foreground">
-              Técnica 4-4-6: Inspire 4s, segure 4s, expire 6s
+              {t('checkin.meditation.technique')}
             </p>
             <p className="text-xs text-muted-foreground">
-              Baseado em Dr. Andrew Huberman (Stanford) - Regulação do sistema nervoso via respiração controlada
+              {t('checkin.meditation.attribution')}
             </p>
           </div>
         )}
@@ -167,20 +171,20 @@ export default function MiniMeditation({ trigger }: MiniMeditationProps) {
           {isPlaying ? (
             <>
               <Pause className="mr-2 h-5 w-5" />
-              Pausar Protocolo
+              {t('checkin.meditation.pause')}
             </>
           ) : (
             <>
               <Play className="mr-2 h-5 w-5" />
-              Iniciar Protocolo (com áudio)
+              {t('checkin.meditation.start')}
             </>
           )}
         </Button>
 
         <p className="text-xs text-center text-muted-foreground">
           {ttsSupported 
-            ? 'A orientação de áudio utiliza sintetizador nativo do sistema.' 
-            : 'Sintetizador de áudio não disponível. Siga a telemetria visual na tela.'}
+            ? t('checkin.meditation.tts_supported') 
+            : t('checkin.meditation.tts_unsupported')}
         </p>
       </CardContent>
     </Card>

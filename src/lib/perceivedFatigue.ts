@@ -24,12 +24,34 @@ export const FATIGUE_OPTIONS = [
   { value: 5, label: '5 - Exaustão' },
 ] as const;
 
+export const FATIGUE_OPTIONS_EN = [
+  { value: 1, label: '1 - No fatigue' },
+  { value: 2, label: '2 - Mild fatigue' },
+  { value: 3, label: '3 - Moderate fatigue' },
+  { value: 4, label: '4 - High fatigue' },
+  { value: 5, label: '5 - Exhaustion' },
+] as const;
+
 export const FATIGUE_DIVERGENCE_MESSAGE =
   'Divergência entre percepção e telemetria — considere reavaliar';
 
-export function getFatigueLabel(val: number): string {
-  const match = FATIGUE_OPTIONS.find((opt) => opt.value === val);
+export const FATIGUE_DIVERGENCE_MESSAGE_EN =
+  'Divergence between perception and telemetry — consider reassessing';
+
+export type Lang = 'en' | 'pt';
+
+export function getFatigueOptions(lang: Lang = 'pt') {
+  return lang === 'en' ? FATIGUE_OPTIONS_EN : FATIGUE_OPTIONS;
+}
+
+export function getFatigueLabel(val: number, lang: Lang = 'pt'): string {
+  const options = getFatigueOptions(lang);
+  const match = options.find((opt) => opt.value === val);
   return match ? match.label : String(val);
+}
+
+export function getFatigueDivergenceMessage(lang: Lang = 'pt'): string {
+  return lang === 'en' ? FATIGUE_DIVERGENCE_MESSAGE_EN : FATIGUE_DIVERGENCE_MESSAGE;
 }
 
 export function formatFatigueDate(date: Date | string = new Date()): string {

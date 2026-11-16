@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import DailyCheckin from './DailyCheckin';
+import { LangProvider } from '@/i18n';
 import { toast } from 'sonner';
 import { useConnectionMode } from '@/hooks/useConnectionMode';
 import { getOutboxCount, getOutbox, clearOutbox } from '@/lib/offlineOutbox';
@@ -40,7 +41,7 @@ const mockSupabaseEq = vi.fn().mockReturnThis();
 const mockSupabaseGte = vi.fn().mockReturnThis();
 const mockSupabaseLte = vi.fn().mockReturnThis();
 const mockSupabaseOrder = vi.fn().mockReturnThis();
-let mockLimitResolvedValue: any = { data: [], error: null };
+let mockLimitResolvedValue: { data: unknown[]; error: unknown } = { data: [], error: null };
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
@@ -72,6 +73,10 @@ describe('DailyCheckin Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockLimitResolvedValue = { data: [], error: null };
+    vi.mocked(useConnectionMode).mockReturnValue({
+      isAutonomous: false,
+      toggleConnectionMode: vi.fn(),
+    });
   });
 
   it('1. renderiza card inicial com título "Avaliação de Prontidão" sem menção a "Avaliação de Turno" (AAA)', async () => {
@@ -223,5 +228,99 @@ describe('DailyCheckin Component', () => {
       expect(mockSupabaseSelect).toHaveBeenCalledWith(expectedColumns);
     });
     expect(mockSupabaseSelect).not.toHaveBeenCalledWith('*');
+  });
+
+  describe('7. Internacionalização (LangProvider EN e PT)', () => {
+    it('renderiza toda a jornada do checkin em inglês com LangProvider initialLang="en"', async () => {
+      // Arrange
+      render(
+        <LangProvider initialLang="en">
+          <DailyCheckin />
+        </LangProvider>
+      );
+
+      // Assert Step 1: Heading e Moods em inglês
+      await waitFor(() => {
+        expect(
+          screen.getByRole('heading', { level: 3, name: /Readiness Assessment/i })
+        ).toBeInTheDocument();
+      });
+      expect(screen.queryByText('Avaliação de Prontidão')).not.toBeInTheDocument();
+      expect(screen.getAllByText('Shift readiness assessment').length).toBeGreaterThan(0);
+      expect(screen.getByText('Good')).toBeInTheDocument();
+      expect(screen.getByText('Great')).toBeInTheDocument();
+      expect(screen.getByText('Critical')).toBeInTheDocument();
+
+      // Act: seleciona mood e avança
+      fireEvent.click(screen.getByText('Good'));
+
+      // Assert Step 2: Energy em inglês
+      await waitFor(() => {
+        expect(screen.getByText('Energy level?')).toBeInTheDocument();
+      });
+      expect(screen.queryByText('Nível de energia?')).not.toBeInTheDocument();
+      expect(screen.getByText('1 (Minimum)')).toBeInTheDocument();
+      expect(screen.getByText('5 (Maximum)')).toBeInTheDocument();
+
+      const continueBtn = screen.getByRole('button', { name: /Continue/i });
+      expect(screen.queryByText('Continuar')).not.toBeInTheDocument();
+      fireEvent.click(continueBtn);
+
+      // Assert Step 3: Note em inglês
+      expect(
+        await screen.findByText(/Record observations for the system/i)
+      ).toBeInTheDocument();
+      expect(screen.queryByText('Registre observações para o sistema')).not.toBeInTheDocument();
+      expect(screen.getByText('(Optional)')).toBeInTheDocument();
+      expect(
+        screen.getByPlaceholderText('E.g.: fragmented sleep, high load during simulated EVA...')
+      ).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Skip/i })).toBeInTheDocument();
+      expect(screen.queryByText('Pular')).not.toBeInTheDocument();
+
+      // Act: envia
+      fireEvent.click(screen.getByRole('button', { name: /Skip/i }));
+
+      // Assert Step 4: Done em inglês
+      await waitFor(() => {
+        expect(screen.getByText('Readiness assessment recorded!')).toBeInTheDocument();
+      });
+      expect(screen.queryByText('Avaliação de prontidão registrada!')).not.toBeInTheDocument();
+      expect(toast.success).toHaveBeenCalledWith('Readiness assessment recorded!');
+    });
+
+    it('quando já existe checkin hoje, exibe textos em inglês com LangProvider initialLang="en"', async () => {
+      // Arrange
+      mockLimitResolvedValue = {
+        data: [
+          {
+            id: 'checkin-today-en',
+            user_id: 'astronaut-001',
+            mood: 'good',
+            energy_level: 4,
+            created_at: new Date().toISOString(),
+            ai_response: 'Nominal telemetry.',
+          },
+        ],
+        error: null,
+      };
+
+      // Act
+      render(
+        <LangProvider initialLang="en">
+          <DailyCheckin />
+        </LangProvider>
+      );
+
+      // Assert
+      await waitFor(() => {
+        expect(
+          screen.getByRole('heading', { level: 3, name: /Readiness Assessment/i })
+        ).toBeInTheDocument();
+      });
+      expect(screen.getByRole('button', { name: /New readiness assessment/i })).toBeInTheDocument();
+      expect(screen.queryByText('Nova avaliação de prontidão')).not.toBeInTheDocument();
+      expect(screen.getByText(/Energy: 4\/5/i)).toBeInTheDocument();
+    });
   });
 });

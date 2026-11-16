@@ -27,8 +27,42 @@ export type DailySymptomsEntry = z.infer<typeof dailySymptomsEntrySchema>;
 export const DECISION_SUPPORT_RECOMMENDATION =
   'Considere contato com o Cirurgião de Voo. Pacote disponível em Histórico de Voo.';
 
+export const DECISION_SUPPORT_RECOMMENDATION_EN =
+  'Consider contacting Flight Surgeon. Package available in Flight Log.';
+
 export const DECISION_SUPPORT_DISCLAIMER =
   'Apoio à decisão, não diagnóstico';
+
+export const DECISION_SUPPORT_DISCLAIMER_EN =
+  'Decision support, not diagnosis';
+
+export type Lang = 'en' | 'pt';
+
+export const SYMPTOM_LABELS: Record<Symptom, Record<Lang, string>> = {
+  'febre ou calafrios': { pt: 'febre ou calafrios', en: 'Fever or chills' },
+  'dor de cabeça': { pt: 'dor de cabeça', en: 'Headache' },
+  'náusea': { pt: 'náusea', en: 'Nausea' },
+  'tontura': { pt: 'tontura', en: 'Dizziness' },
+  'dor musculoesquelética': { pt: 'dor musculoesquelética', en: 'Musculoskeletal pain' },
+  'humor rebaixado': { pt: 'humor rebaixado', en: 'Low mood' },
+  'sono fragmentado': { pt: 'sono fragmentado', en: 'Fragmented sleep' },
+  'desconforto ocular': { pt: 'desconforto ocular', en: 'Eye discomfort' },
+};
+
+export function getSymptomLabel(symptom: Symptom | string, lang: Lang = 'pt'): string {
+  if (symptom in SYMPTOM_LABELS) {
+    return SYMPTOM_LABELS[symptom as Symptom][lang] || String(symptom);
+  }
+  return String(symptom);
+}
+
+export function getDecisionSupportRecommendation(lang: Lang = 'pt'): string {
+  return lang === 'en' ? DECISION_SUPPORT_RECOMMENDATION_EN : DECISION_SUPPORT_RECOMMENDATION;
+}
+
+export function getDecisionSupportDisclaimer(lang: Lang = 'pt'): string {
+  return lang === 'en' ? DECISION_SUPPORT_DISCLAIMER_EN : DECISION_SUPPORT_DISCLAIMER;
+}
 
 export interface DecisionSupportResult {
   triggered: boolean;
@@ -123,7 +157,8 @@ export function isNoGoVerdict(verdict?: string | null): boolean {
  */
 export function evaluateDecisionSupport(
   symptoms: Symptom[] | string[] | number,
-  verdict?: string | null
+  verdict?: string | null,
+  lang: Lang = 'pt'
 ): DecisionSupportResult {
   const count = typeof symptoms === 'number' ? symptoms : symptoms.length;
   const isNoGo = isNoGoVerdict(verdict);
@@ -131,7 +166,7 @@ export function evaluateDecisionSupport(
 
   return {
     triggered,
-    recommendation: triggered ? DECISION_SUPPORT_RECOMMENDATION : null,
-    disclaimer: DECISION_SUPPORT_DISCLAIMER,
+    recommendation: triggered ? getDecisionSupportRecommendation(lang) : null,
+    disclaimer: getDecisionSupportDisclaimer(lang),
   };
 }
